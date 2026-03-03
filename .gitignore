@@ -1,0 +1,36 @@
+data/cifar10/
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Data files (large)
+data/stl10/
+data/geometry_data.pt
+data/shading_data.pt
+
+# Checkpoints
+checkpoints/*.pt
+
+# Environment
+.env
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test scripts (experimental, not part of main project)
+test_*.py
+analyze_configs.py
+
+# Bulk sample comparisons (keep only focused/)
+samples/*.txt
