@@ -2,7 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from config import VOCAB_SIZE, EMBED_DIM, GRID_H, GRID_W
+from config import (
+    VOCAB_SIZE, EMBED_DIM, GRID_H, GRID_W,
+    NUM_LAYERS, NUM_HEADS, FFN_DIM, DROPOUT,
+)
 from model.embeddings import CombinedEmbedding
 from model.transformer import TransformerEncoder
 
@@ -15,12 +18,15 @@ class ASCIIBert(nn.Module):
     Output: [B, H, W, VOCAB_SIZE] logits for every grid position
     """
 
-    def __init__(self):
+    def __init__(self, vocab_size=VOCAB_SIZE, embed_dim=EMBED_DIM,
+                 num_layers=NUM_LAYERS, num_heads=NUM_HEADS,
+                 ffn_dim=FFN_DIM, dropout=DROPOUT):
         super().__init__()
-        self.embedding = CombinedEmbedding()
-        self.transformer = TransformerEncoder()
-        self.norm = nn.LayerNorm(EMBED_DIM)
-        self.head = nn.Linear(EMBED_DIM, VOCAB_SIZE)
+        self.embedding = CombinedEmbedding(vocab_size, embed_dim, dropout)
+        self.transformer = TransformerEncoder(num_layers, embed_dim,
+                                              num_heads, ffn_dim, dropout)
+        self.norm = nn.LayerNorm(embed_dim)
+        self.head = nn.Linear(embed_dim, vocab_size)
 
     def forward(self, x):
         """

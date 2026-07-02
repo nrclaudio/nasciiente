@@ -28,8 +28,8 @@ env/
 .DS_Store
 Thumbs.db
 
-# Test scripts (experimental, not part of main project)
-test_*.py
+# Root-level test scripts (experimental scratch files; tests/ is tracked)
+/test_*.py
 analyze_configs.py
 
 # Bulk sample comparisons (keep only focused/)
