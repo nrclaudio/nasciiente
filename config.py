@@ -39,6 +39,11 @@ SHADING_NUM_SAMPLES = 100_000
 SHADING_TRAIN_SAMPLES = 100_000
 SHADING_LR = 1e-4
 
+# Stage 3: Human ASCII art fine-tune (optional — runs only if
+# data/human_data.pt exists; see data/prepare_human_ascii.py)
+HUMAN_EPOCHS = 10
+HUMAN_LR = 5e-5
+
 # Inference
 UNMASK_STEPS = 10
 TEMPERATURE = 1.0

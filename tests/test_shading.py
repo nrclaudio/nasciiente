@@ -44,15 +44,54 @@ def test_image_to_ascii_grid():
     assert grid.max().item() < VOCAB_SIZE
 
 
-def test_black_image_maps_to_sparse_chars():
-    """An all-black (inverted: all-white) vs all-white image should differ."""
+def test_uniform_backgrounds_render_as_whitespace():
+    """Flat images are all background — whitespace floor makes them blank."""
+    from data.charset import char_to_idx
     masks, mask_sums, sv, ci, sv_sq = _shape_matching_setup()
-    white = torch.ones(3, 96, 96)   # inverted to 0 density -> sparse chars
+    space = char_to_idx(" ")
+    white = torch.ones(3, 96, 96)
     grid = image_to_ascii_grid(white, sv, masks, ci, mask_sums, sv_sq)
-    # A uniform white image should mostly produce the lightest characters
-    from data.charset import idx_to_char
-    chars = {idx_to_char(int(i)) for i in torch.unique(grid)}
-    assert " " in chars or "." in chars or "`" in chars
+    assert (grid == space).all(), "white image should be pure whitespace"
+    # Dark image: auto-polarity flips so the background is still sparse
+    black = torch.zeros(3, 96, 96)
+    grid = image_to_ascii_grid(black, sv, masks, ci, mask_sums, sv_sq)
+    assert (grid == space).all(), "black image should be pure whitespace"
+
+
+def test_subject_renders_without_background_halo():
+    """A dark disk on white: dense subject chars, clean whitespace around."""
+    from data.charset import char_to_idx
+    masks, mask_sums, sv, ci, sv_sq = _shape_matching_setup()
+    space = char_to_idx(" ")
+    img = torch.ones(3, 480, 480)
+    yy, xx = torch.meshgrid(torch.arange(480), torch.arange(480),
+                            indexing="ij")
+    disk = ((yy - 240) ** 2 + (xx - 240) ** 2) < 120 ** 2
+    img[:, disk] = 0.0
+
+    grid = image_to_ascii_grid(img, sv, masks, ci, mask_sums, sv_sq)
+    assert (grid != space).sum().item() > 50, "disk should render as ink"
+    # Corners are far from the disk — must be pure whitespace, no halo
+    assert (grid[:4, :6] == space).all()
+    assert (grid[-4:, -6:] == space).all()
+
+
+def test_letterbox_preserves_aspect_ratio():
+    """A wide image gets whitespace bands top and bottom, not stretched."""
+    from data.charset import char_to_idx
+    masks, mask_sums, sv, ci, sv_sq = _shape_matching_setup()
+    space = char_to_idx(" ")
+    img = torch.zeros(3, 100, 800)  # very wide, all-dark -> polarity flips
+
+    # Force ink everywhere in-image: dark subject strip on white, wide image
+    img = torch.ones(3, 100, 800)
+    img[:, 20:80, :] = 0.0
+    grid = image_to_ascii_grid(img, sv, masks, ci, mask_sums, sv_sq)
+    # 100x800 image inside 576x640 canvas -> content is ~80px tall (~7 rows),
+    # centered; the top and bottom thirds of the grid must be blank
+    assert (grid[:12] == space).all()
+    assert (grid[-12:] == space).all()
+    assert (grid != space).any()
 
 
 def test_preprocessing_output_ranges():
