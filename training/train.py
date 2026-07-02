@@ -21,6 +21,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from config import (
     BATCH_SIZE, GRAD_ACCUM_STEPS, LEARNING_RATE, WEIGHT_DECAY, GRAD_CLIP, DEVICE,
     GEOMETRY_EPOCHS, SHADING_EPOCHS, SHADING_LR, WARMUP_STEPS,
+    HUMAN_EPOCHS, HUMAN_LR,
     GEOMETRY_TRAIN_SAMPLES, SHADING_TRAIN_SAMPLES,
     GRID_H, GRID_W, UNMASK_STEPS, TEMPERATURE,
     MASK_RATIO_MIN, MASK_RATIO_MAX,
@@ -258,6 +259,15 @@ def main():
     shading_path = os.path.join(data_dir, "shading_data.pt")
     train_stage(model, shading_path, SHADING_EPOCHS, SHADING_LR,
                 "shading", device, ckpt_dir, max_samples=SHADING_TRAIN_SAMPLES)
+
+    # Stage 3 (optional): fine-tune on human-made ASCII art
+    human_path = os.path.join(data_dir, "human_data.pt")
+    if os.path.exists(human_path):
+        train_stage(model, human_path, HUMAN_EPOCHS, HUMAN_LR,
+                    "human", device, ckpt_dir)
+    else:
+        print("\nNo human_data.pt found — skipping stage 3 "
+              "(run data/prepare_human_ascii.py to enable it)")
 
     # Save final model
     final_path = os.path.join(ckpt_dir, "final_model.pt")

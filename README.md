@@ -33,17 +33,30 @@ fully masked grid ──▶ ASCIIBert ──▶ logits per cell ──▶ unmask
   temperature. Positions given in `initial_grid` are never overwritten
   (inpainting).
 
-## Two-stage training curriculum
+## Training curriculum
 
 1. **Geometry** (`data/generate_geometry.py`) — 200k synthetic grids of
    lines, rectangles, triangles, crosses, diamonds and short text labels.
    Teaches structural primitives cheaply.
-2. **Shading** (`data/generate_shading.py`) — 100k grids derived from real
-   images (ImageNet streaming / Imagenette / Caltech-101/256 / STL-10).
-   Each image is converted with 6D sub-cell shape matching: every cell is
-   sampled by 6 circular regions and matched to the closest glyph in that
-   6D space, after adaptive gamma → CLAHE → Sobel edge blending.
-   See `data/DATASET_OPTIONS.md` for the dataset comparison.
+2. **Shading** (`data/generate_shading.py`) — 100k grids derived from
+   images. Default source is **ImageNet-Sketch** (~50k line drawings,
+   streamed from HuggingFace, no auth) — sketches convert to much cleaner
+   ASCII than photos and match the geometry stage's distribution; photo
+   sources (ImageNet / Imagenette / Caltech-101/256 / STL-10) remain
+   available via `--source`. Each image is converted with 6D sub-cell
+   shape matching: every cell is sampled by 6 circular regions and matched
+   to the closest glyph in that 6D space, after adaptive gamma → CLAHE →
+   Sobel edge blending. The converter letterboxes to preserve aspect
+   ratio, auto-flips polarity so backgrounds render sparse, and floors
+   low-ink pixels to true whitespace. For busy photos, `--segment`
+   additionally removes backgrounds with rembg (optional dependency:
+   `pip install rembg onnxruntime`). See `data/DATASET_OPTIONS.md` for the
+   dataset comparison.
+3. **Human ASCII art** (`data/prepare_human_ascii.py`, optional) —
+   fine-tune on ~5k human-made pieces (HuggingFace `apehex/ascii-art`,
+   scraped from asciiart.eu), normalized to 48×80 and filtered to the
+   95-char vocabulary. Runs automatically as stage 3 if
+   `data/human_data.pt` exists; skipped otherwise.
 
 ## Quickstart
 
@@ -53,10 +66,11 @@ pip install -r requirements.txt
 # Run the test suite (CPU, a few seconds)
 pytest tests/
 
-# Full pipeline on a GPU box (generates data, then trains both stages)
+# Full pipeline on a GPU box (generates data, then trains all stages)
 python main.py                       # designed for Vast.ai instances
 python main.py --stage geometry      # or run stages individually
 python main.py --stage shading --source imagenette
+python main.py --stage human         # optional stage-3 human ASCII art
 python main.py --stage train
 
 # SLURM clusters
@@ -71,8 +85,9 @@ streamlit run app/streamlit_app.py
 ```
 
 Notes:
-- `--source imagenet` streams via HuggingFace and needs a HF token with
-  ImageNet access; `imagenette`/`caltech101`/`caltech256` need no auth.
+- The default shading source `imagenet_sketch` streams via HuggingFace
+  with no auth. `--source imagenet` needs a HF token with ImageNet
+  access; `imagenette`/`caltech101`/`caltech256` need no auth.
 - Training defaults (`config.py`) target a single A100: batch 64,
   15 epochs per stage, cosine schedule with warmup. Checkpoints are
   written to `checkpoints/` every epoch, plus `final_model.pt`.
@@ -87,6 +102,7 @@ data/
   charset.py              vocab and grid<->string helpers
   generate_geometry.py    stage-1 synthetic data
   generate_shading.py     stage-2 image-derived data (6D shape matching)
+  prepare_human_ascii.py  stage-3 human ASCII art (optional)
 model/
   ascii_bert.py           the model
   embeddings.py           token embedding + 2D RoPE
@@ -116,7 +132,8 @@ tests/                    CPU-fast pytest suite
 Next steps, roughly in order:
 
 1. **Train the model** on a GPU (see Quickstart) and eyeball per-epoch
-   samples; tune `SHADING_LR`/epochs if stage 2 forgets stage-1 structure.
+   samples; tune `SHADING_LR`/epochs if stage 2 forgets stage-1 structure,
+   and `HUMAN_LR`/epochs if stage 3 overfits its small dataset.
 2. **Publish a checkpoint** (GitHub release or HF Hub) so the Streamlit
    app works out of the box.
 3. **Better unmasking schedule** — MaskGIT's cosine schedule and
@@ -129,3 +146,6 @@ Next steps, roughly in order:
    make generation controllable instead of unconditional.
 6. **Larger grids** — RoPE already supports up to 64×128; train with
    variable grid sizes to exploit it.
+7. **More human data** — `mrzjy/ascii_art_generation_140k` (139k
+   image-derived pieces) and `Csplk/THE.ASCII.ART.EMPORIUM` (3.1M scraped
+   rows) on HuggingFace are candidate stage-3 expansions after filtering.
