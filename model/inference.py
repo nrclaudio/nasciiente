@@ -98,3 +98,48 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
         steps.append(grid.clone().cpu())
 
     return steps, grid.cpu()
+
+
+@torch.no_grad()
+def upscale_grid(model, grid, factor=2, num_steps=10, temperature=1.0,
+                 device="cpu"):
+    """MaskGIT-style super-resolution: enlarge finished ASCII art.
+
+    Anchors each source character at a strided position on a canvas
+    `factor` times larger, masks everything in between, and lets the
+    model inpaint the gaps. Works because 2D RoPE attention is relative:
+    the model runs on any grid up to MAX_ROWS x MAX_COLS even though it
+    trained at 48x80.
+
+    Anchoring every source cell (including spaces) keeps the result
+    faithful to the input; the model only ever fills gaps, it cannot
+    redraw or move existing strokes.
+
+    Args:
+        model: trained ASCIIBert (eval mode)
+        grid: [H, W] long tensor of character indices (no MASK tokens)
+        factor: integer upscale factor
+        num_steps: unmasking steps for the fill
+        temperature: sampling temperature
+        device: torch device
+
+    Returns:
+        steps: list of [H*factor, W*factor] grids (fill progression)
+        final: [H*factor, W*factor] long tensor
+    """
+    from config import MAX_ROWS, MAX_COLS
+
+    h, w = grid.shape
+    big_h, big_w = h * factor, w * factor
+    if big_h > MAX_ROWS or big_w > MAX_COLS:
+        raise ValueError(
+            f"Upscaled grid {big_h}x{big_w} exceeds RoPE precomputation "
+            f"({MAX_ROWS}x{MAX_COLS}). Lower the factor or raise "
+            f"MAX_ROWS/MAX_COLS in config.py.")
+
+    canvas = torch.full((big_h, big_w), MASK_TOKEN, dtype=torch.long)
+    canvas[::factor, ::factor] = grid.cpu()
+
+    return generate(model, big_h, big_w, num_steps=num_steps,
+                    temperature=temperature, initial_grid=canvas,
+                    device=device)

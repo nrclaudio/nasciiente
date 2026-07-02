@@ -146,8 +146,8 @@ def run_prepare_human():
 
 
 def run_train():
-    """Run two-stage training."""
-    from training.train import main as train_main
+    """Run curriculum training, using all available GPUs."""
+    import torch
 
     geo_path = os.path.join(PROJECT_ROOT, "data", "geometry_data.pt")
     shading_path = os.path.join(PROJECT_ROOT, "data", "shading_data.pt")
@@ -161,7 +161,20 @@ def run_train():
         print("  Run: python main.py --stage shading")
         sys.exit(1)
 
-    print("\n>>> Starting two-stage training...\n")
+    ngpu = torch.cuda.device_count()
+    if ngpu > 1 and "RANK" not in os.environ:
+        # Relaunch under torchrun so training/train.py runs one process
+        # per GPU with DistributedDataParallel
+        print(f"\n>>> {ngpu} GPUs detected — launching DDP via torchrun...\n")
+        subprocess.run(
+            [sys.executable, "-m", "torch.distributed.run", "--standalone",
+             f"--nproc_per_node={ngpu}",
+             os.path.join(PROJECT_ROOT, "training", "train.py")],
+            check=True)
+        return
+
+    from training.train import main as train_main
+    print("\n>>> Starting training...\n")
     train_main()
 
 

@@ -18,7 +18,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from config import GRID_H, GRID_W, UNMASK_STEPS, TEMPERATURE, VOCAB_SIZE
 from model.ascii_bert import ASCIIBert
-from model.inference import generate
+from model.inference import generate, upscale_grid
 from data.charset import grid_to_string, MASK_TOKEN
 from app.utils import text_to_partial_grid, count_fixed_positions
 
@@ -70,10 +70,12 @@ def main():
     mode = st.sidebar.radio("Mode", ["Generate from scratch", "Inpainting"])
     temperature = st.sidebar.slider("Temperature", 0.1, 2.0, TEMPERATURE, 0.1)
     num_steps = st.sidebar.slider("Unmasking steps", 1, 20, UNMASK_STEPS)
-    grid_option = st.sidebar.selectbox("Grid size", ["48×80", "24×40"])
+    grid_option = st.sidebar.selectbox("Grid size", ["48×80", "24×40", "64×128"])
 
     if grid_option == "24×40":
         gh, gw = 24, 40
+    elif grid_option == "64×128":
+        gh, gw = 64, 128  # RoPE extrapolates beyond the 48×80 training size
     else:
         gh, gw = GRID_H, GRID_W
 
@@ -89,9 +91,38 @@ def main():
                                         device=device)
                 elapsed = time.time() - t0
 
-            st.code(grid_to_string(final), language=None)
-            st.caption(f"Generated in {elapsed:.1f}s ({num_steps} steps)")
+            st.session_state["last_grid"] = final
+            st.session_state["last_elapsed"] = elapsed
+            st.session_state["last_steps"] = steps
+            st.session_state.pop("upscaled_grid", None)
 
+        if "last_grid" in st.session_state:
+            final = st.session_state["last_grid"]
+            st.code(grid_to_string(final), language=None)
+            st.caption(f"Generated in {st.session_state['last_elapsed']:.1f}s "
+                       f"({num_steps} steps)")
+
+            h, w = final.shape
+            if st.button(f"Upscale ×2 → {h*2}×{w*2}",
+                         help="Anchor each character on a 2× canvas and "
+                              "inpaint the gaps (MaskGIT super-resolution)"):
+                with st.spinner("Upscaling..."):
+                    t0 = time.time()
+                    _, upscaled = upscale_grid(model, final, factor=2,
+                                               num_steps=num_steps,
+                                               temperature=temperature,
+                                               device=device)
+                st.session_state["upscaled_grid"] = upscaled
+                st.session_state["upscale_elapsed"] = time.time() - t0
+
+            if "upscaled_grid" in st.session_state:
+                st.subheader("Upscaled ×2")
+                st.code(grid_to_string(st.session_state["upscaled_grid"]),
+                        language=None)
+                st.caption(f"Upscaled in "
+                           f"{st.session_state['upscale_elapsed']:.1f}s")
+
+            steps = st.session_state["last_steps"]
             if show_animation and len(steps) > 1:
                 st.subheader("Step-by-step")
                 for i, step_grid in enumerate(steps):

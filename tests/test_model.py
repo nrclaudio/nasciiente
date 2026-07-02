@@ -83,3 +83,18 @@ def test_checkpoint_round_trip(tiny_model, tmp_path):
     x = torch.randint(0, VOCAB_SIZE, (1, H, W))
     with torch.no_grad():
         assert torch.allclose(tiny_model(x), model2(x))
+
+
+def test_rope_buffers_not_in_checkpoint(tiny_model):
+    """RoPE tables are derived constants; grid-size config changes must
+    not invalidate checkpoints."""
+    assert not any("rope" in k for k in tiny_model.state_dict())
+
+
+def test_rope_covers_upscaled_grids():
+    from config import MAX_ROWS, MAX_COLS
+    assert MAX_ROWS >= 96 and MAX_COLS >= 160
+    rope = RoPE2D(head_dim=16)
+    x = torch.randn(1, 2, MAX_ROWS * MAX_COLS, 16)
+    out = rope(x, MAX_ROWS, MAX_COLS)  # elementwise; cheap even at max size
+    assert out.shape == x.shape

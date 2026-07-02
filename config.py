@@ -15,8 +15,8 @@ NUM_HEADS = 8
 NUM_LAYERS = 8
 FFN_DIM = 2048
 DROPOUT = 0.1
-MAX_ROWS = 64   # max supported grid height (for RoPE precomputation)
-MAX_COLS = 128   # max supported grid width
+MAX_ROWS = 96   # max supported grid height (for RoPE precomputation)
+MAX_COLS = 160  # max supported grid width (allows 2x upscale of 48x80)
 
 # Training
 BATCH_SIZE = 64

@@ -73,8 +73,11 @@ python main.py --stage shading --source imagenette
 python main.py --stage human         # optional stage-3 human ASCII art
 python main.py --stage train
 
-# SLURM clusters
+# SLURM clusters (multi-GPU: raise --gres=gpu:N in the script)
 sbatch train_slurm.sh
+
+# Multi-GPU on any box (main.py does this automatically when it sees >1 GPU)
+torchrun --standalone --nproc_per_node=4 training/train.py
 
 # Evaluate a checkpoint / inpainting demo
 python training/evaluate.py --checkpoint checkpoints/final_model.pt \
@@ -116,6 +119,57 @@ app/
   streamlit_app.py        web UI (generate + inpainting)
 tests/                    CPU-fast pytest suite
 ```
+
+## Multi-GPU training (DDP)
+
+Training uses **DistributedDataParallel** when launched with `torchrun`
+(or via `python main.py`, which relaunches itself under torchrun when it
+detects more than one GPU). How it works:
+
+- **One process per GPU.** torchrun starts N copies of `train.py` and
+  gives each a `RANK` (0..N-1). Each process holds a full model replica.
+- **Data sharding.** A `DistributedSampler` splits every epoch's samples
+  into N disjoint shards, reshuffled per epoch, so no GPU wastes compute
+  on a sample another GPU already saw.
+- **Gradient all-reduce.** After each backward pass, DDP averages the
+  gradients across all replicas (overlapped with the backward computation
+  itself), so every optimizer step is identical everywhere and the
+  replicas never drift. The effective batch size becomes
+  `BATCH_SIZE × num_gpus` — if you scale GPUs up a lot, consider scaling
+  the learning rate up with it (linear-scaling rule) since fewer, larger
+  steps happen per epoch.
+- **Rank 0 does the talking.** Logging, per-epoch samples, and
+  checkpoints come from rank 0 only; checkpoints are saved unwrapped, so
+  they load identically with or without DDP.
+
+The DDP path is exercised by a 2-process CPU (gloo backend) smoke test:
+sharding, gradient sync (replicas stay bit-identical), loss decrease,
+and checkpoint compatibility. On GPUs it uses NCCL automatically. This
+model is small (~25M params), so gradient traffic is light and scaling
+efficiency should be high; data generation is unaffected (CPU-bound).
+
+## Upscaling (generate beyond 48×80)
+
+Two mechanisms, both free consequences of the architecture:
+
+1. **RoPE extrapolation.** The model has no learned positional
+   embeddings — 2D RoPE encodes *relative* row/column offsets inside
+   attention. A model trained at 48×80 therefore runs at any grid size up
+   to `MAX_ROWS × MAX_COLS` (96×160); quality degrades gracefully at
+   relative distances longer than any seen in training. The Streamlit app
+   exposes a 64×128 option.
+2. **MaskGIT super-resolution** (`upscale_grid` in `model/inference.py`,
+   and the "Upscale ×2" button in the app). Take a finished piece, anchor
+   each character at position `(2r, 2c)` of a 2× canvas, mask everything
+   between, and run the normal iterative unmasking to fill the gaps. The
+   anchors are never overwritten, so the result is guaranteed faithful to
+   the source — the model only interpolates detail. This is the
+   inpainting capability reused as an upscaler; no extra training needed
+   (though anchor patterns are out-of-distribution, so expect it to
+   improve if you fine-tune with strided-anchor masking).
+
+The RoPE tables are registered as non-persistent buffers, so raising
+`MAX_ROWS`/`MAX_COLS` later never invalidates existing checkpoints.
 
 ## Project status
 

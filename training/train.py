@@ -1,8 +1,18 @@
 """
-Two-stage curriculum training for ASCIIBert.
+Curriculum training for ASCIIBert.
 
 Stage 1: Geometry (learn structural primitives)
 Stage 2: Shading  (fine-tune on density-mapped images)
+Stage 3: Human ASCII art (optional fine-tune, if data/human_data.pt exists)
+
+Single-GPU:  python training/train.py
+Multi-GPU:   torchrun --standalone --nproc_per_node=NUM_GPUS training/train.py
+
+Multi-GPU uses DistributedDataParallel (DDP): every GPU holds a full model
+replica and processes a different shard of each batch; gradients are
+averaged across replicas after every backward pass, so the effective batch
+size is BATCH_SIZE * num_gpus. torchrun sets RANK/WORLD_SIZE/LOCAL_RANK in
+the environment — when they are absent this script runs single-process.
 """
 
 import math
@@ -14,6 +24,7 @@ import random
 import torch
 import numpy as np
 from torch.utils.data import DataLoader, random_split
+from torch.utils.data.distributed import DistributedSampler
 from torch.optim.lr_scheduler import LambdaLR
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -30,6 +41,47 @@ from model.ascii_bert import ASCIIBert
 from model.inference import generate
 from training.dataset import ASCIIDataset
 from data.charset import grid_to_string
+
+
+# Filled in by setup_distributed(); defaults describe a single process.
+RANK = 0
+WORLD_SIZE = 1
+LOCAL_RANK = 0
+
+
+def setup_distributed():
+    """Initialize DDP when launched by torchrun; no-op otherwise.
+
+    Returns (rank, world_size, local_rank).
+    """
+    global RANK, WORLD_SIZE, LOCAL_RANK
+    if "RANK" in os.environ and "WORLD_SIZE" in os.environ:
+        import torch.distributed as dist
+        backend = "nccl" if torch.cuda.is_available() else "gloo"
+        dist.init_process_group(backend)
+        RANK = dist.get_rank()
+        WORLD_SIZE = dist.get_world_size()
+        LOCAL_RANK = int(os.environ.get("LOCAL_RANK", 0))
+        if torch.cuda.is_available():
+            torch.cuda.set_device(LOCAL_RANK)
+    return RANK, WORLD_SIZE, LOCAL_RANK
+
+
+def cleanup_distributed():
+    if WORLD_SIZE > 1:
+        import torch.distributed as dist
+        dist.destroy_process_group()
+
+
+def unwrap(model):
+    """Return the raw module whether or not it is wrapped in DDP."""
+    return model.module if hasattr(model, "module") else model
+
+
+def log(*args, **kwargs):
+    """Print from the main process only, so N GPUs don't log N times."""
+    if RANK == 0:
+        print(*args, **kwargs)
 
 
 def get_cosine_schedule_with_warmup(optimizer, warmup_steps, total_steps):
@@ -51,7 +103,11 @@ def set_seed(seed=42):
 
 
 def train_epoch(model, loader, optimizer, scheduler, device, epoch, stage_name,
-                total_epochs):
+                total_epochs, sampler=None):
+    if sampler is not None:
+        # Reshuffle the shard assignment each epoch, or every rank would
+        # see the same samples in the same order all run long
+        sampler.set_epoch(epoch)
     model.train()
     running_loss = torch.tensor(0.0, device=device)
     num_batches = 0
@@ -66,8 +122,10 @@ def train_epoch(model, loader, optimizer, scheduler, device, epoch, stage_name,
         target_grid = target_grid.to(device, non_blocking=True)
         mask = mask.to(device, non_blocking=True)
 
+        # Forward through the wrapper (DDP hooks gradient sync into
+        # backward); compute_loss lives on the raw module
         logits = model(masked_grid)
-        loss = model.compute_loss(logits, target_grid, mask)
+        loss = unwrap(model).compute_loss(logits, target_grid, mask)
         (loss / GRAD_ACCUM_STEPS).backward()
 
         running_loss += loss.detach()
@@ -86,11 +144,11 @@ def train_epoch(model, loader, optimizer, scheduler, device, epoch, stage_name,
             rate = (batch_idx + 1) / elapsed
             eta = (total_batches - batch_idx - 1) / rate
             lr_now = optimizer.param_groups[0]["lr"]
-            print(f"  [{stage_name}] Epoch {epoch+1}/{total_epochs}  "
-                  f"Batch {batch_idx+1:>5}/{total_batches}  "
-                  f"Loss: {avg:.4f}  LR: {lr_now:.2e}  "
-                  f"{rate:.1f} batch/s  ETA {eta:.0f}s",
-                  flush=True)
+            log(f"  [{stage_name}] Epoch {epoch+1}/{total_epochs}  "
+                f"Batch {batch_idx+1:>5}/{total_batches}  "
+                f"Loss: {avg:.4f}  LR: {lr_now:.2e}  "
+                f"{rate:.1f} batch/s  ETA {eta:.0f}s",
+                flush=True)
 
     # Handle leftover gradients
     if num_batches > 0 and (batch_idx + 1) % GRAD_ACCUM_STEPS != 0:
@@ -105,6 +163,11 @@ def train_epoch(model, loader, optimizer, scheduler, device, epoch, stage_name,
 
 @torch.no_grad()
 def validate(model, loader, device):
+    # Use the raw module: DDP's forward broadcasts buffers (a collective
+    # op), which would deadlock if ranks ever ran different batch counts.
+    # Every rank validates the identical full val split instead — the 5%
+    # split is cheap and all ranks arrive at the same metrics.
+    model = unwrap(model)
     model.eval()
     total_loss = 0.0
     total_correct = 0
@@ -129,8 +192,10 @@ def validate(model, loader, device):
 
 
 def print_sample(model, device):
-    """Generate and print a sample from a fully masked grid."""
-    _, final = generate(model, GRID_H, GRID_W,
+    """Generate and print a sample from a fully masked grid (rank 0 only)."""
+    if RANK != 0:
+        return
+    _, final = generate(unwrap(model), GRID_H, GRID_W,
                         num_steps=UNMASK_STEPS, temperature=TEMPERATURE,
                         device=device)
     print("--- Generated Sample ---")
@@ -139,8 +204,11 @@ def print_sample(model, device):
 
 
 def save_checkpoint(model, optimizer, epoch, stage, path):
+    if RANK != 0:
+        return
     torch.save({
-        "model_state_dict": model.state_dict(),
+        # unwrap so checkpoints have identical keys with and without DDP
+        "model_state_dict": unwrap(model).state_dict(),
         "optimizer_state_dict": optimizer.state_dict(),
         "epoch": epoch,
         "stage": stage,
@@ -149,37 +217,46 @@ def save_checkpoint(model, optimizer, epoch, stage, path):
 
 def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
                 max_samples=None):
-    print(f"\n{'='*60}")
-    print(f"  Stage: {stage_name.upper()}")
-    print(f"  Epochs: {epochs}, LR: {lr:.1e}, Batch: {BATCH_SIZE} x {GRAD_ACCUM_STEPS} accum")
-    print(f"{'='*60}")
+    log(f"\n{'='*60}")
+    log(f"  Stage: {stage_name.upper()}")
+    log(f"  Epochs: {epochs}, LR: {lr:.1e}, "
+        f"Batch: {BATCH_SIZE} x {GRAD_ACCUM_STEPS} accum x {WORLD_SIZE} GPU(s) "
+        f"= {BATCH_SIZE * GRAD_ACCUM_STEPS * WORLD_SIZE} effective")
+    log(f"{'='*60}")
 
-    print(f"Loading data from {data_path}...")
+    log(f"Loading data from {data_path}...")
     data = torch.load(data_path, weights_only=True)
     if max_samples and max_samples < len(data):
         data = data[:max_samples]
 
-    # 95/5 train/val split
+    # 95/5 train/val split — fixed generator so every rank builds the
+    # identical split regardless of its own RNG state
     val_size = max(1, int(len(data) * 0.05))
     train_size = len(data) - val_size
     train_data, val_data = random_split(
-        ASCIIDataset(data), [train_size, val_size]
+        ASCIIDataset(data), [train_size, val_size],
+        generator=torch.Generator().manual_seed(42),
     )
-    print(f"Samples: {len(data):,} total -> {train_size:,} train / {val_size:,} val")
+    log(f"Samples: {len(data):,} total -> {train_size:,} train / {val_size:,} val")
 
-    train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True,
+    # Under DDP each rank gets a disjoint 1/WORLD_SIZE shard per epoch
+    train_sampler = (DistributedSampler(train_data, shuffle=True)
+                     if WORLD_SIZE > 1 else None)
+    train_loader = DataLoader(train_data, batch_size=BATCH_SIZE,
+                              shuffle=(train_sampler is None),
+                              sampler=train_sampler,
                               num_workers=4, persistent_workers=True,
                               prefetch_factor=4)
     val_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=False,
                             num_workers=2, persistent_workers=True)
-    print(f"Batches per epoch: {len(train_loader):,} train, {len(val_loader):,} val")
+    log(f"Batches per epoch: {len(train_loader):,} train, {len(val_loader):,} val")
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr, weight_decay=WEIGHT_DECAY)
     steps_per_epoch = len(train_loader) // GRAD_ACCUM_STEPS
     total_steps = steps_per_epoch * epochs
     warmup = min(WARMUP_STEPS, total_steps // 10)
     scheduler = get_cosine_schedule_with_warmup(optimizer, warmup, total_steps)
-    print(f"Scheduler: {warmup} warmup steps, {total_steps} total steps")
+    log(f"Scheduler: {warmup} warmup steps, {total_steps} total steps")
 
     t_stage = time.time()
     best_val_loss = float("inf")
@@ -188,7 +265,8 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
         t0 = time.time()
 
         train_loss = train_epoch(model, train_loader, optimizer, scheduler,
-                                 device, epoch, stage_name, epochs)
+                                 device, epoch, stage_name, epochs,
+                                 sampler=train_sampler)
         val_loss, val_acc = validate(model, val_loader, device)
 
         elapsed = time.time() - t0
@@ -201,13 +279,13 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
             best_val_loss = val_loss
             marker = " *best*"
 
-        print(f"\n[{stage_name}] Epoch {epoch+1}/{epochs} DONE — "
-              f"Train: {train_loss:.4f}, Val: {val_loss:.4f}, "
-              f"Acc: {val_acc:.1%}{marker}")
+        log(f"\n[{stage_name}] Epoch {epoch+1}/{epochs} DONE — "
+            f"Train: {train_loss:.4f}, Val: {val_loss:.4f}, "
+            f"Acc: {val_acc:.1%}{marker}")
         lr_now = optimizer.param_groups[0]["lr"]
-        print(f"  Epoch time: {elapsed:.1f}s | "
-              f"Stage ETA: {eta_stage/60:.1f}min | "
-              f"LR: {lr_now:.2e}")
+        log(f"  Epoch time: {elapsed:.1f}s | "
+            f"Stage ETA: {eta_stage/60:.1f}min | "
+            f"LR: {lr_now:.2e}")
 
         # Print a generated sample each epoch
         print_sample(model, device)
@@ -215,29 +293,39 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
         # Save checkpoint
         ckpt_path = os.path.join(ckpt_dir, f"{stage_name}_epoch{epoch+1}.pt")
         save_checkpoint(model, optimizer, epoch, stage_name, ckpt_path)
-        print(f"  Checkpoint saved: {ckpt_path}")
+        log(f"  Checkpoint saved: {ckpt_path}")
 
     total_stage = time.time() - t_stage
-    print(f"\n{'='*60}")
-    print(f"  Stage {stage_name} complete in {total_stage/60:.1f}min "
-          f"(best val loss: {best_val_loss:.4f})")
-    print(f"{'='*60}")
+    log(f"\n{'='*60}")
+    log(f"  Stage {stage_name} complete in {total_stage/60:.1f}min "
+        f"(best val loss: {best_val_loss:.4f})")
+    log(f"{'='*60}")
 
 
 def main():
-    set_seed(42)
+    rank, world_size, local_rank = setup_distributed()
+    # Different seed per rank for masking/augmentation randomness; the
+    # train/val split uses its own fixed generator so it stays identical
+    set_seed(42 + rank)
     t_total = time.time()
 
-    device = DEVICE
-    print(f"Device: {device}")
+    if world_size > 1:
+        device = torch.device(f"cuda:{local_rank}"
+                              if torch.cuda.is_available() else "cpu")
+        log(f"DDP: {world_size} processes "
+            f"({'NCCL' if torch.cuda.is_available() else 'gloo'} backend)")
+    else:
+        device = DEVICE
+    log(f"Device: {device}")
     if device.type == "cuda":
-        print(f"GPU: {torch.cuda.get_device_name(0)}")
-        print(f"GPU memory: {torch.cuda.get_device_properties(0).total_memory / 1e9:.1f} GB")
+        log(f"GPU: {torch.cuda.get_device_name(local_rank)}")
+        log(f"GPU memory: {torch.cuda.get_device_properties(local_rank).total_memory / 1e9:.1f} GB")
 
-    print(f"\nConfig: batch={BATCH_SIZE}, accum={GRAD_ACCUM_STEPS}, "
-          f"eff_batch={BATCH_SIZE * GRAD_ACCUM_STEPS}")
-    print(f"Grid: {GRID_H}x{GRID_W} = {GRID_H * GRID_W} tokens/sample")
-    print(f"Mask ratio: [{MASK_RATIO_MIN:.0%}, {MASK_RATIO_MAX:.0%}]")
+    log(f"\nConfig: batch={BATCH_SIZE}, accum={GRAD_ACCUM_STEPS}, "
+        f"world={world_size}, "
+        f"eff_batch={BATCH_SIZE * GRAD_ACCUM_STEPS * world_size}")
+    log(f"Grid: {GRID_H}x{GRID_W} = {GRID_H * GRID_W} tokens/sample")
+    log(f"Mask ratio: [{MASK_RATIO_MIN:.0%}, {MASK_RATIO_MAX:.0%}]")
 
     ckpt_dir = os.path.join(os.path.dirname(__file__), "..", "checkpoints")
     os.makedirs(ckpt_dir, exist_ok=True)
@@ -247,8 +335,15 @@ def main():
     model = ASCIIBert().to(device)
     total_params = sum(p.numel() for p in model.parameters())
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
-    print(f"\nModel: {total_params:,} params ({trainable:,} trainable)")
-    print(f"Gradient checkpointing: {model.transformer.gradient_checkpointing}")
+    log(f"\nModel: {total_params:,} params ({trainable:,} trainable)")
+    log(f"Gradient checkpointing: {model.transformer.gradient_checkpointing}")
+
+    if world_size > 1:
+        from torch.nn.parallel import DistributedDataParallel as DDP
+        # DDP broadcasts rank 0's weights at construction, so all
+        # replicas start identical even with per-rank seeds
+        model = DDP(model, device_ids=[local_rank]
+                    if torch.cuda.is_available() else None)
 
     # Stage 1: Geometry
     geometry_path = os.path.join(data_dir, "geometry_data.pt")
@@ -266,18 +361,21 @@ def main():
         train_stage(model, human_path, HUMAN_EPOCHS, HUMAN_LR,
                     "human", device, ckpt_dir)
     else:
-        print("\nNo human_data.pt found — skipping stage 3 "
-              "(run data/prepare_human_ascii.py to enable it)")
+        log("\nNo human_data.pt found — skipping stage 3 "
+            "(run data/prepare_human_ascii.py to enable it)")
 
     # Save final model
     final_path = os.path.join(ckpt_dir, "final_model.pt")
-    torch.save(model.state_dict(), final_path)
+    if RANK == 0:
+        torch.save(unwrap(model).state_dict(), final_path)
 
     total_time = time.time() - t_total
-    print(f"\n{'='*60}")
-    print(f"  Training complete in {total_time/3600:.2f}h")
-    print(f"  Final model: {final_path}")
-    print(f"{'='*60}")
+    log(f"\n{'='*60}")
+    log(f"  Training complete in {total_time/3600:.2f}h")
+    log(f"  Final model: {final_path}")
+    log(f"{'='*60}")
+
+    cleanup_distributed()
 
 
 if __name__ == "__main__":
