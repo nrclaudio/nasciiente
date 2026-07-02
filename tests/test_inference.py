@@ -49,3 +49,26 @@ def test_temperature_parameter(tiny_model):
     _, final = generate(tiny_model, H, W, num_steps=3, temperature=0.5,
                         device="cpu")
     assert (final != MASK_TOKEN).all()
+
+
+def test_upscale_grid(tiny_model):
+    from model.inference import upscale_grid
+
+    torch.manual_seed(0)
+    source = torch.randint(2, 98, (H, W))
+    steps, big = upscale_grid(tiny_model, source, factor=2, num_steps=3,
+                              device="cpu")
+    assert big.shape == (H * 2, W * 2)
+    # Every source character is anchored at its strided position
+    assert (big[::2, ::2] == source).all()
+    assert (big != MASK_TOKEN).all()
+
+
+def test_upscale_grid_rejects_oversize(tiny_model):
+    from model.inference import upscale_grid
+    from config import MAX_ROWS, MAX_COLS
+    import pytest
+
+    too_big = torch.randint(2, 98, (MAX_ROWS // 2 + 1, MAX_COLS // 2 + 1))
+    with pytest.raises(ValueError):
+        upscale_grid(tiny_model, too_big, factor=2)

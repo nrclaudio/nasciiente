@@ -7,6 +7,10 @@
 #SBATCH --time=2-00:00:00
 #SBATCH --output=slurm-%j.out
 #SBATCH --error=slurm-%j.err
+#
+# Multi-GPU: raise --gres (e.g. --gres=gpu:4) and bump --cpus-per-task
+# to ~8 per GPU. The launch below detects the GPU count and uses
+# torchrun + DistributedDataParallel automatically.
 
 echo "=== Job Info ==="
 echo "Job ID: $SLURM_JOB_ID"
@@ -33,10 +37,16 @@ if [ ! -f data/shading_data.pt ]; then
     python data/generate_shading.py
 fi
 
-# Train
+# Train (DDP across all allocated GPUs)
 echo ""
 echo "=== Starting training ==="
-python training/train.py
+NGPU=$(nvidia-smi --list-gpus | wc -l)
+if [ "$NGPU" -gt 1 ]; then
+    echo "Using $NGPU GPUs with torchrun/DDP"
+    torchrun --standalone --nproc_per_node="$NGPU" training/train.py
+else
+    python training/train.py
+fi
 
 echo ""
 echo "=== Done ==="

@@ -35,10 +35,13 @@ class RoPE2D(nn.Module):
         row_angles = torch.outer(rows, freqs)  # [max_rows, half//2]
         col_angles = torch.outer(cols, freqs)  # [max_cols, half//2]
 
-        self.register_buffer("row_cos", row_angles.cos())
-        self.register_buffer("row_sin", row_angles.sin())
-        self.register_buffer("col_cos", col_angles.cos())
-        self.register_buffer("col_sin", col_angles.sin())
+        # persistent=False: these are derived constants, not weights.
+        # Keeping them out of checkpoints lets MAX_ROWS/MAX_COLS change
+        # without invalidating saved models.
+        self.register_buffer("row_cos", row_angles.cos(), persistent=False)
+        self.register_buffer("row_sin", row_angles.sin(), persistent=False)
+        self.register_buffer("col_cos", col_angles.cos(), persistent=False)
+        self.register_buffer("col_sin", col_angles.sin(), persistent=False)
 
     def forward(self, x, h, w):
         """Apply 2D RoPE to query or key tensor.
