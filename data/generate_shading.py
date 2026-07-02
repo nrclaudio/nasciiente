@@ -209,7 +209,9 @@ def _clahe(img_np):
 
     result = ((1 - fy) * (1 - fx) * v00 + (1 - fy) * fx * v01 +
               fy * (1 - fx) * v10 + fy * fx * v11)
-    return result.astype(np.float32)
+    # Bins below a tile's first non-zero CDF entry map slightly negative
+    # when a neighboring tile's mapping is interpolated in — clip them.
+    return np.clip(result, 0.0, 1.0).astype(np.float32)
 
 
 def image_to_ascii_grid(img_tensor, shape_vectors, masks, char_indices,
