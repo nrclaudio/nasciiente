@@ -42,28 +42,28 @@ def load_model(checkpoint_path):
     checkpoints without trained text conditioning so the UI can hide the
     prompt controls.
     """
+    from model.ascii_bert import load_compatible_state
     device = torch.device("cpu")
     model = ASCIIBert().to(device)
     ckpt = torch.load(checkpoint_path, map_location=device, weights_only=True)
     state = ckpt["model_state_dict"] if (isinstance(ckpt, dict)
             and "model_state_dict" in ckpt) else ckpt
-    missing, unexpected = model.load_state_dict(state, strict=False)
-    bad = ([k for k in missing if not k.startswith("conditioning.")]
-           + [k for k in unexpected if not k.startswith("conditioning.")])
-    if bad:
-        raise ValueError(f"Checkpoint {os.path.basename(checkpoint_path)} "
-                         f"does not match the model (mismatched keys: "
-                         f"{bad[:5]}...)")
-    conditioned = not any(k.startswith("conditioning.") for k in missing)
+    try:
+        conditioned = load_compatible_state(model, state)
+    except ValueError as e:
+        raise ValueError(f"{os.path.basename(checkpoint_path)}: {e}") from e
     model.eval()
     return model, device, conditioned
 
 
 @st.cache_data
 def embed_prompt(text):
-    """Embed one prompt (cached so regenerating doesn't rerun the encoder)."""
-    from data.text_embed import embed_texts
-    return embed_texts([text])[0]
+    """Embed one prompt (cached so regenerating doesn't rerun the encoder).
+
+    Returns (cond_tokens [L, D], cond_mask [L])."""
+    from data.text_embed import embed_captions
+    tokens, mask = embed_captions([text])
+    return tokens[0], mask[0]
 
 
 # Curriculum order for the training-progress browser; stages not listed
@@ -191,7 +191,8 @@ def main():
                 help="Higher = stronger adherence to the prompt, "
                      "less diversity.")
             try:
-                gen_kwargs.update(cond_emb=embed_prompt(prompt.strip()),
+                toks, msk = embed_prompt(prompt.strip())
+                gen_kwargs.update(cond_tokens=toks, cond_mask=msk,
                                   guidance_scale=guidance)
             except ImportError as e:
                 st.sidebar.warning(str(e))

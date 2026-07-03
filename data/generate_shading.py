@@ -778,6 +778,7 @@ def generate_dataset(source, num_samples, segment=False, out_path=None):
     log_interval = 5_000
     segmented = set()
 
+    converted = {}  # (idx, flipped) -> grid; cycled repeats convert once
     for i in range(num_samples):
         idx = i % total_available
         img = all_images[idx]
@@ -786,11 +787,15 @@ def generate_dataset(source, num_samples, segment=False, out_path=None):
             all_images[idx] = img = _apply_segmentation(img)
             segmented.add(idx)
         # Augment cycled images with random horizontal flip
-        if i >= total_available and torch.rand(1).item() > 0.5:
-            img = img.flip(-1)
-
-        samples.append(image_to_ascii_grid(
-            img, shape_vectors, masks, char_indices, mask_sums, sv_sq_sum))
+        flipped = i >= total_available and torch.rand(1).item() > 0.5
+        key = (idx, flipped)
+        if key not in converted:
+            if flipped:
+                img = img.flip(-1)
+            converted[key] = image_to_ascii_grid(
+                img, shape_vectors, masks, char_indices, mask_sums,
+                sv_sq_sum)
+        samples.append(converted[key])
         if sample_labels is not None:
             sample_labels.append(all_labels[idx])
 

@@ -44,6 +44,7 @@ DEFAULT_PROMPTS = [
 
 
 def load_checkpoint(model, path, use_ema=False):
+    from model.ascii_bert import load_compatible_state
     ckpt = torch.load(path, map_location="cpu", weights_only=True)
     if isinstance(ckpt, dict) and use_ema:
         if "ema_state_dict" not in ckpt:
@@ -54,17 +55,10 @@ def load_checkpoint(model, path, use_ema=False):
         state = ckpt["model_state_dict"]
     else:
         state = ckpt
-    missing, unexpected = model.load_state_dict(state, strict=False)
-    bad = ([k for k in missing if not k.startswith("conditioning.")]
-           + [k for k in unexpected if not k.startswith("conditioning.")])
-    # EMA shadows only track trainable params; buffers may be "missing"
-    if use_ema:
-        bad = [k for k in bad if k in unexpected]
-    if bad:
-        raise SystemExit(f"Checkpoint {path} does not match the model "
-                         f"(mismatched keys: {bad[:5]}...)")
-    conditioned = not any(k.startswith("conditioning.") for k in missing)
-    return conditioned
+    try:
+        return load_compatible_state(model, state)
+    except ValueError as e:
+        raise SystemExit(f"{path}: {e}")
 
 
 def main():
@@ -113,12 +107,13 @@ def main():
         runs.append(("unconditional", {}))
     if conditioned:
         # Embed all prompts in one encoder call
-        from data.text_embed import embed_texts
-        embs = embed_texts(prompts)
-        for text, emb in zip(prompts, embs):
+        from data.text_embed import embed_captions
+        tokens, masks = embed_captions(prompts)
+        for text, toks, msk in zip(prompts, tokens, masks):
             for g in args.guidance:
                 runs.append((f'"{text}" @ guidance {g:g}',
-                             dict(cond_emb=emb, guidance_scale=g)))
+                             dict(cond_tokens=toks, cond_mask=msk,
+                                  guidance_scale=g)))
 
     lines = []
     for label, kwargs in runs:

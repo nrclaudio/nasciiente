@@ -30,17 +30,20 @@ def evaluate_val(model, data, device, num_batches=50):
     total_masked = 0
     count = 0
 
-    for masked_grid, target_grid, mask, ratio, cond_emb, has_cond in loader:
+    for (masked_grid, target_grid, mask, ratio, cond_tokens, cond_mask,
+         has_cond) in loader:
         if count >= num_batches:
             break
         masked_grid = masked_grid.to(device)
         target_grid = target_grid.to(device)
         mask = mask.to(device)
         ratio = ratio.to(device)
-        cond_emb = cond_emb.to(device)
+        cond_tokens = cond_tokens.to(device)
+        cond_mask = cond_mask.to(device)
         has_cond = has_cond.to(device)
 
-        logits = model(masked_grid, cond_emb=cond_emb, cond_drop=~has_cond,
+        logits = model(masked_grid, cond_tokens=cond_tokens,
+                       cond_mask=cond_mask, cond_drop=~has_cond,
                        mask_ratio=ratio)
         loss = model.compute_loss(logits, target_grid, mask)
         total_loss += loss.item()
@@ -112,16 +115,10 @@ def main():
     model = ASCIIBert().to(device)
     ckpt = torch.load(args.checkpoint, map_location=device, weights_only=True)
     state = ckpt["model_state_dict"] if "model_state_dict" in ckpt else ckpt
-    # strict=False so checkpoints from older conditioning schemes load
-    # (their conditioning params are absent or ignored; zero-init makes the
-    # module a no-op), but only conditioning.* keys may mismatch — anything
-    # else is a genuinely wrong checkpoint
-    missing, unexpected = model.load_state_dict(state, strict=False)
-    bad = ([k for k in missing if not k.startswith("conditioning.")]
-           + [k for k in unexpected if not k.startswith("conditioning.")])
-    if bad:
-        raise ValueError(f"Checkpoint {args.checkpoint} does not match the "
-                         f"model (mismatched keys: {bad[:5]}...)")
+    # Tolerates only conditioning-pathway mismatches (older checkpoints);
+    # anything else raises instead of silently loading random weights
+    from model.ascii_bert import load_compatible_state
+    load_compatible_state(model, state)
     print("Model loaded.")
 
     # Generate from scratch

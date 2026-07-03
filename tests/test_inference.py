@@ -121,7 +121,8 @@ def test_cfg_generation_runs_and_conditions():
                       text_dim=16)
     model.eval()
     # Prompt-conditioned with guidance
-    _, final = generate(model, H, W, num_steps=4, cond_emb=torch.randn(16),
+    _, final = generate(model, H, W, num_steps=4,
+                        cond_tokens=torch.randn(5, 16),
                         guidance_scale=3.0, revision_steps=1, device="cpu")
     assert final.shape == (H, W)
     assert (final != MASK_TOKEN).all()
@@ -134,10 +135,12 @@ def test_cfg_scale_one_equals_plain_conditional():
     model.eval()
     from model.inference import _model_logits
     grid = torch.randint(2, 98, (H, W))
-    emb = torch.randn(16)
-    a = _model_logits(model, grid, cond_emb=emb, guidance_scale=1.0,
+    toks = torch.randn(5, 16)
+    msk = torch.ones(5, dtype=torch.bool)
+    a = _model_logits(model, grid, (toks, msk), guidance_scale=1.0,
                       mask_ratio=0.5)
-    b = model(grid.unsqueeze(0), cond_emb=emb, mask_ratio=0.5).squeeze(0)
+    b = model(grid.unsqueeze(0), cond_tokens=toks, cond_mask=msk,
+              mask_ratio=0.5).squeeze(0)
     assert torch.allclose(a, b)
 
 
@@ -152,15 +155,18 @@ def test_batched_cfg_matches_two_forward_passes():
     # give conditioning real weights so cond != uncond
     with torch.no_grad():
         model.conditioning.text_proj[-1].weight.normal_(0, 1)
-        model.conditioning.null_emb.normal_(0, 1)
+        model.conditioning.null_token.normal_(0, 1)
+        for layer in model.transformer.layers:
+            layer.cross_out_proj.weight.normal_(0, 0.1)
     model.eval()
     grid = torch.randint(2, 98, (H, W))
-    emb = torch.randn(16)
+    toks = torch.randn(5, 16)
+    msk = torch.ones(5, dtype=torch.bool)
     scale = 3.0
     with torch.no_grad():
-        a = _model_logits(model, grid, cond_emb=emb, guidance_scale=scale,
+        a = _model_logits(model, grid, (toks, msk), guidance_scale=scale,
                           mask_ratio=0.5)
-        cond = model(grid.unsqueeze(0), cond_emb=emb,
+        cond = model(grid.unsqueeze(0), cond_tokens=toks, cond_mask=msk,
                      mask_ratio=0.5).squeeze(0)
         uncond = model(grid.unsqueeze(0), mask_ratio=0.5).squeeze(0)
     b = uncond + scale * (cond - uncond)
