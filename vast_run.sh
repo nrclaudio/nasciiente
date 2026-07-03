@@ -2,7 +2,7 @@
 # One-shot training run for a Vast.ai instance (or any fresh GPU box).
 #
 # Usage (SSH onto the instance, then):
-#   curl -fsSL https://raw.githubusercontent.com/nrclaudio/ascii-art-transformer/claude/project-continuation-8erl5h/vast_run.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/nrclaudio/ascii-art-transformer/claude/ascii-art-pr-review-v8c3ok/vast_run.sh | bash
 # or clone the repo yourself and run: bash vast_run.sh
 #
 # Environment overrides:
@@ -11,7 +11,7 @@
 set -uo pipefail
 
 REPO="https://github.com/nrclaudio/ascii-art-transformer"
-BRANCH="${BRANCH:-claude/project-continuation-8erl5h}"
+BRANCH="${BRANCH:-claude/ascii-art-pr-review-v8c3ok}"
 WORKDIR="${WORKDIR:-${HOME}/ascii-art-transformer}"
 
 echo "=== GPU ==="
