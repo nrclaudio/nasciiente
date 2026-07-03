@@ -87,21 +87,26 @@ def _apply_rope(x, cos, sin):
 
 
 class ConditioningEmbedding(nn.Module):
-    """Global conditioning: text prompt + current mask ratio -> [B, D] vector.
+    """Global conditioning: caption tokens + current mask ratio.
 
-    Added to every token embedding (Muse-style additive conditioning). The
-    prompt arrives as a frozen-encoder text embedding (see data/text_embed.py)
-    and is projected into the token stream; a learned null embedding stands
-    in for "no prompt" — used for uncaptioned data and as the unconditional
-    branch of classifier-free guidance. The mask ratio tells the model how
-    much of the grid is hidden — the denoising "noise level" every diffusion
-    model gets but a plain masked LM does not.
+    The prompt arrives as the frozen text encoder's per-token hidden
+    states (see data/text_embed.py). This module produces two things:
+
+    - a global [B, D] vector added to every token embedding (Muse-style):
+      the masked mean of the caption tokens projected into the stream,
+      plus a mask-ratio embedding — the denoising "noise level" every
+      diffusion model gets but a plain masked LM does not;
+    - the caption-token context [B, L, text_dim] + validity mask that the
+      transformer blocks cross-attend to for compositional control.
+
+    A learned null token stands in for "no prompt" — used for uncaptioned
+    data and as the unconditional branch of classifier-free guidance.
     """
 
     def __init__(self, text_dim, embed_dim):
         super().__init__()
         self.text_dim = text_dim
-        self.null_emb = nn.Parameter(torch.zeros(text_dim))
+        self.null_token = nn.Parameter(torch.zeros(text_dim))
         self.text_proj = nn.Sequential(
             nn.Linear(text_dim, embed_dim),
             nn.SiLU(),
@@ -116,39 +121,67 @@ class ConditioningEmbedding(nn.Module):
         # trained. This makes the module identity at start (like AdaLN-Zero)
         # AND lets a checkpoint trained without conditioning load with
         # strict=False and behave exactly as before — the added cond vector
-        # is zero.
+        # is zero (the cross-attention blocks zero-init their own output).
         nn.init.zeros_(self.text_proj[-1].weight)
         nn.init.zeros_(self.text_proj[-1].bias)
         nn.init.zeros_(self.ratio_mlp[-1].weight)
         nn.init.zeros_(self.ratio_mlp[-1].bias)
 
-    def forward(self, batch, device, cond_emb=None, cond_drop=None,
-                mask_ratio=None):
+    def forward(self, batch, device, cond_tokens=None, cond_mask=None,
+                cond_drop=None, mask_ratio=None):
         """
         Args:
             batch: batch size B
             device: torch device
-            cond_emb: None, [text_dim], or [B, text_dim] float tensor of
-                      prompt embeddings (None -> null embedding for all)
-            cond_drop: optional [B] bool tensor — True rows use the null
-                       embedding instead of their prompt (training-time CFG
-                       dropout / the unconditional half of guidance)
+            cond_tokens: None, [L, text_dim], or [B, L, text_dim] float —
+                         caption-token embeddings (None -> null token)
+            cond_mask: optional [L] or [B, L] bool, True = real token.
+                       None -> all tokens valid.
+            cond_drop: optional [B] bool — True rows use the null token
+                       instead of their caption (training-time CFG dropout /
+                       the unconditional half of guidance). Rows whose mask
+                       has no valid token are always treated as dropped.
             mask_ratio: None, float, or [B] float tensor (None -> 0.0)
         Returns:
-            [B, embed_dim] conditioning vector
+            (cond_vec [B, embed_dim], ctx [B, L, text_dim], ctx_mask [B, L])
         """
-        null = self.null_emb.unsqueeze(0)  # [1, text_dim]
-        if cond_emb is None:
-            text = null.expand(batch, -1)
+        null = self.null_token
+        if cond_tokens is None:
+            ctx = null.view(1, 1, -1).expand(batch, 1, -1)
+            ctx_mask = torch.ones(batch, 1, dtype=torch.bool, device=device)
         else:
-            text = cond_emb.to(device=device, dtype=null.dtype)
-            if text.dim() == 1:
-                text = text.unsqueeze(0)
-            text = text.expand(batch, -1)
+            ctx = cond_tokens.to(device=device, dtype=null.dtype)
+            if ctx.dim() == 2:
+                ctx = ctx.unsqueeze(0)
+            ctx = ctx.expand(batch, -1, -1)
+            L = ctx.shape[1]
+            if cond_mask is None:
+                ctx_mask = torch.ones(batch, L, dtype=torch.bool,
+                                      device=device)
+            else:
+                ctx_mask = cond_mask.to(device).bool()
+                if ctx_mask.dim() == 1:
+                    ctx_mask = ctx_mask.unsqueeze(0)
+                ctx_mask = ctx_mask.expand(batch, -1)
+
+            # Null rows: explicit drops plus rows with no valid token
+            # (uncaptioned samples) — they get the null token at position 0.
+            # Applied unconditionally (drop may be all-False): torch.where
+            # keeps null_token in the autograd graph every step, which DDP
+            # requires (a param that only sometimes gets gradients trips
+            # its reducer), and skipping a .any() check avoids a GPU sync.
+            drop = ~ctx_mask.any(dim=1)
             if cond_drop is not None:
-                text = torch.where(cond_drop.to(device).view(-1, 1),
-                                   null.expand(batch, -1), text)
-        cond = self.text_proj(text)  # [B, D]
+                drop = drop | cond_drop.to(device).bool()
+            ctx = torch.where(drop.view(-1, 1, 1), null.expand_as(ctx), ctx)
+            first_only = torch.zeros_like(ctx_mask)
+            first_only[:, 0] = True
+            ctx_mask = torch.where(drop.view(-1, 1), first_only, ctx_mask)
+
+        # Global vector: masked mean of the context tokens
+        denom = ctx_mask.sum(dim=1, keepdim=True).clamp_min(1)
+        pooled = (ctx * ctx_mask.unsqueeze(-1)).sum(dim=1) / denom
+        cond_vec = self.text_proj(pooled)  # [B, D]
 
         if mask_ratio is None:
             ratio = torch.zeros(batch, 1, device=device)
@@ -156,7 +189,7 @@ class ConditioningEmbedding(nn.Module):
             ratio = mask_ratio.to(device).float().view(batch, 1)
         else:
             ratio = torch.full((batch, 1), float(mask_ratio), device=device)
-        return cond + self.ratio_mlp(ratio)  # [B, D]
+        return cond_vec + self.ratio_mlp(ratio), ctx, ctx_mask
 
 
 class CombinedEmbedding(nn.Module):

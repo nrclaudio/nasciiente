@@ -9,6 +9,33 @@ from config import (
 from model.embeddings import CombinedEmbedding, ConditioningEmbedding
 from model.transformer import TransformerEncoder
 
+# Parameters belonging to the (zero-init, no-op-until-trained) conditioning
+# pathway: the ConditioningEmbedding module and the cross-attention
+# sublayers. Checkpoints from before text conditioning lack these keys and
+# may carry obsolete ones — both are safe to tolerate when loading.
+_COND_KEY_MARKERS = ("conditioning.", "cross_", "norm_cross")
+
+
+def _is_conditioning_key(key):
+    return any(m in key for m in _COND_KEY_MARKERS)
+
+
+def load_compatible_state(model, state):
+    """Load a checkpoint state dict, tolerating only conditioning-pathway
+    mismatches (older checkpoints predate text conditioning; those modules
+    are zero-init no-ops so the model behaves as it did then). Any other
+    mismatch raises instead of silently leaving random weights.
+
+    Returns True if the checkpoint carries trained conditioning params.
+    """
+    missing, unexpected = model.load_state_dict(state, strict=False)
+    bad = [k for k in list(missing) + list(unexpected)
+           if not _is_conditioning_key(k)]
+    if bad:
+        raise ValueError(f"Checkpoint does not match the model "
+                         f"(mismatched keys: {bad[:5]}...)")
+    return not any(_is_conditioning_key(k) for k in missing)
+
 
 class ASCIIBert(nn.Module):
     """
@@ -27,26 +54,31 @@ class ASCIIBert(nn.Module):
         self.embedding = CombinedEmbedding(vocab_size, embed_dim, dropout)
         self.conditioning = ConditioningEmbedding(text_dim, embed_dim)
         self.transformer = TransformerEncoder(num_layers, embed_dim,
-                                              num_heads, ffn_dim, dropout)
+                                              num_heads, ffn_dim, dropout,
+                                              ctx_dim=text_dim)
         self.norm = nn.LayerNorm(embed_dim)
         self.head = nn.Linear(embed_dim, vocab_size)
 
-    def forward(self, x, cond_emb=None, cond_drop=None, mask_ratio=None):
+    def forward(self, x, cond_tokens=None, cond_mask=None, cond_drop=None,
+                mask_ratio=None):
         """
         Args:
             x: [B, H, W] long tensor of token indices
-            cond_emb: None | [text_dim] | [B, text_dim] float — text prompt
-                      embeddings (None -> the learned null embedding)
-            cond_drop: optional [B] bool — rows to force to the null
-                       embedding (CFG dropout / unconditional branch)
+            cond_tokens: None | [L, text_dim] | [B, L, text_dim] float —
+                         caption-token embeddings from the frozen text
+                         encoder (None -> the learned null token)
+            cond_mask: optional [L] or [B, L] bool, True = real token
+            cond_drop: optional [B] bool — rows to force to the null token
+                       (CFG dropout / unconditional branch)
             mask_ratio: None | float | [B] float — fraction of grid masked
         Returns:
             logits: [B, H, W, VOCAB_SIZE]
         """
         B, H, W = x.shape
-        cond = self.conditioning(B, x.device, cond_emb, cond_drop, mask_ratio)
-        emb = self.embedding(x, cond)     # [B, H*W, D]
-        out = self.transformer(emb, H, W) # [B, H*W, D]
+        cond_vec, ctx, ctx_mask = self.conditioning(
+            B, x.device, cond_tokens, cond_mask, cond_drop, mask_ratio)
+        emb = self.embedding(x, cond_vec)              # [B, H*W, D]
+        out = self.transformer(emb, H, W, ctx, ctx_mask)  # [B, H*W, D]
         out = self.norm(out)              # [B, H*W, D]
         logits = self.head(out)           # [B, H*W, VOCAB_SIZE]
         logits = logits.view(B, H, W, -1) # [B, H, W, VOCAB_SIZE]

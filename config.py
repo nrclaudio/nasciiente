@@ -19,12 +19,15 @@ MAX_ROWS = 96   # max supported grid height (for RoPE precomputation)
 MAX_COLS = 160  # max supported grid width (allows 2x upscale of 48x80)
 
 # Text conditioning. Prompts (dataset captions, class names, user text) are
-# embedded with a frozen text encoder and projected into the token stream;
-# the model also always receives the current mask ratio. Samples without a
-# caption train against a learned null embedding, which doubles as the
-# unconditional branch for classifier-free guidance.
+# embedded with a frozen text encoder; the per-token hidden states feed
+# cross-attention in every transformer block (compositional control) and
+# their masked mean feeds a global additive vector. The model also always
+# receives the current mask ratio. Samples without a caption train against
+# a learned null token, which doubles as the unconditional branch for
+# classifier-free guidance.
 TEXT_ENCODER = "openai/clip-vit-base-patch32"  # frozen; only used to embed text
-TEXT_EMB_DIM = 512                             # CLIP projection dim
+TEXT_EMB_DIM = 512                             # CLIP text hidden dim
+TEXT_COND_TOKENS = 24  # max caption tokens kept for cross-attention
 
 # Classifier-free guidance (inference default)
 CFG_SCALE = 3.0
@@ -54,7 +57,10 @@ WEIGHT_DECAY = 0.01
 GRAD_CLIP = 1.0
 WARMUP_STEPS = 500
 MASK_RATIO_MIN = 0.15
-MASK_RATIO_MAX = 0.85
+# Up to fully masked: inference always STARTS from a 100%-masked grid, so
+# training must cover that state or the first generation steps are
+# out-of-distribution (which shows up as blank-grid collapse)
+MASK_RATIO_MAX = 1.0
 
 # Stage 1: Geometry
 GEOMETRY_EPOCHS = 15

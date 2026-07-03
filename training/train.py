@@ -191,18 +191,19 @@ def train_epoch(model, loader, optimizer, scheduler, device, epoch, stage_name,
     optimizer.zero_grad()
     t_epoch = time.time()
 
-    for batch_idx, (masked_grid, target_grid, mask, ratio, cond_emb,
-                    has_cond) in enumerate(loader):
+    for batch_idx, (masked_grid, target_grid, mask, ratio, cond_tokens,
+                    cond_mask, has_cond) in enumerate(loader):
         masked_grid = masked_grid.to(device, non_blocking=True)
         target_grid = target_grid.to(device, non_blocking=True)
         mask = mask.to(device, non_blocking=True)
         ratio = ratio.to(device, non_blocking=True)
-        cond_emb = cond_emb.to(device, non_blocking=True)
+        cond_tokens = cond_tokens.to(device, non_blocking=True)
+        cond_mask = cond_mask.to(device, non_blocking=True)
         has_cond = has_cond.to(device, non_blocking=True)
 
-        # Uncaptioned samples always use the learned null embedding;
-        # captioned ones drop to null with prob COND_DROPOUT so the model
-        # learns both distributions (classifier-free guidance).
+        # Uncaptioned samples always use the learned null token; captioned
+        # ones drop to null with prob COND_DROPOUT so the model learns
+        # both distributions (classifier-free guidance).
         drop = ~has_cond
         if COND_DROPOUT > 0:
             drop = drop | (torch.rand(has_cond.shape, device=device)
@@ -211,7 +212,8 @@ def train_epoch(model, loader, optimizer, scheduler, device, epoch, stage_name,
         # Forward through the wrapper (DDP hooks gradient sync into
         # backward); compute_loss lives on the raw module
         with _autocast(device):
-            logits = model(masked_grid, cond_emb=cond_emb, cond_drop=drop,
+            logits = model(masked_grid, cond_tokens=cond_tokens,
+                           cond_mask=cond_mask, cond_drop=drop,
                            mask_ratio=ratio)
             loss = unwrap(model).compute_loss(logits, target_grid, mask,
                                               soft_target_matrix=soft_target)
@@ -266,17 +268,20 @@ def validate(model, loader, device, soft_target=None):
     total_correct = 0
     total_masked = 0
 
-    for masked_grid, target_grid, mask, ratio, cond_emb, has_cond in loader:
+    for (masked_grid, target_grid, mask, ratio, cond_tokens, cond_mask,
+         has_cond) in loader:
         masked_grid = masked_grid.to(device)
         target_grid = target_grid.to(device)
         mask = mask.to(device)
         ratio = ratio.to(device)
-        cond_emb = cond_emb.to(device)
+        cond_tokens = cond_tokens.to(device)
+        cond_mask = cond_mask.to(device)
         has_cond = has_cond.to(device)
 
         with _autocast(device):
-            logits = model(masked_grid, cond_emb=cond_emb,
-                           cond_drop=~has_cond, mask_ratio=ratio)
+            logits = model(masked_grid, cond_tokens=cond_tokens,
+                           cond_mask=cond_mask, cond_drop=~has_cond,
+                           mask_ratio=ratio)
             loss = model.compute_loss(logits, target_grid, mask,
                                       soft_target_matrix=soft_target)
         total_loss += loss.item()
@@ -293,12 +298,12 @@ def validate(model, loader, device, soft_target=None):
 def print_sample(model, device, save_path=None, probe=None):
     """Generate and print per-epoch samples (rank 0 only).
 
-    Always generates unconditionally; with probe=(prompt_text, cond_emb)
-    it also generates a prompted sample with guidance. The unconditional
-    mode only sees COND_DROPOUT of the training signal on captioned data
-    (and sparse grids collapse it toward all-blank early on), so the
-    prompted sample is the meaningful progress signal for conditioned
-    stages.
+    Always generates unconditionally; with probe=(prompt_text, cond_tokens,
+    cond_mask) it also generates a prompted sample with guidance. The
+    unconditional mode only sees COND_DROPOUT of the training signal on
+    captioned data (and sparse grids collapse it toward all-blank early
+    on), so the prompted sample is the meaningful progress signal for
+    conditioned stages.
 
     With save_path, the samples are also written to disk — one file per
     epoch under checkpoints/samples/, which the Streamlit app renders as
@@ -311,11 +316,12 @@ def print_sample(model, device, save_path=None, probe=None):
                         device=device)
     sections = [("unconditional", final)]
     if probe is not None:
-        text, emb = probe
+        text, toks, msk = probe
         _, prompted = generate(unwrap(model), GRID_H, GRID_W,
                                num_steps=UNMASK_STEPS,
                                temperature=TEMPERATURE, device=device,
-                               cond_emb=emb, guidance_scale=CFG_SCALE)
+                               cond_tokens=toks, cond_mask=msk,
+                               guidance_scale=CFG_SCALE)
         sections.append((f'prompt: "{text}" (guidance {CFG_SCALE})',
                          prompted))
     for title, grid in sections:
@@ -364,15 +370,17 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
         data = data[:max_samples]
         if caption_ids is not None:
             caption_ids = caption_ids[:max_samples]
-    caption_embs = None
+    caption_tokens = caption_masks = None
     if captions is not None:
         # Embed the unique-caption vocabulary once up front; the training
         # loop then only indexes into this table (the encoder never runs
         # inside the loop)
         log(f"  Captions: {len(captions):,} unique — embedding with "
             f"{TEXT_ENCODER}...")
-        from data.text_embed import embed_texts
-        caption_embs = embed_texts(captions)
+        from data.text_embed import embed_captions
+        caption_tokens, caption_masks = embed_captions(captions)
+        log(f"  Caption tokens: {tuple(caption_tokens.shape)} "
+            f"({caption_tokens.nbytes / 1e6:.0f} MB)")
     else:
         log("  Captions: none (unconditional stage)")
 
@@ -381,7 +389,7 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
     val_size = max(1, int(len(data) * 0.05))
     train_size = len(data) - val_size
     train_data, val_data = random_split(
-        ASCIIDataset(data, caption_ids, caption_embs),
+        ASCIIDataset(data, caption_ids, caption_tokens, caption_masks),
         [train_size, val_size],
         generator=torch.Generator().manual_seed(42),
     )
@@ -447,8 +455,8 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
         # mode (the one 90% of training optimizes) is visible too.
         sample_path = os.path.join(ckpt_dir, "samples",
                                    f"{stage_name}_epoch{epoch+1:03d}.txt")
-        probe = ((captions[0], caption_embs[0])
-                 if caption_embs is not None else None)
+        probe = ((captions[0], caption_tokens[0], caption_masks[0])
+                 if caption_tokens is not None else None)
         print_sample(model, device, save_path=sample_path, probe=probe)
 
         if ema is not None:

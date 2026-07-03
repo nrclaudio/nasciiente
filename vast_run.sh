@@ -39,6 +39,23 @@ fi
 cd "$WORKDIR"
 git fetch origin "$BRANCH" && git checkout "$BRANCH" && git pull origin "$BRANCH"
 
+echo "=== Installing dependencies ==="
+"$PY" -m pip install -q -r requirements.txt || {
+    echo "!!! pip install failed"; exit 1; }
+echo
+
+# Pre-flight: the text encoder must load and embed before anything long
+# runs — a CLIP download/API problem should fail here, in seconds
+echo "=== Pre-flight: CLIP text encoder ==="
+"$PY" -c "
+import sys; sys.path.insert(0, '.')
+from data.text_embed import embed_captions
+t, m = embed_captions(['a rectangle and a cross'])
+print('CLIP text encoder OK:', tuple(t.shape), int(m.sum()), 'tokens')" || {
+    echo "!!! Text encoder pre-flight FAILED — fix before burning GPU time."
+    exit 1; }
+echo
+
 # Sanity pass: convert 200 images and show samples BEFORE the long run,
 # so a bad dataset is caught in minutes, not hours
 if [ "${SANITY:-1}" = "1" ]; then

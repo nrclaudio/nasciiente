@@ -37,7 +37,7 @@ def test_random_mask_invariants():
     assert (masked[mask] == MASK_TOKEN).all()
     assert (masked[~mask] == grid[~mask]).all()
     assert abs(mask.float().mean().item() - ratio) < 1e-6
-    assert 0.10 < ratio < 0.90
+    assert 0.10 < ratio <= 1.0  # training covers up to fully masked
 
 
 def test_block_mask_is_contiguous_rectangle():
@@ -72,28 +72,33 @@ def test_mixed_mask_returns_valid_tuple():
 def test_dataset_getitem():
     data = torch.stack([generate_sample()[0] for _ in range(4)])
     caption_ids = torch.tensor([1, 0, -1, 1])
-    caption_embs = torch.randn(2, 8)
-    ds = ASCIIDataset(data, caption_ids, caption_embs)
+    caption_tokens = torch.randn(2, 6, 8)
+    caption_masks = torch.tensor([[True] * 4 + [False] * 2,
+                                  [True] * 6])
+    ds = ASCIIDataset(data, caption_ids, caption_tokens, caption_masks)
     assert len(ds) == 4
-    masked, target, mask, ratio, cond_emb, has_cond = ds[0]
+    masked, target, mask, ratio, toks, tmask, has_cond = ds[0]
     assert masked.shape == target.shape == mask.shape == (GRID_H, GRID_W)
     assert mask.dtype == torch.bool
     assert ratio.dtype == torch.float
     assert bool(has_cond)
-    assert torch.allclose(cond_emb, caption_embs[1])
-    # Uncaptioned sample (caption_id -1): zero embedding, has_cond False
-    _, _, _, _, cond_emb2, has_cond2 = ds[2]
+    assert torch.allclose(toks, caption_tokens[1])
+    assert torch.equal(tmask, caption_masks[1])
+    # Uncaptioned sample (caption_id -1): zero tokens, all-False mask
+    _, _, _, _, toks2, tmask2, has_cond2 = ds[2]
     assert not bool(has_cond2)
-    assert torch.equal(cond_emb2, torch.zeros(8))
+    assert torch.equal(toks2, torch.zeros(6, 8))
+    assert not tmask2.any()
 
 
 def test_dataset_without_captions_is_unconditional():
     from config import TEXT_EMB_DIM
     data = torch.stack([generate_sample()[0] for _ in range(2)])
     ds = ASCIIDataset(data)
-    _, _, _, _, cond_emb, has_cond = ds[0]
+    _, _, _, _, toks, tmask, has_cond = ds[0]
     assert not bool(has_cond)
-    assert torch.equal(cond_emb, torch.zeros(TEXT_EMB_DIM))
+    assert torch.equal(toks, torch.zeros(1, TEXT_EMB_DIM))
+    assert not tmask.any()
 
 
 def test_load_data_and_captions_formats(tmp_path):

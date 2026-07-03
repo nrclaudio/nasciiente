@@ -15,7 +15,7 @@ fully masked grid ──▶ ASCIIBert ──▶ logits per cell ──▶ unmask
 
 ## Architecture
 
-- **ASCIIBert** (`model/ascii_bert.py`) — ~25M parameters with the default
+- **ASCIIBert** (`model/ascii_bert.py`) — ~35M parameters with the default
   config: 8 pre-norm transformer encoder layers, 512 dim, 8 heads, GELU FFN
   (2048), gradient checkpointing.
 - **2D RoPE** (`model/embeddings.py`) — each attention head splits in half;
@@ -161,11 +161,16 @@ Two packages of improvements sit on top of the base model.
   dataset now carries captions — geometry samples describe their
   primitives ("a rectangle and a cross"), ImageNet-Sketch contributes its
   class names, and human ASCII art keeps its titles. Captions are embedded
-  once with a frozen CLIP text encoder (`data/text_embed.py`) and projected
-  into the token stream; 10% caption dropout to a learned null embedding
-  during training enables CFG, with a guidance knob trading diversity for
-  adherence. `generate(..., prompt="a small sailboat",
-  guidance_scale=3.0)` (or pass a precomputed `cond_emb`).
+  once with a frozen CLIP text encoder (`data/text_embed.py`); every
+  transformer block **cross-attends to the caption's token sequence**
+  (compositional control — grid cells can bind to individual words), and
+  the tokens' masked mean feeds a global additive vector. 10% caption
+  dropout to a learned null token during training enables CFG, with a
+  guidance knob trading diversity for adherence. `generate(...,
+  prompt="a small sailboat", guidance_scale=3.0)` (or pass precomputed
+  `cond_tokens`/`cond_mask`).
+- **Full mask-ratio coverage**: training mask ratios now reach 1.0, so the
+  fully-masked grid every generation starts from is in-distribution.
 - **Mask-ratio conditioning**: the model is told what fraction of the grid
   is hidden — the denoising "noise level" a plain masked LM never gets.
 - **Glyph-aware soft labels** (`data/glyph_sim.py`): confusing `/` with `|`
@@ -213,7 +218,7 @@ detects more than one GPU). How it works:
 The DDP path is exercised by a 2-process CPU (gloo backend) smoke test:
 sharding, gradient sync (replicas stay bit-identical), loss decrease,
 and checkpoint compatibility. On GPUs it uses NCCL automatically. This
-model is small (~25M params), so gradient traffic is light and scaling
+model is small (~35M params), so gradient traffic is light and scaling
 efficiency should be high; data generation is unaffected (CPU-bound).
 
 ## Upscaling (generate beyond 48×80)
@@ -264,9 +269,9 @@ Next steps, roughly in order:
    CLIP text encoder; run #2 trains it. All three stages carry captions —
    geometry primitive descriptions, ImageNet-Sketch class names, human-art
    titles).
-6. **Richer captions** — the additive single-vector conditioning could
-   become cross-attention over caption *tokens* if single-vector prompts
-   prove too coarse for compositional prompts.
+6. ~~Cross-attention over caption tokens~~ — **done** (every block
+   cross-attends to the caption token sequence; zero-init so old
+   checkpoints still load and run).
 7. **Larger grids** — RoPE supports up to 96×160; the strided-anchor
    training now makes 2× upscaling in-distribution. Train with variable
    grid sizes to push further.

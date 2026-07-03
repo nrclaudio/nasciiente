@@ -39,30 +39,33 @@ def _num_masked_target(total, step, num_steps, schedule):
     return int(math.floor(total * frac))
 
 
-def _model_logits(model, grid, cond_emb, guidance_scale, mask_ratio):
+def _model_logits(model, grid, cond, guidance_scale, mask_ratio):
     """Model logits for one grid, with classifier-free guidance.
 
-    CFG: push the conditional prediction away from the unconditional one,
-    logits = uncond + scale * (cond - uncond). scale=1 or no prompt means a
-    single plain forward pass; with guidance the conditional and
-    unconditional predictions run as ONE batch-2 forward (same math as two
-    passes at roughly half the latency).
+    cond is None or a (cond_tokens [L, D], cond_mask [L]) pair. CFG: push
+    the conditional prediction away from the unconditional one, logits =
+    uncond + scale * (cond - uncond). scale=1 or no prompt means a single
+    plain forward pass; with guidance the conditional and unconditional
+    predictions run as ONE batch-2 forward (same math as two passes at
+    roughly half the latency).
     """
-    if cond_emb is None or guidance_scale == 1.0:
-        return model(grid.unsqueeze(0), cond_emb=cond_emb,
-                     mask_ratio=mask_ratio).squeeze(0)
+    if cond is None or guidance_scale == 1.0:
+        kwargs = ({} if cond is None
+                  else dict(cond_tokens=cond[0], cond_mask=cond[1]))
+        return model(grid.unsqueeze(0), mask_ratio=mask_ratio,
+                     **kwargs).squeeze(0)
     batch = grid.unsqueeze(0).expand(2, -1, -1)
     drop = torch.tensor([False, True], device=grid.device)
     ratios = torch.full((2,), float(mask_ratio), device=grid.device)
-    logits = model(batch, cond_emb=cond_emb, cond_drop=drop,
-                   mask_ratio=ratios)
-    cond, uncond = logits[0], logits[1]
-    return uncond + guidance_scale * (cond - uncond)
+    logits = model(batch, cond_tokens=cond[0], cond_mask=cond[1],
+                   cond_drop=drop, mask_ratio=ratios)
+    cond_l, uncond_l = logits[0], logits[1]
+    return uncond_l + guidance_scale * (cond_l - uncond_l)
 
 
 def _iterative_fill(model, grid, num_steps, temperature, schedule,
                     gumbel_scale, steps_out,
-                    cond_emb=None, guidance_scale=1.0):
+                    cond=None, guidance_scale=1.0):
     """Fill every currently-[MASK] cell of `grid` in place (MaskGIT-style).
 
     Cells that are not [MASK] on entry are never touched, so fixed/anchor
@@ -86,7 +89,7 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
             break
 
         mask_ratio = num_masked / total
-        logits = _model_logits(model, grid, cond_emb, guidance_scale,
+        logits = _model_logits(model, grid, cond, guidance_scale,
                                mask_ratio)                # [H, W, V]
         if temperature != 1.0:
             logits = logits / temperature
@@ -115,7 +118,7 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
     is_masked = (grid == MASK_TOKEN)
     if is_masked.any():
         mask_ratio = int(is_masked.sum().item()) / total
-        logits = _model_logits(model, grid, cond_emb, guidance_scale,
+        logits = _model_logits(model, grid, cond, guidance_scale,
                                mask_ratio)
         if temperature != 1.0:
             logits = logits / temperature
@@ -129,7 +132,8 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
 def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
              initial_grid=None, device="cpu", schedule="cosine",
              gumbel_scale=1.0, revision_steps=2, revision_fraction=0.1,
-             prompt=None, cond_emb=None, guidance_scale=1.0):
+             prompt=None, cond_tokens=None, cond_mask=None,
+             guidance_scale=1.0):
     """
     Generate ASCII art via iterative unmasking (MaskGIT-style).
 
@@ -150,9 +154,11 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
         revision_fraction: fraction of free cells re-masked per revision round
         prompt: optional text prompt — embedded with the frozen text encoder
                 (needs the 'transformers' package at generation time)
-        cond_emb: optional precomputed [TEXT_EMB_DIM] prompt embedding
-                  (takes precedence over `prompt`; lets callers cache
-                  embeddings and avoid loading the encoder)
+        cond_tokens: optional precomputed [L, TEXT_EMB_DIM] caption-token
+                     embeddings (takes precedence over `prompt`; lets
+                     callers cache embeddings and avoid the encoder)
+        cond_mask: optional [L] bool validity mask for cond_tokens
+                   (None -> all valid)
         guidance_scale: classifier-free guidance strength (1.0 = off). Higher
                         sharpens adherence to the prompt at some diversity
                         cost.
@@ -163,11 +169,17 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
     """
     model.eval()
 
-    if cond_emb is None and prompt:
-        from data.text_embed import embed_texts
-        cond_emb = embed_texts([prompt])[0]
-    if cond_emb is not None:
-        cond_emb = torch.as_tensor(cond_emb, dtype=torch.float).to(device)
+    if cond_tokens is None and prompt:
+        from data.text_embed import embed_captions
+        toks, msk = embed_captions([prompt])
+        cond_tokens, cond_mask = toks[0], msk[0]
+    cond = None
+    if cond_tokens is not None:
+        cond_tokens = torch.as_tensor(cond_tokens,
+                                      dtype=torch.float).to(device)
+        if cond_mask is None:
+            cond_mask = torch.ones(cond_tokens.shape[0], dtype=torch.bool)
+        cond = (cond_tokens, cond_mask.to(device))
 
     if initial_grid is not None:
         grid = initial_grid.clone().to(device)
@@ -183,7 +195,7 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
 
     # --- Main fill ---
     _iterative_fill(model, grid, num_steps, temperature, schedule,
-                    gumbel_scale, steps, cond_emb, guidance_scale)
+                    gumbel_scale, steps, cond, guidance_scale)
 
     # --- Revision passes (poor-man's Token-Critic self-correction) ---
     free = ~fixed
@@ -192,7 +204,7 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
     for _ in range(revision_steps):
         k = max(1, int(revision_fraction * num_free))
 
-        logits = _model_logits(model, grid, cond_emb, guidance_scale,
+        logits = _model_logits(model, grid, cond, guidance_scale,
                                int((grid == MASK_TOKEN).sum().item()) / total)
         if temperature != 1.0:
             logits = logits / temperature
@@ -207,7 +219,7 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
 
         refill_steps = max(2, num_steps // 4)
         _iterative_fill(model, grid, refill_steps, temperature, schedule,
-                        gumbel_scale, steps, cond_emb, guidance_scale)
+                        gumbel_scale, steps, cond, guidance_scale)
 
     return steps, grid.cpu()
 
