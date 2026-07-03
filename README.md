@@ -87,10 +87,25 @@ python training/evaluate.py --checkpoint checkpoints/final_model.pt \
 streamlit run app/streamlit_app.py
 ```
 
+### Resource requirements (single full run)
+
+| Resource | Minimum | Comfortable | Notes |
+|----------|---------|-------------|-------|
+| GPU VRAM | 16 GB | 24 GB (4090) / 40+ GB (A100) | gradient checkpointing is on; if OOM, halve `BATCH_SIZE` and set `GRAD_ACCUM_STEPS = 2` |
+| System RAM | 32 GB | 64 GB | peak ~20 GB during shading generation (images held in RAM as grayscale uint8) |
+| Disk | 40 GB | 60 GB | docker image + datasets (~1.2 GB) + rolling checkpoints (~2 GB) |
+| CPU | 8 cores | 16 cores | data generation is CPU-bound |
+| Network | 100 Mbps | — | streams ~50k images from HuggingFace |
+
 Notes:
 - The default shading source `imagenet_sketch` streams via HuggingFace
   with no auth. `--source imagenet` needs a HF token with ImageNet
   access; `imagenette`/`caltech101`/`caltech256` need no auth.
+- Loaders store images as grayscale uint8 downscaled to the conversion
+  canvas, and dataset files store grids as uint8 (the 98-char vocab fits
+  in a byte) — full-size RGB float storage would need hundreds of GB.
+- Checkpoints are rolling: `{stage}_last.pt` (every epoch) and
+  `{stage}_best.pt` (on val improvement), not one file per epoch.
 - Training defaults (`config.py`) target a single A100: batch 64,
   15 epochs per stage, cosine schedule with warmup. Checkpoints are
   written to `checkpoints/` every epoch, plus `final_model.pt`.

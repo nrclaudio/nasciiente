@@ -284,14 +284,13 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
         epochs_left = epochs - epoch - 1
         eta_stage = stage_elapsed / (epoch + 1) * epochs_left
 
-        marker = ""
-        if val_loss < best_val_loss:
+        improved = val_loss < best_val_loss
+        if improved:
             best_val_loss = val_loss
-            marker = " *best*"
 
         log(f"\n[{stage_name}] Epoch {epoch+1}/{epochs} DONE — "
             f"Train: {train_loss:.4f}, Val: {val_loss:.4f}, "
-            f"Acc: {val_acc:.1%}{marker}")
+            f"Acc: {val_acc:.1%}{' *best*' if improved else ''}")
         lr_now = optimizer.param_groups[0]["lr"]
         log(f"  Epoch time: {elapsed:.1f}s | "
             f"Stage ETA: {eta_stage/60:.1f}min | "
@@ -300,10 +299,16 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
         # Print a generated sample each epoch
         print_sample(model, device)
 
-        # Save checkpoint
-        ckpt_path = os.path.join(ckpt_dir, f"{stage_name}_epoch{epoch+1}.pt")
-        save_checkpoint(model, optimizer, epoch, stage_name, ckpt_path)
-        log(f"  Checkpoint saved: {ckpt_path}")
+        # Rolling checkpoints: 'last' every epoch (crash recovery) and
+        # 'best' on val improvement. Per-epoch files would pile up to
+        # ~12 GB over a full curriculum for no benefit.
+        last_path = os.path.join(ckpt_dir, f"{stage_name}_last.pt")
+        save_checkpoint(model, optimizer, epoch, stage_name, last_path)
+        if improved:
+            save_checkpoint(model, optimizer, epoch, stage_name,
+                            os.path.join(ckpt_dir, f"{stage_name}_best.pt"))
+        log(f"  Checkpoint saved: {last_path}"
+            + (" (+ best)" if improved else ""))
 
     total_stage = time.time() - t_stage
     log(f"\n{'='*60}")
