@@ -1,16 +1,22 @@
 #!/bin/bash
 # One-shot training run for a Vast.ai instance (or any fresh GPU box).
 #
-# Usage (SSH onto the instance, then):
-#   curl -fsSL https://raw.githubusercontent.com/nrclaudio/ascii-art-transformer/claude/ascii-art-pr-review-v8c3ok/vast_run.sh | bash
+# Usage (SSH onto the instance, then). The repo is private, so a GitHub
+# token with read access is needed (fine-grained PAT, Contents: read):
+#   export GH_TOKEN=github_pat_...
+#   curl -fsSL -H "Authorization: token $GH_TOKEN" \
+#     https://raw.githubusercontent.com/nrclaudio/ascii-art-transformer/claude/ascii-art-pr-review-v8c3ok/vast_run.sh | bash
 # or clone the repo yourself and run: bash vast_run.sh
 #
 # Environment overrides:
+#   GH_TOKEN=...           GitHub token for cloning the private repo
 #   BRANCH=main            git branch to train from
 #   SANITY=0               skip the 200-sample sanity pass
 set -uo pipefail
 
-REPO="https://github.com/nrclaudio/ascii-art-transformer"
+# Token goes into the remote URL — fine on a throwaway instance, but
+# don't reuse a long-lived token here
+REPO="https://${GH_TOKEN:+${GH_TOKEN}@}github.com/nrclaudio/ascii-art-transformer"
 BRANCH="${BRANCH:-claude/ascii-art-pr-review-v8c3ok}"
 WORKDIR="${WORKDIR:-${HOME}/ascii-art-transformer}"
 
