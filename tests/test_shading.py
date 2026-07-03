@@ -112,3 +112,13 @@ def test_record_image_finds_pil_under_any_column():
     assert _record_image({"jpg": img, "cls": 3}) is img
     assert _record_image({"image": img}) is img
     assert _record_image({"label": 1, "text": "x"}) is None
+
+
+def test_packaged_imagenet_class_names():
+    # The packaged list backstops mirrors with no name mapping (webdataset):
+    # 1000 entries, canonical order, ready to use as captions
+    from data.generate_shading import _imagenet_class_names
+    names = _imagenet_class_names()
+    assert names is not None and len(names) == 1000
+    assert names[0] == "tench"
+    assert all(n for n in names)
