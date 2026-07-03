@@ -536,6 +536,22 @@ def _label_names(ds):
     return [str(n).split(",")[0].strip() for n in names]
 
 
+def _imagenet_class_names():
+    """Packaged ImageNet-1k class names (line number = class id).
+
+    Fallback for mirrors whose records carry integer labels but whose
+    features have no name mapping — e.g. the webdataset ImageNet-Sketch
+    mirrors, where losing the names would silently drop the captions.
+    """
+    path = os.path.join(os.path.dirname(__file__), "imagenet_classes.txt")
+    try:
+        with open(path) as f:
+            names = [line.strip() for line in f if line.strip()]
+    except OSError:
+        return None
+    return names if len(names) == 1000 else None
+
+
 def _load_imagenet_sketch(num_samples):
     """Load ImageNet-Sketch via HuggingFace streaming. Returns list of tensors.
 
@@ -729,6 +745,16 @@ def generate_dataset(source, num_samples, segment=False, out_path=None):
     # Load images from selected source
     all_images, all_labels, label_names = load_images(source, data_dir,
                                                       num_samples)
+
+    # Labels without a name mapping (webdataset mirrors): both labeled
+    # sources use ImageNet-1k ids, so the packaged name list applies
+    if all_labels is not None and label_names is None:
+        packaged = _imagenet_class_names()
+        valid = [l for l in all_labels if l >= 0]
+        if packaged and valid and max(valid) < len(packaged):
+            label_names = packaged
+            print("  No class-name mapping in the dataset features — using "
+                  "packaged ImageNet class names for captions")
     total_available = len(all_images)
 
     if total_available == 0:
