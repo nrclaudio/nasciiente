@@ -38,6 +38,16 @@ def test_glyph_matrix_is_row_stochastic_and_diagonal_dominant():
         assert m[i, i] > 0.5
 
 
+def test_glyph_space_row_stays_one_hot():
+    # Space renders zero ink, so it has no meaningful similarity row — it
+    # must stay one-hot instead of leaking uniform mass onto every glyph.
+    m = build_soft_target_matrix(0.1)
+    sp = char_to_idx(" ")
+    expected = torch.zeros(m.shape[0])
+    expected[sp] = 1.0
+    assert torch.equal(m[sp], expected)
+
+
 def test_glyph_alpha_zero_is_identity():
     m = build_soft_target_matrix(0.0)
     assert torch.equal(m, torch.eye(m.shape[0]))

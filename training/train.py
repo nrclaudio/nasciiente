@@ -286,16 +286,22 @@ def print_sample(model, device):
     print()
 
 
-def save_checkpoint(model, optimizer, epoch, stage, path):
+def save_checkpoint(model, optimizer, epoch, stage, path, ema=None):
     if RANK != 0:
         return
-    torch.save({
-        # unwrap so checkpoints have identical keys with and without DDP
+    ckpt = {
+        # unwrap so checkpoints have identical keys with and without DDP.
+        # model_state_dict holds the live training weights (they match
+        # optimizer_state_dict, so a resume continues where it left off);
+        # the EMA weights used for eval/deployment ride along separately.
         "model_state_dict": unwrap(model).state_dict(),
         "optimizer_state_dict": optimizer.state_dict(),
         "epoch": epoch,
         "stage": stage,
-    }, path)
+    }
+    if ema is not None:
+        ckpt["ema_state_dict"] = ema.shadow
+    torch.save(ckpt, path)
 
 
 def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
@@ -357,8 +363,9 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
                                  sampler=train_sampler, soft_target=soft_target,
                                  ema=ema)
 
-        # Evaluate, sample, and checkpoint under EMA weights (swap in, then
-        # restore the live training weights afterwards)
+        # Evaluate and sample under EMA weights (swap in, then restore the
+        # live training weights before checkpointing so the saved weights
+        # match the saved optimizer state)
         if ema is not None:
             ema.store_and_copy(unwrap(model))
         val_loss, val_acc = validate(model, val_loader, device, soft_target)
@@ -383,19 +390,21 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
         # Print a generated sample each epoch
         print_sample(model, device)
 
+        if ema is not None:
+            ema.restore(unwrap(model))
+
         # Rolling checkpoints: 'last' every epoch (crash recovery) and
         # 'best' on val improvement. Per-epoch files would pile up to
         # ~12 GB over a full curriculum for no benefit.
         last_path = os.path.join(ckpt_dir, f"{stage_name}_last.pt")
-        save_checkpoint(model, optimizer, epoch, stage_name, last_path)
+        save_checkpoint(model, optimizer, epoch, stage_name, last_path,
+                        ema=ema)
         if improved:
             save_checkpoint(model, optimizer, epoch, stage_name,
-                            os.path.join(ckpt_dir, f"{stage_name}_best.pt"))
+                            os.path.join(ckpt_dir, f"{stage_name}_best.pt"),
+                            ema=ema)
         log(f"  Checkpoint saved: {last_path}"
             + (" (+ best)" if improved else ""))
-
-        if ema is not None:
-            ema.restore(unwrap(model))
 
     total_stage = time.time() - t_stage
     log(f"\n{'='*60}")

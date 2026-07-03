@@ -16,7 +16,8 @@ import torch
 # Ensure project root is importable
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from config import GRID_H, GRID_W, UNMASK_STEPS, TEMPERATURE, VOCAB_SIZE
+from config import (GRID_H, GRID_W, UNMASK_STEPS, TEMPERATURE, VOCAB_SIZE,
+                    MAX_ROWS, MAX_COLS)
 from model.ascii_bert import ASCIIBert
 from model.inference import generate, upscale_grid
 from data.charset import grid_to_string, MASK_TOKEN
@@ -29,7 +30,13 @@ def load_model(checkpoint_path):
 
     strict=False so a checkpoint trained before the conditioning params
     existed (run #1) still loads — its zero-initialized conditioning is a
-    no-op, so behavior is unchanged.
+    no-op, so behavior is unchanged. Only conditioning params may be
+    absent, though: any other key mismatch means the checkpoint doesn't
+    match this architecture, and loading it would silently leave random
+    weights, so fail loudly instead.
+
+    Returns (model, device, conditioned) — conditioned is False for
+    pre-conditioning checkpoints so the UI can hide the class controls.
     """
     device = torch.device("cpu")
     model = ASCIIBert().to(device)
@@ -37,10 +44,14 @@ def load_model(checkpoint_path):
     state = ckpt["model_state_dict"] if (isinstance(ckpt, dict)
             and "model_state_dict" in ckpt) else ckpt
     missing, unexpected = model.load_state_dict(state, strict=False)
+    bad = [k for k in missing if "conditioning" not in k] + list(unexpected)
+    if bad:
+        raise ValueError(f"Checkpoint {os.path.basename(checkpoint_path)} "
+                         f"does not match the model (mismatched keys: "
+                         f"{bad[:5]}...)")
     conditioned = not any("conditioning" in k for k in missing)
-    st.session_state["model_conditioned"] = conditioned
     model.eval()
-    return model, device
+    return model, device, conditioned
 
 
 def find_checkpoint():
@@ -68,7 +79,11 @@ def main():
         st.error("No model checkpoint found in `checkpoints/`. Train the model first.")
         return
 
-    model, device = load_model(ckpt_path)
+    try:
+        model, device, conditioned = load_model(ckpt_path)
+    except ValueError as e:
+        st.error(str(e))
+        return
     st.sidebar.success(f"Model loaded from `{os.path.basename(ckpt_path)}`")
 
     # Controls
@@ -94,13 +109,19 @@ def main():
     gen_kwargs = dict(schedule=schedule, gumbel_scale=gumbel_scale,
                       revision_steps=revision_steps)
 
-    # Class conditioning (only meaningful if the model was trained with
-    # labels; harmless otherwise — the null class + guidance 1.0 = plain).
+    # Class conditioning — only offered when the loaded checkpoint actually
+    # has trained conditioning params; on older checkpoints the controls
+    # would silently do nothing.
     st.sidebar.subheader("Class conditioning")
-    use_class = st.sidebar.checkbox(
-        "Condition on ImageNet class",
-        help="Requires a class-trained checkpoint (Pack B). ImageNet class "
-             "index 0–999.")
+    if not conditioned:
+        st.sidebar.caption("Unavailable — this checkpoint predates class "
+                           "conditioning.")
+        use_class = False
+    else:
+        use_class = st.sidebar.checkbox(
+            "Condition on ImageNet class",
+            help="Requires a class-trained checkpoint (Pack B). ImageNet class "
+                 "index 0–999.")
     if use_class:
         class_label = st.sidebar.number_input(
             "Class index (0–999)", min_value=0, max_value=999, value=0, step=1)
@@ -140,9 +161,12 @@ def main():
                        f"({num_steps} steps)")
 
             h, w = final.shape
-            if st.button(f"Upscale ×2 → {h*2}×{w*2}",
-                         help="Anchor each character on a 2× canvas and "
-                              "inpaint the gaps (MaskGIT super-resolution)"):
+            if h * 2 > MAX_ROWS or w * 2 > MAX_COLS:
+                st.caption(f"Upscale ×2 unavailable: {h*2}×{w*2} exceeds the "
+                           f"model's RoPE limit ({MAX_ROWS}×{MAX_COLS}).")
+            elif st.button(f"Upscale ×2 → {h*2}×{w*2}",
+                           help="Anchor each character on a 2× canvas and "
+                                "inpaint the gaps (MaskGIT super-resolution)"):
                 with st.spinner("Upscaling..."):
                     t0 = time.time()
                     _, upscaled = upscale_grid(model, final, factor=2,
