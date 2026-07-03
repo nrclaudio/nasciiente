@@ -15,6 +15,8 @@ class ASCIIDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        grid = self.data[idx]  # [H, W]
+        # Data files store uint8 (the vocab fits in a byte — 8x smaller
+        # on disk and in RAM); the embedding layer needs long indices
+        grid = self.data[idx].long()  # [H, W]
         masked_grid, target_grid, mask = random_mask(grid)
         return masked_grid, target_grid, mask

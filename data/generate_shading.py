@@ -250,10 +250,17 @@ def image_to_ascii_grid(img_tensor, shape_vectors, masks, char_indices,
         letterbox: preserve aspect ratio, padding with whitespace
         auto_polarity: flip ink so the (border-estimated) background is sparse
         whitespace_floor: ink below this renders as space (0 disables)
+
+    Also accepts the compact loader format: [H, W] (or [1, H, W]) uint8
+    grayscale, as produced by _to_gray_u8.
     """
     # Grayscale -> invert -> [0, 1]
-    gray = (0.2989 * img_tensor[0] + 0.5870 * img_tensor[1]
-            + 0.1140 * img_tensor[2])
+    if img_tensor.dtype == torch.uint8:
+        gray = img_tensor.squeeze(0) if img_tensor.ndim == 3 else img_tensor
+        gray = gray.float() / 255.0
+    else:
+        gray = (0.2989 * img_tensor[0] + 0.5870 * img_tensor[1]
+                + 0.1140 * img_tensor[2])
     ink = 1.0 - gray
 
     # Flip polarity when the background (border) would render dense —
@@ -369,6 +376,29 @@ def _pil_to_tensor(pil_img):
     return T.ToTensor()(pil_img)
 
 
+def _to_gray_u8(img_tensor):
+    """Compress a [3, H, W] float image for in-RAM storage.
+
+    Grayscale uint8, downscaled to fit the conversion canvas. Holding
+    tens of thousands of full-size RGB float32 images needs hundreds of
+    GB of RAM; this is ~40x smaller with zero pipeline quality loss —
+    the converter grayscales and letterboxes into the same canvas anyway.
+
+    Returns [H', W'] uint8 with max dims (GRID_H*CELL_H, GRID_W*CELL_W).
+    """
+    gray = (0.2989 * img_tensor[0] + 0.5870 * img_tensor[1]
+            + 0.1140 * img_tensor[2])
+    h, w = gray.shape
+    target_h, target_w = GRID_H * CELL_H, GRID_W * CELL_W
+    scale = min(target_h / h, target_w / w)
+    if scale < 1.0:  # only ever downscale; upscaling happens at convert time
+        nh = max(1, round(h * scale))
+        nw = max(1, round(w * scale))
+        gray = F.interpolate(gray[None, None], size=(nh, nw),
+                             mode="area").squeeze(0).squeeze(0)
+    return (gray.clamp(0, 1) * 255).to(torch.uint8)
+
+
 def _load_stl10(data_dir):
     """Load STL-10 images (legacy). Returns list of [3, H, W] tensors."""
     print("\nLoading STL-10...")
@@ -378,7 +408,7 @@ def _load_stl10(data_dir):
         ds = torchvision.datasets.STL10(
             root=data_dir, split=split, download=True, transform=transform)
         for img, _ in ds:
-            all_images.append(img)
+            all_images.append(_to_gray_u8(img))
         print(f"  {split}: {len(ds):,} images ({all_images[-1].shape})")
     print(f"Total STL-10 images: {len(all_images):,}")
     return all_images
@@ -394,7 +424,7 @@ def _load_imagenette(data_dir):
         for img, _ in ds:
             tensor = _pil_to_tensor(img)
             if min(tensor.shape[1], tensor.shape[2]) >= MIN_IMAGE_DIM:
-                all_images.append(tensor)
+                all_images.append(_to_gray_u8(tensor))
         print(f"  {split}: {len(ds):,} images")
     print(f"Total Imagenette images: {len(all_images):,}")
     return all_images
@@ -410,7 +440,7 @@ def _load_caltech101(data_dir):
         img, _ = ds[i]
         tensor = _pil_to_tensor(img)
         if min(tensor.shape[1], tensor.shape[2]) >= MIN_IMAGE_DIM:
-            all_images.append(tensor)
+            all_images.append(_to_gray_u8(tensor))
         else:
             skipped += 1
     if skipped:
@@ -429,7 +459,7 @@ def _load_caltech256(data_dir):
         img, _ = ds[i]
         tensor = _pil_to_tensor(img)
         if min(tensor.shape[1], tensor.shape[2]) >= MIN_IMAGE_DIM:
-            all_images.append(tensor)
+            all_images.append(_to_gray_u8(tensor))
         else:
             skipped += 1
     if skipped:
@@ -454,7 +484,7 @@ def _load_imagenet(data_dir, num_samples):
         img = item["image"]
         tensor = _pil_to_tensor(img)
         if min(tensor.shape[1], tensor.shape[2]) >= MIN_IMAGE_DIM:
-            all_images.append(tensor)
+            all_images.append(_to_gray_u8(tensor))
         else:
             skipped += 1
         if len(all_images) >= num_samples:
@@ -493,7 +523,7 @@ def _load_imagenet_sketch(num_samples):
     for item in ds:
         tensor = _pil_to_tensor(item["image"])
         if min(tensor.shape[1], tensor.shape[2]) >= MIN_IMAGE_DIM:
-            all_images.append(tensor)
+            all_images.append(_to_gray_u8(tensor))
         else:
             skipped += 1
         if len(all_images) >= num_samples:
@@ -516,12 +546,15 @@ def _apply_segmentation(img_tensor):
             "Background segmentation requires rembg: "
             "pip install rembg onnxruntime") from e
 
-    arr = (img_tensor.permute(1, 2, 0).numpy() * 255).astype(np.uint8)
+    if img_tensor.dtype == torch.uint8:  # compact grayscale loader format
+        arr = np.stack([img_tensor.numpy()] * 3, axis=-1)
+    else:
+        arr = (img_tensor.permute(1, 2, 0).numpy() * 255).astype(np.uint8)
     out = remove(Image.fromarray(arr))  # RGBA
     rgba = np.asarray(out.convert("RGBA")).astype(np.float32) / 255.0
     alpha = rgba[..., 3:4]
     rgb = rgba[..., :3] * alpha + (1.0 - alpha)  # composite on white
-    return torch.from_numpy(rgb).permute(2, 0, 1)
+    return _to_gray_u8(torch.from_numpy(rgb).permute(2, 0, 1))
 
 
 SOURCES = {
@@ -650,7 +683,8 @@ def generate_dataset(source, num_samples, segment=False, out_path=None):
           f"({num_samples / gen_elapsed:.0f} img/s)")
 
     print("Stacking tensors...")
-    data = torch.stack(samples)
+    # uint8: the 98-char vocab fits in a byte — 8x smaller file
+    data = torch.stack(samples).to(torch.uint8)
     print(f"Tensor shape: {data.shape}, dtype: {data.dtype}")
 
     # Character usage stats

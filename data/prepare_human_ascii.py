@@ -137,7 +137,7 @@ def main():
         print("ERROR: No usable ASCII art found.")
         sys.exit(1)
 
-    data = torch.stack(grids)
+    data = torch.stack(grids).to(torch.uint8)  # vocab fits in a byte
     out_path = os.path.join(os.path.dirname(__file__), "human_data.pt")
     torch.save(data, out_path)
     print(f"Saved {data.shape} to {out_path} "
