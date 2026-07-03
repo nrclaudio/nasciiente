@@ -4,12 +4,14 @@ ASCII Art Transformer — single entry point for Vast.ai GPU instances.
 
 Usage:
     python main.py                        # full pipeline (generate + train)
-    python main.py --stage generate       # generate both datasets only
+    python main.py --stage generate       # generate all datasets only
     python main.py --stage train          # train only (data must exist)
     python main.py --stage geometry       # generate geometry data only
     python main.py --stage shading        # generate shading data only
-    python main.py --source imagenette    # use Imagenette instead of ImageNet
+    python main.py --stage human          # prepare human ASCII art data only
+    python main.py --source imagenette    # use Imagenette instead of sketches
     python main.py --num-shading 50000    # fewer shading samples
+    python main.py --segment              # rembg background removal (photos)
 """
 
 import argparse
@@ -47,7 +49,7 @@ def print_system_info():
     if torch.cuda.is_available():
         props = torch.cuda.get_device_properties(0)
         print(f"  GPU:       {props.name}")
-        print(f"  VRAM:      {props.total_mem / 1e9:.1f} GB")
+        print(f"  VRAM:      {props.total_memory / 1e9:.1f} GB")
         print(f"  SM count:  {props.multi_processor_count}")
     else:
         print("  WARNING: No CUDA GPU detected — training will be very slow")
@@ -101,19 +103,10 @@ def run_generate_geometry():
     print()
 
 
-def run_generate_shading(source, num_samples):
+def run_generate_shading(source, num_samples, segment=False):
     """Generate image-derived shading data (Stage 2)."""
     from config import SHADING_NUM_SAMPLES
-    from data.generate_shading import (
-        SOURCES,
-        compute_shape_vectors,
-        image_to_ascii_grid,
-        load_images,
-        _make_circle_masks,
-    )
-    from data.charset import idx_to_char
-    import torch
-    import numpy as np
+    from data.generate_shading import SOURCES, generate_dataset
 
     out_path = os.path.join(PROJECT_ROOT, "data", "shading_data.pt")
     if os.path.exists(out_path):
@@ -123,86 +116,38 @@ def run_generate_shading(source, num_samples):
         return
 
     num_samples = num_samples or SHADING_NUM_SAMPLES
-
     print(f"\n>>> Generating shading data ({source}: {SOURCES[source]})...\n")
+    generate_dataset(source, num_samples, segment=segment, out_path=out_path)
 
-    # Build shape vectors
-    print("Building 6D shape vectors...")
-    masks = _make_circle_masks()
-    mask_sums = np.array([m.sum() for m in masks], dtype=np.float32)
-    shape_vectors, char_indices = compute_shape_vectors(masks)
-    sv_sq_sum = (shape_vectors ** 2).sum(axis=1, keepdims=True).T
 
-    from config import GRID_H, GRID_W
-    from data.generate_shading import (
-        CELL_H, CELL_W, NUM_CHARS, AG_KERNEL, CLAHE_CLIP,
-        CLAHE_TILE_H, CLAHE_TILE_W, EDGE_BLEND, EDGE_BOOST, CONTRAST_POWER,
-    )
-    print(f"Grid: {GRID_H}x{GRID_W}, Cell: {CELL_H}x{CELL_W}")
-    print(f"Source: {source} — {SOURCES[source]}")
-    print(f"Method: 6D shape vector matching ({NUM_CHARS} chars)")
+def run_prepare_human():
+    """Download and normalize human ASCII art (optional Stage 3 data)."""
+    out_path = os.path.join(PROJECT_ROOT, "data", "human_data.pt")
+    if os.path.exists(out_path):
+        size_mb = os.path.getsize(out_path) / 1e6
+        print(f"Human data already exists ({size_mb:.0f} MB): {out_path}")
+        print("  Delete it to regenerate. Skipping.\n")
+        return
 
-    # Load images
-    data_dir = os.path.join(PROJECT_ROOT, "data")
-    all_images = load_images(source, data_dir, num_samples)
-    if not all_images:
-        print("ERROR: No images loaded. Check dataset source and auth.")
-        sys.exit(1)
+    print("\n>>> Preparing human ASCII art data...\n")
+    from data.prepare_human_ascii import main as human_main
 
-    total_available = len(all_images)
-    if total_available < num_samples:
-        print(f"  {total_available:,} images available, will cycle to {num_samples:,}")
-
-    # Generate samples
-    print(f"\nGenerating {num_samples:,} shading samples...")
-    samples = []
-    t_gen = time.time()
-    log_interval = max(1, num_samples // 20)
-
-    for i in range(num_samples):
-        img = all_images[i % total_available]
-        if i >= total_available and torch.rand(1).item() > 0.5:
-            img = img.flip(-1)
-        samples.append(image_to_ascii_grid(
-            img, shape_vectors, masks, char_indices, mask_sums, sv_sq_sum))
-        if (i + 1) % log_interval == 0:
-            elapsed = time.time() - t_gen
-            rate = (i + 1) / elapsed
-            eta = (num_samples - i - 1) / rate
-            print(f"  {i+1:>7,}/{num_samples:,}  "
-                  f"({100*(i+1)/num_samples:5.1f}%)  "
-                  f"{rate:.0f} img/s  ETA {eta:.0f}s")
-
-    gen_elapsed = time.time() - t_gen
-    print(f"Done in {gen_elapsed:.1f}s ({num_samples/gen_elapsed:.0f} img/s)")
-
-    data = torch.stack(samples)
-    print(f"Tensor: {data.shape}, dtype: {data.dtype}")
-
-    # Stats
-    unique, counts = torch.unique(data, return_counts=True)
-    top_k = counts.argsort(descending=True)[:10]
-    print(f"Character usage ({len(unique)} unique):")
-    for idx in top_k:
-        ch = idx_to_char(unique[idx].item())
-        pct = 100 * counts[idx].item() / data.numel()
-        print(f"  '{ch}' (idx {unique[idx].item():>2}): {pct:.1f}%")
-
-    torch.save(data, out_path)
-    print(f"Saved to {out_path} ({os.path.getsize(out_path)/1e6:.1f} MB)")
-
-    # Print a few samples
-    from data.charset import grid_to_string
-    print("\n=== Sample Shading Grids ===\n")
-    for i in range(min(3, len(samples))):
-        print(f"--- Sample {i} ---")
-        print(grid_to_string(samples[i]))
-        print()
+    saved_argv = sys.argv
+    sys.argv = [saved_argv[0]]
+    try:
+        human_main()
+    except Exception as e:
+        print(f"WARNING: human data preparation failed ({e}).")
+        print("  Stage 3 will be skipped during training. "
+              "Retry with: python data/prepare_human_ascii.py")
+    finally:
+        sys.argv = saved_argv
+    print()
 
 
 def run_train():
-    """Run two-stage training."""
-    from training.train import main as train_main
+    """Run curriculum training, using all available GPUs."""
+    import torch
 
     geo_path = os.path.join(PROJECT_ROOT, "data", "geometry_data.pt")
     shading_path = os.path.join(PROJECT_ROOT, "data", "shading_data.pt")
@@ -216,7 +161,20 @@ def run_train():
         print("  Run: python main.py --stage shading")
         sys.exit(1)
 
-    print("\n>>> Starting two-stage training...\n")
+    ngpu = torch.cuda.device_count()
+    if ngpu > 1 and "RANK" not in os.environ:
+        # Relaunch under torchrun so training/train.py runs one process
+        # per GPU with DistributedDataParallel
+        print(f"\n>>> {ngpu} GPUs detected — launching DDP via torchrun...\n")
+        subprocess.run(
+            [sys.executable, "-m", "torch.distributed.run", "--standalone",
+             f"--nproc_per_node={ngpu}",
+             os.path.join(PROJECT_ROOT, "training", "train.py")],
+            check=True)
+        return
+
+    from training.train import main as train_main
+    print("\n>>> Starting training...\n")
     train_main()
 
 
@@ -231,17 +189,23 @@ def parse_args():
     )
     parser.add_argument(
         "--stage", default="all",
-        choices=["all", "generate", "geometry", "shading", "train"],
+        choices=["all", "generate", "geometry", "shading", "human", "train"],
         help="Which stage to run (default: all)",
     )
     parser.add_argument(
-        "--source", default="imagenet",
-        choices=["imagenet", "imagenette", "caltech101", "caltech256", "stl10"],
-        help="Image source for shading data (default: imagenet)",
+        "--source", default="imagenet_sketch",
+        choices=["imagenet_sketch", "imagenet", "imagenette", "caltech101",
+                 "caltech256", "stl10"],
+        help="Image source for shading data (default: imagenet_sketch)",
     )
     parser.add_argument(
         "--num-shading", type=int, default=None,
         help="Number of shading samples (default: from config)",
+    )
+    parser.add_argument(
+        "--segment", action="store_true",
+        help="Remove image backgrounds with rembg before ASCII conversion "
+             "(requires: pip install rembg onnxruntime)",
     )
     parser.add_argument(
         "--skip-deps", action="store_true",
@@ -266,7 +230,11 @@ def main():
         run_generate_geometry()
 
     if args.stage in ("all", "generate", "shading"):
-        run_generate_shading(args.source, args.num_shading)
+        run_generate_shading(args.source, args.num_shading,
+                             segment=args.segment)
+
+    if args.stage in ("all", "generate", "human"):
+        run_prepare_human()
 
     if args.stage in ("all", "train"):
         run_train()

@@ -174,8 +174,9 @@ def generate_sample():
 def main():
     print(f"Generating {GEOMETRY_NUM_SAMPLES} geometry samples ({GRID_H}x{GRID_W})...")
 
-    # Pre-allocate to avoid OOM from a huge Python list
-    data = torch.full((GEOMETRY_NUM_SAMPLES, GRID_H, GRID_W), SPACE, dtype=torch.long)
+    # Pre-allocate to avoid OOM from a huge Python list.
+    # uint8 (vocab is 98 < 256) keeps 200k grids at ~0.8 GB, not 6 GB.
+    data = torch.full((GEOMETRY_NUM_SAMPLES, GRID_H, GRID_W), SPACE, dtype=torch.uint8)
     for i in range(GEOMETRY_NUM_SAMPLES):
         data[i] = generate_sample()
         if (i + 1) % 50_000 == 0:
