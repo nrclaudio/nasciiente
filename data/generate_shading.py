@@ -612,6 +612,7 @@ def _load_imagenet_sketch(num_samples):
     all_images = []
     all_labels = []
     skipped = 0
+    t0 = time.time()
     for item in ds:  # streaming datasets restart cleanly after the probe
         img = _record_image(item)
         if img is None:
@@ -622,6 +623,10 @@ def _load_imagenet_sketch(num_samples):
             all_images.append(_to_gray_u8(tensor))
             lbl = _record_label(item)
             all_labels.append(NO_LABEL if lbl is None else lbl)
+            if len(all_images) % 5000 == 0:
+                rate = len(all_images) / (time.time() - t0)
+                print(f"  {len(all_images):>7,} images streamed "
+                      f"({rate:.0f} img/s)", flush=True)
         else:
             skipped += 1
         if len(all_images) >= num_samples:
