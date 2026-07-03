@@ -49,7 +49,7 @@ def print_system_info():
     if torch.cuda.is_available():
         props = torch.cuda.get_device_properties(0)
         print(f"  GPU:       {props.name}")
-        print(f"  VRAM:      {props.total_mem / 1e9:.1f} GB")
+        print(f"  VRAM:      {props.total_memory / 1e9:.1f} GB")
         print(f"  SM count:  {props.multi_processor_count}")
     else:
         print("  WARNING: No CUDA GPU detected — training will be very slow")
