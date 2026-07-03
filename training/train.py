@@ -32,7 +32,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from config import (
     BATCH_SIZE, GRAD_ACCUM_STEPS, LEARNING_RATE, WEIGHT_DECAY, GRAD_CLIP, DEVICE,
     GEOMETRY_EPOCHS, SHADING_EPOCHS, SHADING_LR, WARMUP_STEPS,
-    HUMAN_EPOCHS, HUMAN_LR,
+    HUMAN_EPOCHS, HUMAN_LR, SCALE_LR_WITH_GPUS,
     GEOMETRY_TRAIN_SAMPLES, SHADING_TRAIN_SAMPLES,
     GRID_H, GRID_W, UNMASK_STEPS, TEMPERATURE,
     MASK_RATIO_MIN, MASK_RATIO_MAX,
@@ -76,6 +76,14 @@ def cleanup_distributed():
 def unwrap(model):
     """Return the raw module whether or not it is wrapped in DDP."""
     return model.module if hasattr(model, "module") else model
+
+
+def scale_lr(lr):
+    """Linear LR scaling for DDP: effective batch grows with world size,
+    so the learning rate grows with it (Goyal et al., 2017)."""
+    if SCALE_LR_WITH_GPUS and WORLD_SIZE > 1:
+        return lr * WORLD_SIZE
+    return lr
 
 
 def log(*args, **kwargs):
@@ -217,11 +225,13 @@ def save_checkpoint(model, optimizer, epoch, stage, path):
 
 def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
                 max_samples=None):
+    base_lr, lr = lr, scale_lr(lr)
     log(f"\n{'='*60}")
     log(f"  Stage: {stage_name.upper()}")
-    log(f"  Epochs: {epochs}, LR: {lr:.1e}, "
-        f"Batch: {BATCH_SIZE} x {GRAD_ACCUM_STEPS} accum x {WORLD_SIZE} GPU(s) "
-        f"= {BATCH_SIZE * GRAD_ACCUM_STEPS * WORLD_SIZE} effective")
+    log(f"  Epochs: {epochs}, LR: {lr:.1e}"
+        + (f" (base {base_lr:.1e} x {WORLD_SIZE} GPUs)" if lr != base_lr else "")
+        + f", Batch: {BATCH_SIZE} x {GRAD_ACCUM_STEPS} accum x {WORLD_SIZE} GPU(s) "
+          f"= {BATCH_SIZE * GRAD_ACCUM_STEPS * WORLD_SIZE} effective")
     log(f"{'='*60}")
 
     log(f"Loading data from {data_path}...")

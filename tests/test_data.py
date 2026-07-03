@@ -55,3 +55,12 @@ def test_distributed_defaults_without_torchrun():
     import torch.nn as nn
     m = nn.Linear(2, 2)
     assert T.unwrap(m) is m
+
+
+def test_lr_scaling_with_world_size(monkeypatch):
+    import training.train as T
+    assert T.scale_lr(3e-4) == 3e-4  # single process: unchanged
+    monkeypatch.setattr(T, "WORLD_SIZE", 4)
+    assert T.scale_lr(3e-4) == 3e-4 * 4
+    monkeypatch.setattr(T, "SCALE_LR_WITH_GPUS", False)
+    assert T.scale_lr(3e-4) == 3e-4

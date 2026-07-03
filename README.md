@@ -135,9 +135,10 @@ detects more than one GPU). How it works:
   gradients across all replicas (overlapped with the backward computation
   itself), so every optimizer step is identical everywhere and the
   replicas never drift. The effective batch size becomes
-  `BATCH_SIZE × num_gpus` — if you scale GPUs up a lot, consider scaling
-  the learning rate up with it (linear-scaling rule) since fewer, larger
-  steps happen per epoch.
+  `BATCH_SIZE × num_gpus`, meaning fewer, larger optimizer steps per
+  epoch — stage learning rates are automatically multiplied by the GPU
+  count to compensate (linear-scaling rule; disable with
+  `SCALE_LR_WITH_GPUS = False` in `config.py`).
 - **Rank 0 does the talking.** Logging, per-epoch samples, and
   checkpoints come from rank 0 only; checkpoints are saved unwrapped, so
   they load identically with or without DDP.

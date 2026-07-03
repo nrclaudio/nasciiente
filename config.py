@@ -22,6 +22,10 @@ MAX_COLS = 160  # max supported grid width (allows 2x upscale of 48x80)
 BATCH_SIZE = 64
 GRAD_ACCUM_STEPS = 1  # no accumulation needed on A100
 LEARNING_RATE = 3e-4
+# Multiply stage LRs by the DDP world size (linear scaling rule): N GPUs
+# means an N-times-larger effective batch, so N-times-fewer optimizer
+# steps per epoch — larger steps compensate. Warmup keeps it stable.
+SCALE_LR_WITH_GPUS = True
 WEIGHT_DECAY = 0.01
 GRAD_CLIP = 1.0
 WARMUP_STEPS = 500
