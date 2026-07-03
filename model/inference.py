@@ -39,8 +39,26 @@ def _num_masked_target(total, step, num_steps, schedule):
     return int(math.floor(total * frac))
 
 
+def _model_logits(model, grid, class_label, guidance_scale, mask_ratio):
+    """Model logits for one grid, with classifier-free guidance.
+
+    CFG: push the conditional prediction away from the unconditional one,
+    logits = uncond + scale * (cond - uncond). scale=1 or no class label
+    means a single plain forward pass.
+    """
+    if class_label is None or guidance_scale == 1.0:
+        return model(grid.unsqueeze(0), class_label=class_label,
+                     mask_ratio=mask_ratio).squeeze(0)
+    cond = model(grid.unsqueeze(0), class_label=class_label,
+                 mask_ratio=mask_ratio).squeeze(0)
+    uncond = model(grid.unsqueeze(0), class_label=None,
+                   mask_ratio=mask_ratio).squeeze(0)
+    return uncond + guidance_scale * (cond - uncond)
+
+
 def _iterative_fill(model, grid, num_steps, temperature, schedule,
-                    gumbel_scale, steps_out, grid_w):
+                    gumbel_scale, steps_out, grid_w,
+                    class_label=None, guidance_scale=1.0):
     """Fill every currently-[MASK] cell of `grid` in place (MaskGIT-style).
 
     Cells that are not [MASK] on entry are never touched, so fixed/anchor
@@ -49,19 +67,23 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
     Selection each step: sample a candidate for every masked cell, then
     commit only the top-k by confidence, where confidence = log P(sampled)
     plus Gumbel noise annealed to zero across steps (explore early, commit
-    late). k follows the cosine (or linear) schedule.
+    late). k follows the cosine (or linear) schedule. The model is told the
+    current mask ratio each step (its denoising noise level).
     """
     n0 = int((grid == MASK_TOKEN).sum().item())
     if n0 == 0:
         return
 
+    total = grid.numel()
     for step in range(num_steps):
         is_masked = (grid == MASK_TOKEN)
         num_masked = int(is_masked.sum().item())
         if num_masked == 0:
             break
 
-        logits = model(grid.unsqueeze(0)).squeeze(0)  # [H, W, V]
+        mask_ratio = num_masked / total
+        logits = _model_logits(model, grid, class_label, guidance_scale,
+                               mask_ratio)                # [H, W, V]
         if temperature != 1.0:
             logits = logits / temperature
         probs = F.softmax(logits, dim=-1)
@@ -88,7 +110,9 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
     # Safety: force-fill anything left (schedule should already reach 0)
     is_masked = (grid == MASK_TOKEN)
     if is_masked.any():
-        logits = model(grid.unsqueeze(0)).squeeze(0)
+        mask_ratio = int(is_masked.sum().item()) / total
+        logits = _model_logits(model, grid, class_label, guidance_scale,
+                               mask_ratio)
         if temperature != 1.0:
             logits = logits / temperature
         probs = F.softmax(logits, dim=-1)
@@ -100,7 +124,8 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
 @torch.no_grad()
 def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
              initial_grid=None, device="cpu", schedule="cosine",
-             gumbel_scale=1.0, revision_steps=2, revision_fraction=0.1):
+             gumbel_scale=1.0, revision_steps=2, revision_fraction=0.1,
+             class_label=None, guidance_scale=1.0):
     """
     Generate ASCII art via iterative unmasking (MaskGIT-style).
 
@@ -119,6 +144,9 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
                         re-mask the least-confident cells and refill them
                         (0 disables; the main loop can't fix early mistakes)
         revision_fraction: fraction of free cells re-masked per revision round
+        class_label: None | int — condition generation on an ImageNet class
+        guidance_scale: classifier-free guidance strength (1.0 = off). Higher
+                        sharpens adherence to the class at some diversity cost.
 
     Returns:
         steps: list of [H, W] long tensors (grid at each step)
@@ -140,15 +168,17 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
 
     # --- Main fill ---
     _iterative_fill(model, grid, num_steps, temperature, schedule,
-                    gumbel_scale, steps, grid_w)
+                    gumbel_scale, steps, grid_w, class_label, guidance_scale)
 
     # --- Revision passes (poor-man's Token-Critic self-correction) ---
     free = ~fixed
     num_free = int(free.sum().item())
+    total = grid.numel()
     for _ in range(revision_steps):
         k = max(1, int(revision_fraction * num_free))
 
-        logits = model(grid.unsqueeze(0)).squeeze(0)
+        logits = _model_logits(model, grid, class_label, guidance_scale,
+                               int((grid == MASK_TOKEN).sum().item()) / total)
         if temperature != 1.0:
             logits = logits / temperature
         probs = F.softmax(logits, dim=-1)
@@ -162,7 +192,8 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
 
         refill_steps = max(2, num_steps // 4)
         _iterative_fill(model, grid, refill_steps, temperature, schedule,
-                        gumbel_scale, steps, grid_w)
+                        gumbel_scale, steps, grid_w, class_label,
+                        guidance_scale)
 
     return steps, grid.cpu()
 

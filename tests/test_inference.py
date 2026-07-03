@@ -112,3 +112,29 @@ def test_upscale_grid_rejects_oversize(tiny_model):
     too_big = torch.randint(2, 98, (MAX_ROWS // 2 + 1, MAX_COLS // 2 + 1))
     with pytest.raises(ValueError):
         upscale_grid(tiny_model, too_big, factor=2)
+
+
+def test_cfg_generation_runs_and_conditions():
+    from model.ascii_bert import ASCIIBert
+    torch.manual_seed(0)
+    model = ASCIIBert(embed_dim=32, num_layers=2, num_heads=2, ffn_dim=64,
+                      num_classes=10)
+    model.eval()
+    # Class-conditioned with guidance
+    _, final = generate(model, H, W, num_steps=4, class_label=3,
+                        guidance_scale=3.0, revision_steps=1, device="cpu")
+    assert final.shape == (H, W)
+    assert (final != MASK_TOKEN).all()
+
+
+def test_cfg_scale_one_equals_plain_conditional():
+    from model.ascii_bert import ASCIIBert
+    model = ASCIIBert(embed_dim=32, num_layers=2, num_heads=2, ffn_dim=64,
+                      num_classes=10)
+    model.eval()
+    from model.inference import _model_logits
+    grid = torch.randint(2, 98, (H, W))
+    a = _model_logits(model, grid, class_label=2, guidance_scale=1.0,
+                      mask_ratio=0.5)
+    b = model(grid.unsqueeze(0), class_label=2, mask_ratio=0.5).squeeze(0)
+    assert torch.allclose(a, b)

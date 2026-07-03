@@ -3,8 +3,11 @@ import torch
 from config import GRID_H, GRID_W, VOCAB_SIZE
 from data.charset import MASK_TOKEN
 from data.generate_geometry import generate_sample, PRIMITIVES, _blank_grid
+from config import NULL_CLASS
 from training.dataset import ASCIIDataset
-from training.masking import random_mask
+from training.masking import (
+    random_mask, block_mask, anchor_mask, mixed_mask,
+)
 
 
 def test_geometry_sample_shape_and_range():
@@ -29,21 +32,60 @@ def test_each_primitive_draws_in_bounds():
 
 def test_random_mask_invariants():
     grid = generate_sample()
-    masked, target, mask = random_mask(grid)
+    masked, target, mask, ratio = random_mask(grid)
     assert (target == grid).all()
     assert (masked[mask] == MASK_TOKEN).all()
     assert (masked[~mask] == grid[~mask]).all()
-    ratio = mask.float().mean().item()
+    assert abs(mask.float().mean().item() - ratio) < 1e-6
     assert 0.10 < ratio < 0.90
+
+
+def test_block_mask_is_contiguous_rectangle():
+    grid = generate_sample()
+    masked, target, mask, ratio = block_mask(grid)
+    assert (masked[mask] == MASK_TOKEN).all()
+    rows = mask.any(dim=1).nonzero().flatten()
+    cols = mask.any(dim=0).nonzero().flatten()
+    # Every cell in the bounding box is masked -> a solid rectangle
+    box = mask[rows.min():rows.max() + 1, cols.min():cols.max() + 1]
+    assert box.all()
+
+
+def test_anchor_mask_keeps_strided_lattice():
+    grid = generate_sample()
+    for stride in (2, 3):
+        masked, target, mask, ratio = anchor_mask(grid, stride=stride)
+        # Anchor cells are NOT masked and keep their original value
+        assert not mask[::stride, ::stride].any()
+        assert (masked[::stride, ::stride] == grid[::stride, ::stride]).all()
+
+
+def test_mixed_mask_returns_valid_tuple():
+    grid = generate_sample()
+    for _ in range(20):
+        masked, target, mask, ratio = mixed_mask(grid)
+        assert (masked[mask] == MASK_TOKEN).all()
+        assert (masked[~mask] == grid[~mask]).all()
+        assert 0.0 <= ratio <= 1.0
 
 
 def test_dataset_getitem():
     data = torch.stack([generate_sample() for _ in range(4)])
-    ds = ASCIIDataset(data)
+    labels = torch.tensor([7, 3, 999, 0])
+    ds = ASCIIDataset(data, labels)
     assert len(ds) == 4
-    masked, target, mask = ds[0]
+    masked, target, mask, ratio, label = ds[0]
     assert masked.shape == target.shape == mask.shape == (GRID_H, GRID_W)
     assert mask.dtype == torch.bool
+    assert ratio.dtype == torch.float
+    assert int(label) == 7
+
+
+def test_dataset_without_labels_uses_null_class():
+    data = torch.stack([generate_sample() for _ in range(2)])
+    ds = ASCIIDataset(data)
+    _, _, _, _, label = ds[0]
+    assert int(label) == NULL_CLASS
 
 
 def test_distributed_defaults_without_torchrun():

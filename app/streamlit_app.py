@@ -25,14 +25,20 @@ from app.utils import text_to_partial_grid, count_fixed_positions
 
 @st.cache_resource
 def load_model(checkpoint_path):
-    """Load the trained model on CPU (for deployment)."""
+    """Load the trained model on CPU (for deployment).
+
+    strict=False so a checkpoint trained before the conditioning params
+    existed (run #1) still loads — its zero-initialized conditioning is a
+    no-op, so behavior is unchanged.
+    """
     device = torch.device("cpu")
     model = ASCIIBert().to(device)
     ckpt = torch.load(checkpoint_path, map_location=device, weights_only=True)
-    if isinstance(ckpt, dict) and "model_state_dict" in ckpt:
-        model.load_state_dict(ckpt["model_state_dict"])
-    else:
-        model.load_state_dict(ckpt)
+    state = ckpt["model_state_dict"] if (isinstance(ckpt, dict)
+            and "model_state_dict" in ckpt) else ckpt
+    missing, unexpected = model.load_state_dict(state, strict=False)
+    conditioned = not any("conditioning" in k for k in missing)
+    st.session_state["model_conditioned"] = conditioned
     model.eval()
     return model, device
 
@@ -87,6 +93,21 @@ def main():
 
     gen_kwargs = dict(schedule=schedule, gumbel_scale=gumbel_scale,
                       revision_steps=revision_steps)
+
+    # Class conditioning (only meaningful if the model was trained with
+    # labels; harmless otherwise — the null class + guidance 1.0 = plain).
+    st.sidebar.subheader("Class conditioning")
+    use_class = st.sidebar.checkbox(
+        "Condition on ImageNet class",
+        help="Requires a class-trained checkpoint (Pack B). ImageNet class "
+             "index 0–999.")
+    if use_class:
+        class_label = st.sidebar.number_input(
+            "Class index (0–999)", min_value=0, max_value=999, value=0, step=1)
+        guidance = st.sidebar.slider(
+            "Guidance (CFG)", 1.0, 8.0, 3.0, 0.5,
+            help="Higher = stronger adherence to the class, less diversity.")
+        gen_kwargs.update(class_label=int(class_label), guidance_scale=guidance)
 
     if grid_option == "24×40":
         gh, gw = 24, 40
