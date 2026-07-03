@@ -121,6 +121,7 @@ data/
   generate_geometry.py    stage-1 synthetic data
   generate_shading.py     stage-2 image-derived data (6D shape matching)
   prepare_human_ascii.py  stage-3 human ASCII art (optional)
+  glyph_sim.py            glyph-similarity soft-target matrix
 model/
   ascii_bert.py           the model
   embeddings.py           token embedding + 2D RoPE
@@ -134,6 +135,46 @@ app/
   streamlit_app.py        web UI (generate + inpainting)
 tests/                    CPU-fast pytest suite
 ```
+
+## Generation quality & controllability
+
+Two packages of improvements sit on top of the base model.
+
+**Inference-time (works on any checkpoint, no retraining):**
+- **Cosine unmask schedule** (MaskGIT): commit few cells early, many late,
+  instead of an even split — early context is poor, so be conservative.
+- **Gumbel-annealed confidence**: rank which cells to commit by
+  `log P(sampled) + Gumbel noise`, with the noise annealed to zero across
+  steps. Explores early, commits greedily late; avoids the deterministic
+  error-cascade of raw max-probability ranking.
+- **Revision passes**: after the main fill, re-mask the least-confident
+  cells and refill them (a cheap Token-Critic-style self-correction). The
+  one-pass loop can never fix an early mistake; this can.
+- **Vectorized sampling**: one batched `multinomial` over the grid.
+
+**Trained-in (require run #2 with the new data/model):**
+- **Class conditioning + classifier-free guidance (CFG)**: ImageNet-Sketch
+  ships 1000 class labels; the model learns them (additive class embedding,
+  10% label dropout during training) so you can ask for a specific class,
+  with a guidance knob trading diversity for adherence. `generate(...,
+  class_label=k, guidance_scale=3.0)`.
+- **Mask-ratio conditioning**: the model is told what fraction of the grid
+  is hidden — the denoising "noise level" a plain masked LM never gets.
+- **Glyph-aware soft labels** (`data/glyph_sim.py`): confusing `/` with `|`
+  costs less than confusing `/` with `@`, because targets are smoothed
+  toward *visually similar* glyphs (from rendered-bitmap similarity). The
+  model learns the visual structure of the character set.
+- **Mixed masking** (`training/masking.py`): random-cell, rectangular-block
+  (inpainting) and strided-anchor (upscaling) masks are mixed during
+  training, so all three inference modes are in-distribution.
+- **EMA weights + bf16 autocast**: a moving average of weights for
+  eval/samples/final checkpoint (free quality), and bf16 mixed precision
+  (~2x faster on the 4090s).
+
+The conditioning params are **zero-initialized**, so they are a no-op until
+trained: a checkpoint from a run without conditioning (e.g. run #1) loads
+with `strict=False` and behaves identically, and the inference-time
+improvements above apply to it unchanged.
 
 ## Multi-GPU training (DDP)
 
@@ -206,16 +247,19 @@ Next steps, roughly in order:
    and `HUMAN_LR`/epochs if stage 3 overfits its small dataset.
 2. **Publish a checkpoint** (GitHub release or HF Hub) so the Streamlit
    app works out of the box.
-3. **Better unmasking schedule** — MaskGIT's cosine schedule and
-   confidence-based *re*masking usually beat the current linear schedule.
-4. **Vectorize inference sampling** — `model/inference.py` samples masked
-   cells in a Python loop; a batched `torch.multinomial` would speed up
-   the app noticeably on CPU.
-5. **Conditioning** — class- or text-conditioned generation (prepend a
-   learned condition token, or cross-attend to a caption embedding) would
-   make generation controllable instead of unconditional.
-6. **Larger grids** — RoPE already supports up to 64×128; train with
-   variable grid sizes to exploit it.
-7. **More human data** — `mrzjy/ascii_art_generation_140k` (139k
-   image-derived pieces) and `Csplk/THE.ASCII.ART.EMPORIUM` (3.1M scraped
-   rows) on HuggingFace are candidate stage-3 expansions after filtering.
+3. ~~Better unmasking schedule~~ — **done** (cosine + Gumbel + revision).
+4. ~~Vectorize inference sampling~~ — **done**.
+5. ~~Conditioning~~ — **done** (class conditioning + CFG; run #2 trains it).
+6. **Text conditioning** — cross-attend to a caption embedding for
+   free-text prompts ("a small sailboat") beyond the 1000 fixed classes.
+7. **Larger grids** — RoPE supports up to 96×160; the strided-anchor
+   training now makes 2× upscaling in-distribution. Train with variable
+   grid sizes to push further.
+8. **Image-conditioned rendering** — condition on a source-image encoding
+   and train on the converter's own (image, grid) pairs, so the network
+   becomes a neural image→ASCII renderer that can beat the deterministic
+   converter.
+9. **Stronger conditioning** — AdaLN-Zero modulation (DiT-style) instead of
+   additive conditioning, if class control needs to be sharper.
+10. **More human data** — `mrzjy/ascii_art_generation_140k` (139k pieces)
+    and `Csplk/THE.ASCII.ART.EMPORIUM` (3.1M rows) as stage-3 expansions.

@@ -22,7 +22,10 @@ def idx_to_char(idx: int) -> str:
         return " "
     if idx == MASK_TOKEN:
         return "?"
-    return _idx_to_char[idx]
+    # VOCAB_SIZE (98) is one wider than the mapped range (0..96); a model
+    # can emit the unused slot 97. Render any unmapped index as a space
+    # rather than crash the display.
+    return _idx_to_char.get(idx, " ")
 
 
 def grid_to_string(int_grid: torch.Tensor) -> str:

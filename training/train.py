@@ -36,11 +36,58 @@ from config import (
     GEOMETRY_TRAIN_SAMPLES, SHADING_TRAIN_SAMPLES,
     GRID_H, GRID_W, UNMASK_STEPS, TEMPERATURE,
     MASK_RATIO_MIN, MASK_RATIO_MAX,
+    NULL_CLASS, CLASS_DROPOUT, GLYPH_LABEL_SMOOTH, EMA_DECAY, USE_BF16,
 )
 from model.ascii_bert import ASCIIBert
 from model.inference import generate
 from training.dataset import ASCIIDataset
 from data.charset import grid_to_string
+from data.glyph_sim import build_soft_target_matrix
+
+
+class EMA:
+    """Exponential moving average of model weights.
+
+    A slowly-tracked copy of the weights is a near-free way to stabilize
+    sample quality — the EMA weights are used for validation, samples, and
+    the saved checkpoints, while training continues on the raw weights.
+    """
+
+    def __init__(self, model, decay):
+        self.decay = decay
+        self.shadow = {k: p.detach().clone()
+                       for k, p in model.named_parameters() if p.requires_grad}
+        self.backup = {}
+
+    @torch.no_grad()
+    def update(self, model):
+        for k, p in model.named_parameters():
+            if p.requires_grad:
+                self.shadow[k].mul_(self.decay).add_(p.detach(),
+                                                     alpha=1 - self.decay)
+
+    def store_and_copy(self, model):
+        """Swap live weights out for EMA weights (remember the live ones)."""
+        self.backup = {}
+        for k, p in model.named_parameters():
+            if k in self.shadow:
+                self.backup[k] = p.detach().clone()
+                p.data.copy_(self.shadow[k])
+
+    def restore(self, model):
+        for k, p in model.named_parameters():
+            if k in self.backup:
+                p.data.copy_(self.backup[k])
+        self.backup = {}
+
+
+def _load_data_and_labels(path):
+    """Load a dataset file. New shading files are {'data','labels'} dicts;
+    geometry/human/legacy files are bare [N,H,W] tensors (no labels)."""
+    obj = torch.load(path, weights_only=True)
+    if isinstance(obj, dict):
+        return obj["data"], obj.get("labels")
+    return obj, None
 
 
 # Filled in by setup_distributed(); defaults describe a single process.
@@ -110,8 +157,15 @@ def set_seed(seed=42):
         torch.cuda.manual_seed_all(seed)
 
 
+def _autocast(device):
+    """bf16 autocast on CUDA (no GradScaler needed), no-op elsewhere."""
+    enabled = USE_BF16 and device.type == "cuda"
+    return torch.autocast(device_type="cuda", dtype=torch.bfloat16,
+                          enabled=enabled)
+
+
 def train_epoch(model, loader, optimizer, scheduler, device, epoch, stage_name,
-                total_epochs, sampler=None):
+                total_epochs, sampler=None, soft_target=None, ema=None):
     if sampler is not None:
         # Reshuffle the shard assignment each epoch, or every rank would
         # see the same samples in the same order all run long
@@ -125,15 +179,28 @@ def train_epoch(model, loader, optimizer, scheduler, device, epoch, stage_name,
     optimizer.zero_grad()
     t_epoch = time.time()
 
-    for batch_idx, (masked_grid, target_grid, mask) in enumerate(loader):
+    for batch_idx, (masked_grid, target_grid, mask, ratio, label) in \
+            enumerate(loader):
         masked_grid = masked_grid.to(device, non_blocking=True)
         target_grid = target_grid.to(device, non_blocking=True)
         mask = mask.to(device, non_blocking=True)
+        ratio = ratio.to(device, non_blocking=True)
+        label = label.to(device, non_blocking=True)
+
+        # Classifier-free guidance: randomly drop the label to null so the
+        # model learns both conditional and unconditional distributions.
+        # Use the model's own null index (source of truth) not the global.
+        if CLASS_DROPOUT > 0:
+            null_idx = unwrap(model).conditioning.null_class
+            drop = torch.rand(label.shape, device=device) < CLASS_DROPOUT
+            label = label.masked_fill(drop, null_idx)
 
         # Forward through the wrapper (DDP hooks gradient sync into
         # backward); compute_loss lives on the raw module
-        logits = model(masked_grid)
-        loss = unwrap(model).compute_loss(logits, target_grid, mask)
+        with _autocast(device):
+            logits = model(masked_grid, class_label=label, mask_ratio=ratio)
+            loss = unwrap(model).compute_loss(logits, target_grid, mask,
+                                              soft_target_matrix=soft_target)
         (loss / GRAD_ACCUM_STEPS).backward()
 
         running_loss += loss.detach()
@@ -145,6 +212,8 @@ def train_epoch(model, loader, optimizer, scheduler, device, epoch, stage_name,
             if scheduler is not None:
                 scheduler.step()
             optimizer.zero_grad()
+            if ema is not None:
+                ema.update(unwrap(model))
 
         if (batch_idx + 1) % log_interval == 0:
             elapsed = time.time() - t_epoch
@@ -165,12 +234,14 @@ def train_epoch(model, loader, optimizer, scheduler, device, epoch, stage_name,
         if scheduler is not None:
             scheduler.step()
         optimizer.zero_grad()
+        if ema is not None:
+            ema.update(unwrap(model))
 
     return running_loss.item() / max(num_batches, 1)
 
 
 @torch.no_grad()
-def validate(model, loader, device):
+def validate(model, loader, device, soft_target=None):
     # Use the raw module: DDP's forward broadcasts buffers (a collective
     # op), which would deadlock if ranks ever ran different batch counts.
     # Every rank validates the identical full val split instead — the 5%
@@ -181,13 +252,17 @@ def validate(model, loader, device):
     total_correct = 0
     total_masked = 0
 
-    for masked_grid, target_grid, mask in loader:
+    for masked_grid, target_grid, mask, ratio, label in loader:
         masked_grid = masked_grid.to(device)
         target_grid = target_grid.to(device)
         mask = mask.to(device)
+        ratio = ratio.to(device)
+        label = label.to(device)
 
-        logits = model(masked_grid)
-        loss = model.compute_loss(logits, target_grid, mask)
+        with _autocast(device):
+            logits = model(masked_grid, class_label=label, mask_ratio=ratio)
+            loss = model.compute_loss(logits, target_grid, mask,
+                                      soft_target_matrix=soft_target)
         total_loss += loss.item()
 
         preds = logits.argmax(dim=-1)  # [B, H, W]
@@ -224,7 +299,7 @@ def save_checkpoint(model, optimizer, epoch, stage, path):
 
 
 def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
-                max_samples=None):
+                max_samples=None, ema=None, soft_target=None):
     base_lr, lr = lr, scale_lr(lr)
     log(f"\n{'='*60}")
     log(f"  Stage: {stage_name.upper()}")
@@ -235,16 +310,19 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
     log(f"{'='*60}")
 
     log(f"Loading data from {data_path}...")
-    data = torch.load(data_path, weights_only=True)
+    data, labels = _load_data_and_labels(data_path)
     if max_samples and max_samples < len(data):
         data = data[:max_samples]
+        if labels is not None:
+            labels = labels[:max_samples]
+    log(f"  Labels: {'yes (class-conditioned)' if labels is not None else 'none (unconditional)'}")
 
     # 95/5 train/val split — fixed generator so every rank builds the
     # identical split regardless of its own RNG state
     val_size = max(1, int(len(data) * 0.05))
     train_size = len(data) - val_size
     train_data, val_data = random_split(
-        ASCIIDataset(data), [train_size, val_size],
+        ASCIIDataset(data, labels), [train_size, val_size],
         generator=torch.Generator().manual_seed(42),
     )
     log(f"Samples: {len(data):,} total -> {train_size:,} train / {val_size:,} val")
@@ -276,8 +354,14 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
 
         train_loss = train_epoch(model, train_loader, optimizer, scheduler,
                                  device, epoch, stage_name, epochs,
-                                 sampler=train_sampler)
-        val_loss, val_acc = validate(model, val_loader, device)
+                                 sampler=train_sampler, soft_target=soft_target,
+                                 ema=ema)
+
+        # Evaluate, sample, and checkpoint under EMA weights (swap in, then
+        # restore the live training weights afterwards)
+        if ema is not None:
+            ema.store_and_copy(unwrap(model))
+        val_loss, val_acc = validate(model, val_loader, device, soft_target)
 
         elapsed = time.time() - t0
         stage_elapsed = time.time() - t_stage
@@ -309,6 +393,9 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
                             os.path.join(ckpt_dir, f"{stage_name}_best.pt"))
         log(f"  Checkpoint saved: {last_path}"
             + (" (+ best)" if improved else ""))
+
+        if ema is not None:
+            ema.restore(unwrap(model))
 
     total_stage = time.time() - t_stage
     log(f"\n{'='*60}")
@@ -360,29 +447,48 @@ def main():
         model = DDP(model, device_ids=[local_rank]
                     if torch.cuda.is_available() else None)
 
+    # EMA weights (stabilize samples) and glyph-aware soft targets
+    ema = EMA(unwrap(model), EMA_DECAY) if EMA_DECAY > 0 else None
+    soft_target = None
+    if GLYPH_LABEL_SMOOTH > 0:
+        soft_target = build_soft_target_matrix(GLYPH_LABEL_SMOOTH).to(device)
+        is_identity = torch.allclose(
+            soft_target, torch.eye(soft_target.shape[0], device=device))
+        log(f"Glyph soft targets: "
+            f"{'identity (no font — plain CE)' if is_identity else f'alpha={GLYPH_LABEL_SMOOTH}'}")
+    log(f"EMA: {'decay ' + str(EMA_DECAY) if ema else 'off'} | "
+        f"bf16: {USE_BF16 and device.type == 'cuda'} | "
+        f"class dropout: {CLASS_DROPOUT}")
+
     # Stage 1: Geometry
     geometry_path = os.path.join(data_dir, "geometry_data.pt")
     train_stage(model, geometry_path, GEOMETRY_EPOCHS, LEARNING_RATE,
-                "geometry", device, ckpt_dir, max_samples=GEOMETRY_TRAIN_SAMPLES)
+                "geometry", device, ckpt_dir, max_samples=GEOMETRY_TRAIN_SAMPLES,
+                ema=ema, soft_target=soft_target)
 
     # Stage 2: Shading
     shading_path = os.path.join(data_dir, "shading_data.pt")
     train_stage(model, shading_path, SHADING_EPOCHS, SHADING_LR,
-                "shading", device, ckpt_dir, max_samples=SHADING_TRAIN_SAMPLES)
+                "shading", device, ckpt_dir, max_samples=SHADING_TRAIN_SAMPLES,
+                ema=ema, soft_target=soft_target)
 
     # Stage 3 (optional): fine-tune on human-made ASCII art
     human_path = os.path.join(data_dir, "human_data.pt")
     if os.path.exists(human_path):
         train_stage(model, human_path, HUMAN_EPOCHS, HUMAN_LR,
-                    "human", device, ckpt_dir)
+                    "human", device, ckpt_dir, ema=ema, soft_target=soft_target)
     else:
         log("\nNo human_data.pt found — skipping stage 3 "
             "(run data/prepare_human_ascii.py to enable it)")
 
-    # Save final model
+    # Save final model under EMA weights
     final_path = os.path.join(ckpt_dir, "final_model.pt")
     if RANK == 0:
+        if ema is not None:
+            ema.store_and_copy(unwrap(model))
         torch.save(unwrap(model).state_dict(), final_path)
+        if ema is not None:
+            ema.restore(unwrap(model))
 
     total_time = time.time() - t_total
     log(f"\n{'='*60}")

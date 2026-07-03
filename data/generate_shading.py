@@ -29,7 +29,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from config import GRID_H, GRID_W, SHADING_NUM_SAMPLES
+from config import GRID_H, GRID_W, SHADING_NUM_SAMPLES, NULL_CLASS
 from data.charset import char_to_idx, grid_to_string
 
 # Sub-cell resolution for shape matching
@@ -478,12 +478,15 @@ def _load_imagenet(data_dir, num_samples):
     print(f"\nStreaming ImageNet from HuggingFace (fetching up to {num_samples:,})...")
     ds = load_dataset("ILSVRC/imagenet-1k", split="train", streaming=True)
     all_images = []
+    all_labels = []
     skipped = 0
     for item in ds:
         img = item["image"]
         tensor = _pil_to_tensor(img)
         if min(tensor.shape[1], tensor.shape[2]) >= MIN_IMAGE_DIM:
             all_images.append(_to_gray_u8(tensor))
+            lbl = _record_label(item)
+            all_labels.append(NULL_CLASS if lbl is None else lbl)
         else:
             skipped += 1
         if len(all_images) >= num_samples:
@@ -491,7 +494,7 @@ def _load_imagenet(data_dir, num_samples):
     if skipped:
         print(f"  Skipped {skipped} images smaller than {MIN_IMAGE_DIM}px")
     print(f"Total ImageNet images loaded: {len(all_images):,}")
-    return all_images
+    return all_images, all_labels
 
 
 def _record_image(item):
@@ -501,6 +504,15 @@ def _record_image(item):
     for value in item.values():
         if isinstance(value, PILImage):
             return value
+    return None
+
+
+def _record_label(item):
+    """Pull an integer class label (0..999) from a dataset record, or None."""
+    for k in ("label", "cls", "fine_label", "class", "labels"):
+        v = item.get(k) if hasattr(item, "get") else None
+        if isinstance(v, int):
+            return v
     return None
 
 
@@ -562,6 +574,7 @@ def _load_imagenet_sketch(num_samples):
             f"Could not load ImageNet-Sketch from any mirror: {last_err}")
 
     all_images = []
+    all_labels = []
     skipped = 0
     for item in ds:  # streaming datasets restart cleanly after the probe
         img = _record_image(item)
@@ -571,14 +584,18 @@ def _load_imagenet_sketch(num_samples):
         tensor = _pil_to_tensor(img)
         if min(tensor.shape[1], tensor.shape[2]) >= MIN_IMAGE_DIM:
             all_images.append(_to_gray_u8(tensor))
+            lbl = _record_label(item)
+            all_labels.append(NULL_CLASS if lbl is None else lbl)
         else:
             skipped += 1
         if len(all_images) >= num_samples:
             break
     if skipped:
         print(f"  Skipped {skipped} records (too small or no image)")
-    print(f"Total ImageNet-Sketch images loaded: {len(all_images):,}")
-    return all_images
+    n_labeled = sum(1 for l in all_labels if l != NULL_CLASS)
+    print(f"Total ImageNet-Sketch images loaded: {len(all_images):,} "
+          f"({n_labeled:,} with class labels)")
+    return all_images, all_labels
 
 
 def _apply_segmentation(img_tensor):
@@ -615,19 +632,24 @@ SOURCES = {
 
 
 def load_images(source, data_dir, num_samples):
-    """Load images from the specified source. Returns list of [3,H,W] tensors."""
-    if source == "stl10":
-        return _load_stl10(os.path.join(data_dir, "stl10"))
-    elif source == "imagenette":
-        return _load_imagenette(data_dir)
-    elif source == "caltech101":
-        return _load_caltech101(data_dir)
-    elif source == "caltech256":
-        return _load_caltech256(data_dir)
+    """Load images from a source. Returns (images, labels).
+
+    labels is a list of ImageNet class ids (0..999) aligned with images for
+    the ImageNet-derived sources, or None for sources whose label space
+    doesn't map to the 1000 classes (they train unconditionally).
+    """
+    if source == "imagenet_sketch":
+        return _load_imagenet_sketch(num_samples)
     elif source == "imagenet":
         return _load_imagenet(data_dir, num_samples)
-    elif source == "imagenet_sketch":
-        return _load_imagenet_sketch(num_samples)
+    elif source == "stl10":
+        return _load_stl10(os.path.join(data_dir, "stl10")), None
+    elif source == "imagenette":
+        return _load_imagenette(data_dir), None
+    elif source == "caltech101":
+        return _load_caltech101(data_dir), None
+    elif source == "caltech256":
+        return _load_caltech256(data_dir), None
     else:
         raise ValueError(f"Unknown source: {source}. Choose from: {list(SOURCES)}")
 
@@ -685,7 +707,7 @@ def generate_dataset(source, num_samples, segment=False, out_path=None):
         print("Segmentation: rembg background removal enabled")
 
     # Load images from selected source
-    all_images = load_images(source, data_dir, num_samples)
+    all_images, all_labels = load_images(source, data_dir, num_samples)
     total_available = len(all_images)
 
     if total_available == 0:
@@ -699,6 +721,7 @@ def generate_dataset(source, num_samples, segment=False, out_path=None):
     # Generate all samples
     print(f"\nGenerating {num_samples:,} shading samples...")
     samples = []
+    sample_labels = [] if all_labels is not None else None
     t_gen = time.time()
     log_interval = 5_000
     segmented = set()
@@ -716,6 +739,8 @@ def generate_dataset(source, num_samples, segment=False, out_path=None):
 
         samples.append(image_to_ascii_grid(
             img, shape_vectors, masks, char_indices, mask_sums, sv_sq_sum))
+        if sample_labels is not None:
+            sample_labels.append(all_labels[idx])
 
         if (i + 1) % log_interval == 0:
             elapsed = time.time() - t_gen
@@ -744,8 +769,18 @@ def generate_dataset(source, num_samples, segment=False, out_path=None):
         pct = 100 * counts[idx].item() / data.numel()
         print(f"  '{ch}' (idx {unique[idx].item():>2}): {pct:.1f}%")
 
-    print(f"\nSaving to {out_path}...")
-    torch.save(data, out_path)
+    # Save as {data, labels} when class labels are available (enables
+    # class-conditioned training + CFG); a bare tensor otherwise.
+    if sample_labels is not None and any(l != NULL_CLASS for l in sample_labels):
+        labels = torch.tensor(sample_labels, dtype=torch.long)
+        payload = {"data": data, "labels": labels}
+        n_labeled = int((labels != NULL_CLASS).sum())
+        print(f"\nSaving to {out_path} with labels "
+              f"({n_labeled:,}/{len(labels):,} class-labeled)...")
+    else:
+        payload = data
+        print(f"\nSaving to {out_path} (unconditional, no labels)...")
+    torch.save(payload, out_path)
     size_mb = os.path.getsize(out_path) / 1e6
     print(f"Saved ({size_mb:.1f} MB)")
 

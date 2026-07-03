@@ -18,6 +18,29 @@ DROPOUT = 0.1
 MAX_ROWS = 96   # max supported grid height (for RoPE precomputation)
 MAX_COLS = 160  # max supported grid width (allows 2x upscale of 48x80)
 
+# Conditioning (Pack B). The model always accepts an optional class label
+# and the current mask ratio; unlabeled data uses the null class. Class
+# labels come from ImageNet-Sketch (1000 classes); index NUM_CLASSES is
+# the null/unconditional token used for CFG and unlabeled data.
+NUM_CLASSES = 1000
+NULL_CLASS = NUM_CLASSES  # embedding index for "no class"
+
+# Classifier-free guidance (inference default)
+CFG_SCALE = 3.0
+# Probability of dropping the class label to null during training (enables CFG)
+CLASS_DROPOUT = 0.1
+
+# Glyph-aware soft labels: blend one-hot targets with a visual-similarity
+# distribution over glyphs, so confusing '/' with '|' costs less than
+# confusing '/' with '@'. 0 disables (plain cross-entropy).
+GLYPH_LABEL_SMOOTH = 0.1
+
+# EMA of weights for evaluation/final checkpoint (0 disables)
+EMA_DECAY = 0.999
+
+# Mixed precision (bf16 autocast on CUDA; ignored on CPU)
+USE_BF16 = True
+
 # Training
 BATCH_SIZE = 64
 GRAD_ACCUM_STEPS = 1  # no accumulation needed on A100
