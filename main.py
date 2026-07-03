@@ -120,8 +120,13 @@ def run_generate_shading(source, num_samples, segment=False):
     generate_dataset(source, num_samples, segment=segment, out_path=out_path)
 
 
-def run_prepare_human():
-    """Download and normalize human ASCII art (optional Stage 3 data)."""
+def run_prepare_human(optional=True):
+    """Download and normalize human ASCII art (optional Stage 3 data).
+
+    With optional=True (the 'all'/'generate' paths) failures only print a
+    warning so the rest of the pipeline still runs; with optional=False
+    (explicit --stage human) failures propagate so the process exits nonzero.
+    """
     out_path = os.path.join(PROJECT_ROOT, "data", "human_data.pt")
     if os.path.exists(out_path):
         size_mb = os.path.getsize(out_path) / 1e6
@@ -136,8 +141,13 @@ def run_prepare_human():
     sys.argv = [saved_argv[0]]
     try:
         human_main()
-    except Exception as e:
-        print(f"WARNING: human data preparation failed ({e}).")
+    # SystemExit too: prepare_human_ascii sys.exit(1)s when it finds no
+    # usable art, and that must not abort the full pipeline before training
+    except (Exception, SystemExit) as e:
+        if not optional:
+            raise
+        reason = f"exit code {e.code}" if isinstance(e, SystemExit) else e
+        print(f"WARNING: human data preparation failed ({reason}).")
         print("  Stage 3 will be skipped during training. "
               "Retry with: python data/prepare_human_ascii.py")
     finally:
@@ -234,7 +244,7 @@ def main():
                              segment=args.segment)
 
     if args.stage in ("all", "generate", "human"):
-        run_prepare_human()
+        run_prepare_human(optional=args.stage != "human")
 
     if args.stage in ("all", "train"):
         run_train()

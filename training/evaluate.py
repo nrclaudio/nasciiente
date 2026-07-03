@@ -110,9 +110,14 @@ def main():
     model = ASCIIBert().to(device)
     ckpt = torch.load(args.checkpoint, map_location=device, weights_only=True)
     state = ckpt["model_state_dict"] if "model_state_dict" in ckpt else ckpt
-    # strict=False: pre-conditioning checkpoints load (zero-init conditioning
-    # is a no-op)
-    model.load_state_dict(state, strict=False)
+    # strict=False so pre-conditioning checkpoints load (their zero-init
+    # conditioning is a no-op), but only conditioning params may be absent —
+    # anything else is a genuinely mismatched checkpoint
+    missing, unexpected = model.load_state_dict(state, strict=False)
+    bad = [k for k in missing if "conditioning" not in k] + list(unexpected)
+    if bad:
+        raise ValueError(f"Checkpoint {args.checkpoint} does not match the "
+                         f"model (mismatched keys: {bad[:5]}...)")
     print("Model loaded.")
 
     # Generate from scratch
@@ -123,6 +128,8 @@ def main():
         data = torch.load(args.data, weights_only=True)
         if isinstance(data, dict):  # new label-carrying format
             data = data["data"]
+        # dataset files store grids as uint8; embeddings need long indices
+        data = data.long()
         val_loss, val_acc = evaluate_val(model, data, device)
         print(f"Validation Loss: {val_loss:.4f}, Accuracy: {val_acc:.3f}")
         inpainting_demo(model, data, device, n=3)

@@ -72,13 +72,19 @@ def build_soft_target_matrix(alpha, temperature=0.15, vocab_size=VOCAB_SIZE):
         return eye
 
     x = torch.from_numpy(bmps)                      # [P, D]
-    x = x / (x.norm(dim=1, keepdim=True) + 1e-8)
+    norms = x.norm(dim=1, keepdim=True)
+    x = x / (norms + 1e-8)
     sim = x @ x.t()                                 # cosine, [P, P]
 
     idx = torch.tensor([char_to_idx(c) for c in _PRINTABLE])  # vocab indices
     matrix = eye.clone()
     weights = torch.softmax(sim / temperature, dim=1)         # [P, P]
+    # Zero-ink glyphs (space) have an all-zero similarity row, which would
+    # softmax to a uniform distribution over every glyph — keep them one-hot
+    blank = norms.squeeze(1) == 0
     for i, vi in enumerate(idx):
+        if blank[i]:
+            continue
         row = torch.zeros(vocab_size)
         row[idx] = weights[i]
         matrix[vi] = (1 - alpha) * eye[vi] + alpha * row
