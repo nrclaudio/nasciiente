@@ -36,7 +36,7 @@ from config import (
     GEOMETRY_TRAIN_SAMPLES, SHADING_TRAIN_SAMPLES,
     GRID_H, GRID_W, UNMASK_STEPS, TEMPERATURE,
     MASK_RATIO_MIN, MASK_RATIO_MAX,
-    NULL_CLASS, CLASS_DROPOUT, GLYPH_LABEL_SMOOTH, EMA_DECAY, USE_BF16,
+    COND_DROPOUT, GLYPH_LABEL_SMOOTH, EMA_DECAY, USE_BF16, TEXT_ENCODER,
 )
 from model.ascii_bert import ASCIIBert
 from model.inference import generate
@@ -81,13 +81,24 @@ class EMA:
         self.backup = {}
 
 
-def _load_data_and_labels(path):
-    """Load a dataset file. New shading files are {'data','labels'} dicts;
-    geometry/human/legacy files are bare [N,H,W] tensors (no labels)."""
+def _load_data_and_captions(path):
+    """Load a dataset file.
+
+    Current files are {'data', 'caption_ids', 'captions'} dicts: uint8
+    grids, a per-sample index into the unique-caption list (-1 = no
+    caption), and the captions themselves. Legacy formats — bare [N,H,W]
+    tensors and the interim {'data','labels'} class-id dicts — load as
+    uncaptioned (regenerate them to get text conditioning).
+
+    Returns (data, caption_ids or None, captions or None).
+    """
     obj = torch.load(path, weights_only=True)
     if isinstance(obj, dict):
-        return obj["data"], obj.get("labels")
-    return obj, None
+        data = obj["data"]
+        if "captions" in obj and "caption_ids" in obj:
+            return data, obj["caption_ids"], list(obj["captions"])
+        return data, None, None
+    return obj, None, None
 
 
 # Filled in by setup_distributed(); defaults describe a single process.
@@ -179,26 +190,28 @@ def train_epoch(model, loader, optimizer, scheduler, device, epoch, stage_name,
     optimizer.zero_grad()
     t_epoch = time.time()
 
-    for batch_idx, (masked_grid, target_grid, mask, ratio, label) in \
-            enumerate(loader):
+    for batch_idx, (masked_grid, target_grid, mask, ratio, cond_emb,
+                    has_cond) in enumerate(loader):
         masked_grid = masked_grid.to(device, non_blocking=True)
         target_grid = target_grid.to(device, non_blocking=True)
         mask = mask.to(device, non_blocking=True)
         ratio = ratio.to(device, non_blocking=True)
-        label = label.to(device, non_blocking=True)
+        cond_emb = cond_emb.to(device, non_blocking=True)
+        has_cond = has_cond.to(device, non_blocking=True)
 
-        # Classifier-free guidance: randomly drop the label to null so the
-        # model learns both conditional and unconditional distributions.
-        # Use the model's own null index (source of truth) not the global.
-        if CLASS_DROPOUT > 0:
-            null_idx = unwrap(model).conditioning.null_class
-            drop = torch.rand(label.shape, device=device) < CLASS_DROPOUT
-            label = label.masked_fill(drop, null_idx)
+        # Uncaptioned samples always use the learned null embedding;
+        # captioned ones drop to null with prob COND_DROPOUT so the model
+        # learns both distributions (classifier-free guidance).
+        drop = ~has_cond
+        if COND_DROPOUT > 0:
+            drop = drop | (torch.rand(has_cond.shape, device=device)
+                           < COND_DROPOUT)
 
         # Forward through the wrapper (DDP hooks gradient sync into
         # backward); compute_loss lives on the raw module
         with _autocast(device):
-            logits = model(masked_grid, class_label=label, mask_ratio=ratio)
+            logits = model(masked_grid, cond_emb=cond_emb, cond_drop=drop,
+                           mask_ratio=ratio)
             loss = unwrap(model).compute_loss(logits, target_grid, mask,
                                               soft_target_matrix=soft_target)
         (loss / GRAD_ACCUM_STEPS).backward()
@@ -252,15 +265,17 @@ def validate(model, loader, device, soft_target=None):
     total_correct = 0
     total_masked = 0
 
-    for masked_grid, target_grid, mask, ratio, label in loader:
+    for masked_grid, target_grid, mask, ratio, cond_emb, has_cond in loader:
         masked_grid = masked_grid.to(device)
         target_grid = target_grid.to(device)
         mask = mask.to(device)
         ratio = ratio.to(device)
-        label = label.to(device)
+        cond_emb = cond_emb.to(device)
+        has_cond = has_cond.to(device)
 
         with _autocast(device):
-            logits = model(masked_grid, class_label=label, mask_ratio=ratio)
+            logits = model(masked_grid, cond_emb=cond_emb,
+                           cond_drop=~has_cond, mask_ratio=ratio)
             loss = model.compute_loss(logits, target_grid, mask,
                                       soft_target_matrix=soft_target)
         total_loss += loss.item()
@@ -274,8 +289,13 @@ def validate(model, loader, device, soft_target=None):
     return avg_loss, accuracy
 
 
-def print_sample(model, device):
-    """Generate and print a sample from a fully masked grid (rank 0 only)."""
+def print_sample(model, device, save_path=None):
+    """Generate and print a sample from a fully masked grid (rank 0 only).
+
+    With save_path, the sample is also written to disk — one file per
+    epoch under checkpoints/samples/, which the Streamlit app renders as a
+    training-progress gallery.
+    """
     if RANK != 0:
         return
     _, final = generate(unwrap(model), GRID_H, GRID_W,
@@ -284,6 +304,10 @@ def print_sample(model, device):
     print("--- Generated Sample ---")
     print(grid_to_string(final))
     print()
+    if save_path is not None:
+        os.makedirs(os.path.dirname(save_path), exist_ok=True)
+        with open(save_path, "w") as f:
+            f.write(grid_to_string(final))
 
 
 def save_checkpoint(model, optimizer, epoch, stage, path, ema=None):
@@ -316,19 +340,30 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
     log(f"{'='*60}")
 
     log(f"Loading data from {data_path}...")
-    data, labels = _load_data_and_labels(data_path)
+    data, caption_ids, captions = _load_data_and_captions(data_path)
     if max_samples and max_samples < len(data):
         data = data[:max_samples]
-        if labels is not None:
-            labels = labels[:max_samples]
-    log(f"  Labels: {'yes (class-conditioned)' if labels is not None else 'none (unconditional)'}")
+        if caption_ids is not None:
+            caption_ids = caption_ids[:max_samples]
+    caption_embs = None
+    if captions is not None:
+        # Embed the unique-caption vocabulary once up front; the training
+        # loop then only indexes into this table (the encoder never runs
+        # inside the loop)
+        log(f"  Captions: {len(captions):,} unique — embedding with "
+            f"{TEXT_ENCODER}...")
+        from data.text_embed import embed_texts
+        caption_embs = embed_texts(captions)
+    else:
+        log("  Captions: none (unconditional stage)")
 
     # 95/5 train/val split — fixed generator so every rank builds the
     # identical split regardless of its own RNG state
     val_size = max(1, int(len(data) * 0.05))
     train_size = len(data) - val_size
     train_data, val_data = random_split(
-        ASCIIDataset(data, labels), [train_size, val_size],
+        ASCIIDataset(data, caption_ids, caption_embs),
+        [train_size, val_size],
         generator=torch.Generator().manual_seed(42),
     )
     log(f"Samples: {len(data):,} total -> {train_size:,} train / {val_size:,} val")
@@ -387,8 +422,11 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
             f"Stage ETA: {eta_stage/60:.1f}min | "
             f"LR: {lr_now:.2e}")
 
-        # Print a generated sample each epoch
-        print_sample(model, device)
+        # Print a generated sample each epoch, and archive it so the app
+        # can show how samples evolve over the curriculum
+        sample_path = os.path.join(ckpt_dir, "samples",
+                                   f"{stage_name}_epoch{epoch+1:03d}.txt")
+        print_sample(model, device, save_path=sample_path)
 
         if ema is not None:
             ema.restore(unwrap(model))
@@ -467,7 +505,7 @@ def main():
             f"{'identity (no font — plain CE)' if is_identity else f'alpha={GLYPH_LABEL_SMOOTH}'}")
     log(f"EMA: {'decay ' + str(EMA_DECAY) if ema else 'off'} | "
         f"bf16: {USE_BF16 and device.type == 'cuda'} | "
-        f"class dropout: {CLASS_DROPOUT}")
+        f"caption dropout: {COND_DROPOUT}")
 
     # Stage 1: Geometry
     geometry_path = os.path.join(data_dir, "geometry_data.pt")

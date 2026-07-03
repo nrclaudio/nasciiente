@@ -39,26 +39,30 @@ def _num_masked_target(total, step, num_steps, schedule):
     return int(math.floor(total * frac))
 
 
-def _model_logits(model, grid, class_label, guidance_scale, mask_ratio):
+def _model_logits(model, grid, cond_emb, guidance_scale, mask_ratio):
     """Model logits for one grid, with classifier-free guidance.
 
     CFG: push the conditional prediction away from the unconditional one,
-    logits = uncond + scale * (cond - uncond). scale=1 or no class label
-    means a single plain forward pass.
+    logits = uncond + scale * (cond - uncond). scale=1 or no prompt means a
+    single plain forward pass; with guidance the conditional and
+    unconditional predictions run as ONE batch-2 forward (same math as two
+    passes at roughly half the latency).
     """
-    if class_label is None or guidance_scale == 1.0:
-        return model(grid.unsqueeze(0), class_label=class_label,
+    if cond_emb is None or guidance_scale == 1.0:
+        return model(grid.unsqueeze(0), cond_emb=cond_emb,
                      mask_ratio=mask_ratio).squeeze(0)
-    cond = model(grid.unsqueeze(0), class_label=class_label,
-                 mask_ratio=mask_ratio).squeeze(0)
-    uncond = model(grid.unsqueeze(0), class_label=None,
-                   mask_ratio=mask_ratio).squeeze(0)
+    batch = grid.unsqueeze(0).expand(2, -1, -1)
+    drop = torch.tensor([False, True], device=grid.device)
+    ratios = torch.full((2,), float(mask_ratio), device=grid.device)
+    logits = model(batch, cond_emb=cond_emb, cond_drop=drop,
+                   mask_ratio=ratios)
+    cond, uncond = logits[0], logits[1]
     return uncond + guidance_scale * (cond - uncond)
 
 
 def _iterative_fill(model, grid, num_steps, temperature, schedule,
-                    gumbel_scale, steps_out, grid_w,
-                    class_label=None, guidance_scale=1.0):
+                    gumbel_scale, steps_out,
+                    cond_emb=None, guidance_scale=1.0):
     """Fill every currently-[MASK] cell of `grid` in place (MaskGIT-style).
 
     Cells that are not [MASK] on entry are never touched, so fixed/anchor
@@ -82,7 +86,7 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
             break
 
         mask_ratio = num_masked / total
-        logits = _model_logits(model, grid, class_label, guidance_scale,
+        logits = _model_logits(model, grid, cond_emb, guidance_scale,
                                mask_ratio)                # [H, W, V]
         if temperature != 1.0:
             logits = logits / temperature
@@ -111,7 +115,7 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
     is_masked = (grid == MASK_TOKEN)
     if is_masked.any():
         mask_ratio = int(is_masked.sum().item()) / total
-        logits = _model_logits(model, grid, class_label, guidance_scale,
+        logits = _model_logits(model, grid, cond_emb, guidance_scale,
                                mask_ratio)
         if temperature != 1.0:
             logits = logits / temperature
@@ -125,7 +129,7 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
 def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
              initial_grid=None, device="cpu", schedule="cosine",
              gumbel_scale=1.0, revision_steps=2, revision_fraction=0.1,
-             class_label=None, guidance_scale=1.0):
+             prompt=None, cond_emb=None, guidance_scale=1.0):
     """
     Generate ASCII art via iterative unmasking (MaskGIT-style).
 
@@ -144,15 +148,26 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
                         re-mask the least-confident cells and refill them
                         (0 disables; the main loop can't fix early mistakes)
         revision_fraction: fraction of free cells re-masked per revision round
-        class_label: None | int — condition generation on an ImageNet class
+        prompt: optional text prompt — embedded with the frozen text encoder
+                (needs the 'transformers' package at generation time)
+        cond_emb: optional precomputed [TEXT_EMB_DIM] prompt embedding
+                  (takes precedence over `prompt`; lets callers cache
+                  embeddings and avoid loading the encoder)
         guidance_scale: classifier-free guidance strength (1.0 = off). Higher
-                        sharpens adherence to the class at some diversity cost.
+                        sharpens adherence to the prompt at some diversity
+                        cost.
 
     Returns:
         steps: list of [H, W] long tensors (grid at each step)
         final: [H, W] long tensor (final result)
     """
     model.eval()
+
+    if cond_emb is None and prompt:
+        from data.text_embed import embed_texts
+        cond_emb = embed_texts([prompt])[0]
+    if cond_emb is not None:
+        cond_emb = torch.as_tensor(cond_emb, dtype=torch.float).to(device)
 
     if initial_grid is not None:
         grid = initial_grid.clone().to(device)
@@ -168,7 +183,7 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
 
     # --- Main fill ---
     _iterative_fill(model, grid, num_steps, temperature, schedule,
-                    gumbel_scale, steps, grid_w, class_label, guidance_scale)
+                    gumbel_scale, steps, cond_emb, guidance_scale)
 
     # --- Revision passes (poor-man's Token-Critic self-correction) ---
     free = ~fixed
@@ -177,7 +192,7 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
     for _ in range(revision_steps):
         k = max(1, int(revision_fraction * num_free))
 
-        logits = _model_logits(model, grid, class_label, guidance_scale,
+        logits = _model_logits(model, grid, cond_emb, guidance_scale,
                                int((grid == MASK_TOKEN).sum().item()) / total)
         if temperature != 1.0:
             logits = logits / temperature
@@ -192,8 +207,7 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
 
         refill_steps = max(2, num_steps // 4)
         _iterative_fill(model, grid, refill_steps, temperature, schedule,
-                        gumbel_scale, steps, grid_w, class_label,
-                        guidance_scale)
+                        gumbel_scale, steps, cond_emb, guidance_scale)
 
     return steps, grid.cpu()
 

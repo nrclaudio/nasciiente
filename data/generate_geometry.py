@@ -37,6 +37,7 @@ def draw_hline(grid):
     ch = char_to_idx("-")
     for c in range(c0, c0 + length):
         _set(grid, r, c, ch)
+    return "a horizontal line"
 
 
 def draw_vline(grid):
@@ -46,6 +47,7 @@ def draw_vline(grid):
     ch = char_to_idx("|")
     for r in range(r0, r0 + length):
         _set(grid, r, c, ch)
+    return "a vertical line"
 
 
 def draw_diagonal(grid):
@@ -59,6 +61,7 @@ def draw_diagonal(grid):
             _set(grid, r0 + i, c0 + i, ch)
         else:
             _set(grid, r0 - i, c0 + i, ch)
+    return "a diagonal line"
 
 
 def draw_rectangle(grid):
@@ -82,6 +85,7 @@ def draw_rectangle(grid):
     for r in range(r0 + 1, r1):
         _set(grid, r, c0, pipe)
         _set(grid, r, c1, pipe)
+    return "a rectangle"
 
 
 def draw_triangle(grid):
@@ -104,6 +108,7 @@ def draw_triangle(grid):
         _set(grid, r0 + size - 1 - i, c0 + i, slash)
     # corner
     _set(grid, r0 + size - 1, c0, plus)
+    return "a triangle"
 
 
 def draw_cross(grid):
@@ -119,6 +124,7 @@ def draw_cross(grid):
         _set(grid, cr + i, cc, pipe)
         _set(grid, cr, cc - i, dash)
         _set(grid, cr, cc + i, dash)
+    return "a cross"
 
 
 def draw_diamond(grid):
@@ -139,6 +145,7 @@ def draw_diamond(grid):
     # horizontal tips
     _set(grid, cr, cc - size, dash)
     _set(grid, cr, cc + size, dash)
+    return "a diamond"
 
 
 def draw_text_label(grid):
@@ -148,6 +155,7 @@ def draw_text_label(grid):
     c = random.randint(0, GRID_W - len(text))
     for i, ch in enumerate(text):
         _set(grid, r, c + i, char_to_idx(ch))
+    return f'the text "{text}"'
 
 
 PRIMITIVES = [
@@ -162,13 +170,27 @@ PRIMITIVES = [
 ]
 
 
+def _caption_from(phrases):
+    """'a cross', 'a cross and a diamond', 'a cross, a diamond and a box'."""
+    unique = []
+    for p in phrases:
+        if p not in unique:
+            unique.append(p)
+    if len(unique) == 1:
+        return unique[0]
+    return ", ".join(unique[:-1]) + " and " + unique[-1]
+
+
 def generate_sample():
+    """Returns (grid, caption) — the caption names the primitives drawn,
+    giving stage 1 a text-conditioning signal for free."""
     grid = _blank_grid()
     n_prims = random.randint(1, 4)
+    phrases = []
     for _ in range(n_prims):
         fn = random.choice(PRIMITIVES)
-        fn(grid)
-    return grid
+        phrases.append(fn(grid))
+    return grid, _caption_from(phrases)
 
 
 def main():
@@ -177,16 +199,24 @@ def main():
     # Pre-allocate to avoid OOM from a huge Python list.
     # uint8 (vocab is 98 < 256) keeps 200k grids at ~0.8 GB, not 6 GB.
     data = torch.full((GEOMETRY_NUM_SAMPLES, GRID_H, GRID_W), SPACE, dtype=torch.uint8)
+    # Captions repeat heavily (combinations of 8 primitive phrases), so
+    # store per-sample ids into a unique-caption list
+    caption_index = {}
+    caption_ids = torch.empty(GEOMETRY_NUM_SAMPLES, dtype=torch.long)
     for i in range(GEOMETRY_NUM_SAMPLES):
-        data[i] = generate_sample()
+        grid, caption = generate_sample()
+        data[i] = grid
+        caption_ids[i] = caption_index.setdefault(caption, len(caption_index))
         if (i + 1) % 50_000 == 0:
             print(f"  {i + 1}/{GEOMETRY_NUM_SAMPLES}")
 
-    print(f"Tensor shape: {data.shape}")
+    captions = list(caption_index)
+    print(f"Tensor shape: {data.shape} ({len(captions):,} unique captions)")
 
     save_dir = os.path.join(os.path.dirname(__file__))
     save_path = os.path.join(save_dir, "geometry_data.pt")
-    torch.save(data, save_path)
+    torch.save({"data": data, "caption_ids": caption_ids,
+                "captions": captions}, save_path)
     print(f"Saved to {save_path}")
 
     # Print sample grids for visual verification

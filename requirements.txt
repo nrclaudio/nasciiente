@@ -3,5 +3,6 @@ torchvision>=0.15
 numpy
 Pillow
 datasets
+transformers
 streamlit
 pytest

@@ -83,6 +83,23 @@ def extract_text(record):
     return None
 
 
+def extract_caption(record):
+    """Find a short caption/title for a piece, or None.
+
+    These are the text-conditioning signal for stage 3 — what a user's
+    prompt will look like — so keep them whenever the dataset has them.
+    """
+    for key in ("caption", "title", "name", "subject", "category", "label",
+                "prompt", "description"):
+        value = record.get(key)
+        if isinstance(value, str):
+            value = value.strip()
+            # single-line, plausibly a title (not another art blob)
+            if value and "\n" not in value and len(value) <= 100:
+                return value
+    return None
+
+
 def load_human_dataset(name, config=None):
     """Load a HF dataset of ASCII art, trying known config names."""
     from datasets import load_dataset
@@ -117,6 +134,8 @@ def main():
     ds = load_human_dataset(args.dataset, args.config)
 
     grids = []
+    caption_index = {}
+    caption_ids = []
     rejected = {"no_text": 0, "size": 0}
     for record in ds:
         text = extract_text(record)
@@ -128,9 +147,15 @@ def main():
             rejected["size"] += 1
             continue
         grids.append(grid)
+        caption = extract_caption(record)
+        caption_ids.append(-1 if caption is None
+                           else caption_index.setdefault(caption,
+                                                         len(caption_index)))
 
+    n_captioned = sum(1 for c in caption_ids if c >= 0)
     print(f"Kept {len(grids):,} pieces "
-          f"(rejected: {rejected['no_text']} without text, "
+          f"({n_captioned:,} with captions; "
+          f"rejected: {rejected['no_text']} without text, "
           f"{rejected['size']} wrong size/charset/too sparse)")
 
     if not grids:
@@ -138,8 +163,12 @@ def main():
         sys.exit(1)
 
     data = torch.stack(grids).to(torch.uint8)  # vocab fits in a byte
+    payload = {"data": data}
+    if caption_index:
+        payload["caption_ids"] = torch.tensor(caption_ids, dtype=torch.long)
+        payload["captions"] = list(caption_index)
     out_path = os.path.join(os.path.dirname(__file__), "human_data.pt")
-    torch.save(data, out_path)
+    torch.save(payload, out_path)
     print(f"Saved {data.shape} to {out_path} "
           f"({os.path.getsize(out_path) / 1e6:.1f} MB)")
 

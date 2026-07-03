@@ -29,8 +29,13 @@ from PIL import Image, ImageDraw, ImageFont
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from config import GRID_H, GRID_W, SHADING_NUM_SAMPLES, NULL_CLASS
+from config import GRID_H, GRID_W, SHADING_NUM_SAMPLES
 from data.charset import char_to_idx, grid_to_string
+
+# Sentinel for "no class label" in the aligned label lists; saved files use
+# caption_id -1 the same way (see the {'data','caption_ids','captions'}
+# payload in generate_dataset)
+NO_LABEL = -1
 
 # Sub-cell resolution for shape matching
 CELL_H = 12
@@ -486,7 +491,7 @@ def _load_imagenet(data_dir, num_samples):
         if min(tensor.shape[1], tensor.shape[2]) >= MIN_IMAGE_DIM:
             all_images.append(_to_gray_u8(tensor))
             lbl = _record_label(item)
-            all_labels.append(NULL_CLASS if lbl is None else lbl)
+            all_labels.append(NO_LABEL if lbl is None else lbl)
         else:
             skipped += 1
         if len(all_images) >= num_samples:
@@ -494,7 +499,7 @@ def _load_imagenet(data_dir, num_samples):
     if skipped:
         print(f"  Skipped {skipped} images smaller than {MIN_IMAGE_DIM}px")
     print(f"Total ImageNet images loaded: {len(all_images):,}")
-    return all_images, all_labels
+    return all_images, all_labels, _label_names(ds)
 
 
 def _record_image(item):
@@ -514,6 +519,21 @@ def _record_label(item):
         if isinstance(v, int):
             return v
     return None
+
+
+def _label_names(ds):
+    """Human-readable class names from a dataset's features, or None.
+
+    These become the text captions the model is conditioned on; ImageNet
+    names list synonyms ("tench, Tinca tinca"), so keep only the first.
+    """
+    try:
+        names = ds.features["label"].names
+    except Exception:
+        return None
+    if not names:
+        return None
+    return [str(n).split(",")[0].strip() for n in names]
 
 
 def _load_imagenet_sketch(num_samples):
@@ -585,17 +605,17 @@ def _load_imagenet_sketch(num_samples):
         if min(tensor.shape[1], tensor.shape[2]) >= MIN_IMAGE_DIM:
             all_images.append(_to_gray_u8(tensor))
             lbl = _record_label(item)
-            all_labels.append(NULL_CLASS if lbl is None else lbl)
+            all_labels.append(NO_LABEL if lbl is None else lbl)
         else:
             skipped += 1
         if len(all_images) >= num_samples:
             break
     if skipped:
         print(f"  Skipped {skipped} records (too small or no image)")
-    n_labeled = sum(1 for l in all_labels if l != NULL_CLASS)
+    n_labeled = sum(1 for l in all_labels if l != NO_LABEL)
     print(f"Total ImageNet-Sketch images loaded: {len(all_images):,} "
           f"({n_labeled:,} with class labels)")
-    return all_images, all_labels
+    return all_images, all_labels, _label_names(ds)
 
 
 def _apply_segmentation(img_tensor):
@@ -632,24 +652,24 @@ SOURCES = {
 
 
 def load_images(source, data_dir, num_samples):
-    """Load images from a source. Returns (images, labels).
+    """Load images from a source. Returns (images, labels, label_names).
 
-    labels is a list of ImageNet class ids (0..999) aligned with images for
-    the ImageNet-derived sources, or None for sources whose label space
-    doesn't map to the 1000 classes (they train unconditionally).
+    labels is a list of class ids aligned with images and label_names maps
+    those ids to caption strings, for the ImageNet-derived sources; both
+    are None for sources without usable labels (they train unconditionally).
     """
     if source == "imagenet_sketch":
         return _load_imagenet_sketch(num_samples)
     elif source == "imagenet":
         return _load_imagenet(data_dir, num_samples)
     elif source == "stl10":
-        return _load_stl10(os.path.join(data_dir, "stl10")), None
+        return _load_stl10(os.path.join(data_dir, "stl10")), None, None
     elif source == "imagenette":
-        return _load_imagenette(data_dir), None
+        return _load_imagenette(data_dir), None, None
     elif source == "caltech101":
-        return _load_caltech101(data_dir), None
+        return _load_caltech101(data_dir), None, None
     elif source == "caltech256":
-        return _load_caltech256(data_dir), None
+        return _load_caltech256(data_dir), None, None
     else:
         raise ValueError(f"Unknown source: {source}. Choose from: {list(SOURCES)}")
 
@@ -707,7 +727,8 @@ def generate_dataset(source, num_samples, segment=False, out_path=None):
         print("Segmentation: rembg background removal enabled")
 
     # Load images from selected source
-    all_images, all_labels = load_images(source, data_dir, num_samples)
+    all_images, all_labels, label_names = load_images(source, data_dir,
+                                                      num_samples)
     total_available = len(all_images)
 
     if total_available == 0:
@@ -769,17 +790,21 @@ def generate_dataset(source, num_samples, segment=False, out_path=None):
         pct = 100 * counts[idx].item() / data.numel()
         print(f"  '{ch}' (idx {unique[idx].item():>2}): {pct:.1f}%")
 
-    # Save as {data, labels} when class labels are available (enables
-    # class-conditioned training + CFG); a bare tensor otherwise.
-    if sample_labels is not None and any(l != NULL_CLASS for l in sample_labels):
-        labels = torch.tensor(sample_labels, dtype=torch.long)
-        payload = {"data": data, "labels": labels}
-        n_labeled = int((labels != NULL_CLASS).sum())
-        print(f"\nSaving to {out_path} with labels "
-              f"({n_labeled:,}/{len(labels):,} class-labeled)...")
+    # Save as {data, caption_ids, captions} when class labels AND their
+    # names are available (enables text-conditioned training + CFG); a
+    # plain {data} dict otherwise.
+    if (sample_labels is not None and label_names
+            and any(l != NO_LABEL for l in sample_labels)):
+        caption_ids = torch.tensor(sample_labels, dtype=torch.long)
+        payload = {"data": data, "caption_ids": caption_ids,
+                   "captions": label_names}
+        n_captioned = int((caption_ids != NO_LABEL).sum())
+        print(f"\nSaving to {out_path} with captions "
+              f"({n_captioned:,}/{len(caption_ids):,} captioned, "
+              f"{len(label_names)} unique class names)...")
     else:
-        payload = data
-        print(f"\nSaving to {out_path} (unconditional, no labels)...")
+        payload = {"data": data}
+        print(f"\nSaving to {out_path} (unconditional, no captions)...")
     torch.save(payload, out_path)
     size_mb = os.path.getsize(out_path) / 1e6
     print(f"Saved ({size_mb:.1f} MB)")

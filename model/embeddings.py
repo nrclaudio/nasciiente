@@ -87,52 +87,68 @@ def _apply_rope(x, cos, sin):
 
 
 class ConditioningEmbedding(nn.Module):
-    """Global conditioning: class label + current mask ratio -> [B, D] vector.
+    """Global conditioning: text prompt + current mask ratio -> [B, D] vector.
 
     Added to every token embedding (Muse-style additive conditioning). The
-    class table has an extra null row (index NUM_CLASSES) used for unlabeled
-    data and classifier-free guidance. The mask ratio tells the model how
+    prompt arrives as a frozen-encoder text embedding (see data/text_embed.py)
+    and is projected into the token stream; a learned null embedding stands
+    in for "no prompt" — used for uncaptioned data and as the unconditional
+    branch of classifier-free guidance. The mask ratio tells the model how
     much of the grid is hidden — the denoising "noise level" every diffusion
     model gets but a plain masked LM does not.
     """
 
-    def __init__(self, num_classes, embed_dim):
+    def __init__(self, text_dim, embed_dim):
         super().__init__()
-        self.null_class = num_classes
-        # +1 for the null/unconditional class
-        self.class_embed = nn.Embedding(num_classes + 1, embed_dim)
+        self.text_dim = text_dim
+        self.null_emb = nn.Parameter(torch.zeros(text_dim))
+        self.text_proj = nn.Sequential(
+            nn.Linear(text_dim, embed_dim),
+            nn.SiLU(),
+            nn.Linear(embed_dim, embed_dim),
+        )
         self.ratio_mlp = nn.Sequential(
             nn.Linear(1, embed_dim),
             nn.SiLU(),
             nn.Linear(embed_dim, embed_dim),
         )
-        # Zero-init so conditioning is a no-op until trained. This makes the
-        # module identity at start (like AdaLN-Zero) AND lets a checkpoint
-        # trained without conditioning load with strict=False and behave
-        # exactly as before — the added cond vector is zero.
-        nn.init.zeros_(self.class_embed.weight)
+        # Zero-init the output layers so conditioning is a no-op until
+        # trained. This makes the module identity at start (like AdaLN-Zero)
+        # AND lets a checkpoint trained without conditioning load with
+        # strict=False and behave exactly as before — the added cond vector
+        # is zero.
+        nn.init.zeros_(self.text_proj[-1].weight)
+        nn.init.zeros_(self.text_proj[-1].bias)
         nn.init.zeros_(self.ratio_mlp[-1].weight)
         nn.init.zeros_(self.ratio_mlp[-1].bias)
 
-    def forward(self, batch, device, class_label=None, mask_ratio=None):
+    def forward(self, batch, device, cond_emb=None, cond_drop=None,
+                mask_ratio=None):
         """
         Args:
             batch: batch size B
             device: torch device
-            class_label: None, int, or [B] long tensor (None -> null class)
+            cond_emb: None, [text_dim], or [B, text_dim] float tensor of
+                      prompt embeddings (None -> null embedding for all)
+            cond_drop: optional [B] bool tensor — True rows use the null
+                       embedding instead of their prompt (training-time CFG
+                       dropout / the unconditional half of guidance)
             mask_ratio: None, float, or [B] float tensor (None -> 0.0)
         Returns:
             [B, embed_dim] conditioning vector
         """
-        if class_label is None:
-            labels = torch.full((batch,), self.null_class, dtype=torch.long,
-                                device=device)
-        elif torch.is_tensor(class_label):
-            labels = class_label.to(device).long()
+        null = self.null_emb.unsqueeze(0)  # [1, text_dim]
+        if cond_emb is None:
+            text = null.expand(batch, -1)
         else:
-            labels = torch.full((batch,), int(class_label), dtype=torch.long,
-                                device=device)
-        cls = self.class_embed(labels)  # [B, D]
+            text = cond_emb.to(device=device, dtype=null.dtype)
+            if text.dim() == 1:
+                text = text.unsqueeze(0)
+            text = text.expand(batch, -1)
+            if cond_drop is not None:
+                text = torch.where(cond_drop.to(device).view(-1, 1),
+                                   null.expand(batch, -1), text)
+        cond = self.text_proj(text)  # [B, D]
 
         if mask_ratio is None:
             ratio = torch.zeros(batch, 1, device=device)
@@ -140,7 +156,7 @@ class ConditioningEmbedding(nn.Module):
             ratio = mask_ratio.to(device).float().view(batch, 1)
         else:
             ratio = torch.full((batch, 1), float(mask_ratio), device=device)
-        return cls + self.ratio_mlp(ratio)  # [B, D]
+        return cond + self.ratio_mlp(ratio)  # [B, D]
 
 
 class CombinedEmbedding(nn.Module):

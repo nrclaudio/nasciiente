@@ -100,39 +100,44 @@ def test_rope_covers_upscaled_grids():
     assert out.shape == x.shape
 
 
-def test_class_and_ratio_conditioning_change_output():
+def test_prompt_and_ratio_conditioning_change_output():
     torch.manual_seed(0)
     model = ASCIIBert(embed_dim=32, num_layers=2, num_heads=2, ffn_dim=64,
-                      num_classes=10)
+                      text_dim=16)
     # Conditioning is zero-init (no-op until trained); simulate training by
     # giving it non-zero weights, then verify it actually conditions.
     with torch.no_grad():
-        model.conditioning.class_embed.weight.normal_(0, 1)
+        model.conditioning.text_proj[-1].weight.normal_(0, 1)
         model.conditioning.ratio_mlp[-1].weight.normal_(0, 1)
     model.eval()
     x = torch.randint(0, VOCAB_SIZE, (1, H, W))
+    emb = torch.randn(16)
     with torch.no_grad():
-        base = model(x)                              # null class, ratio 0
-        cls5 = model(x, class_label=5)               # a real class
+        base = model(x)                              # null prompt, ratio 0
+        cond = model(x, cond_emb=emb)                # a real prompt
         r80 = model(x, mask_ratio=0.8)               # different noise level
-    assert not torch.allclose(base, cls5), "class label must affect output"
+        dropped = model(x, cond_emb=emb,
+                        cond_drop=torch.tensor([True]))  # forced to null
+    assert not torch.allclose(base, cond), "prompt must affect output"
     assert not torch.allclose(base, r80), "mask ratio must affect output"
+    assert torch.allclose(base, dropped), "cond_drop must fall back to null"
 
 
-def test_conditioning_accepts_batched_labels():
+def test_conditioning_accepts_batched_embeddings():
     model = ASCIIBert(embed_dim=32, num_layers=2, num_heads=2, ffn_dim=64,
-                      num_classes=10)
+                      text_dim=16)
     x = torch.randint(0, VOCAB_SIZE, (4, H, W))
-    labels = torch.tensor([0, 3, 9, 10])  # 10 == null class
+    embs = torch.randn(4, 16)
+    drop = torch.tensor([False, True, False, True])
     ratios = torch.rand(4)
-    out = model(x, class_label=labels, mask_ratio=ratios)
+    out = model(x, cond_emb=embs, cond_drop=drop, mask_ratio=ratios)
     assert out.shape == (4, H, W, VOCAB_SIZE)
 
 
 def test_soft_target_loss_matches_ce_when_onehot():
     torch.manual_seed(0)
     model = ASCIIBert(embed_dim=32, num_layers=2, num_heads=2, ffn_dim=64,
-                      num_classes=10)
+                      text_dim=16)
     x = torch.randint(0, VOCAB_SIZE, (2, H, W))
     target = torch.randint(2, VOCAB_SIZE, (2, H, W))
     mask = torch.rand(2, H, W) > 0.5
@@ -147,7 +152,7 @@ def test_soft_target_loss_matches_ce_when_onehot():
 def test_soft_target_loss_gives_partial_credit():
     torch.manual_seed(0)
     model = ASCIIBert(embed_dim=32, num_layers=2, num_heads=2, ffn_dim=64,
-                      num_classes=10)
+                      text_dim=16)
     x = torch.randint(0, VOCAB_SIZE, (2, H, W))
     target = torch.randint(2, VOCAB_SIZE, (2, H, W))
     mask = torch.ones(2, H, W, dtype=torch.bool)
@@ -160,17 +165,17 @@ def test_soft_target_loss_gives_partial_credit():
 
 
 def test_conditioning_is_noop_at_init():
-    # Zero-init conditioning: a freshly built model ignores class/ratio,
+    # Zero-init conditioning: a freshly built model ignores prompt/ratio,
     # so a checkpoint trained WITHOUT conditioning loads (strict=False)
-    # and behaves identically. This is the run #1 -> Pack B guarantee.
+    # and behaves identically.
     torch.manual_seed(0)
     model = ASCIIBert(embed_dim=32, num_layers=2, num_heads=2, ffn_dim=64,
-                      num_classes=10)
+                      text_dim=16)
     model.eval()
     x = torch.randint(0, VOCAB_SIZE, (1, H, W))
     with torch.no_grad():
         a = model(x)
-        b = model(x, class_label=7, mask_ratio=0.9)
+        b = model(x, cond_emb=torch.randn(16), mask_ratio=0.9)
     assert torch.allclose(a, b), "conditioning must be a no-op before training"
 
 
@@ -178,11 +183,11 @@ def test_pre_conditioning_checkpoint_loads_strict_false():
     # Simulate a run #1 checkpoint: state dict with the conditioning keys
     # removed. It must load with strict=False.
     model = ASCIIBert(embed_dim=32, num_layers=2, num_heads=2, ffn_dim=64,
-                      num_classes=10)
+                      text_dim=16)
     state = {k: v for k, v in model.state_dict().items()
              if "conditioning" not in k}
     fresh = ASCIIBert(embed_dim=32, num_layers=2, num_heads=2, ffn_dim=64,
-                      num_classes=10)
+                      text_dim=16)
     missing, unexpected = fresh.load_state_dict(state, strict=False)
     assert unexpected == []
     assert all("conditioning" in k for k in missing)
