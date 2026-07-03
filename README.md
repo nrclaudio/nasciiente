@@ -105,7 +105,9 @@ Notes:
   canvas, and dataset files store grids as uint8 (the 98-char vocab fits
   in a byte) — full-size RGB float storage would need hundreds of GB.
 - Checkpoints are rolling: `{stage}_last.pt` (every epoch) and
-  `{stage}_best.pt` (on val improvement), not one file per epoch.
+  `{stage}_best.pt` (on val improvement), not one file per epoch. One
+  generated sample per epoch is archived to `checkpoints/samples/`; the
+  Streamlit app's "Training progress" mode scrubs through them.
 - Training defaults (`config.py`) target a single A100: batch 64,
   15 epochs per stage, cosine schedule with warmup. Checkpoints are
   written to `checkpoints/` every epoch, plus `final_model.pt`.
@@ -122,6 +124,7 @@ data/
   generate_shading.py     stage-2 image-derived data (6D shape matching)
   prepare_human_ascii.py  stage-3 human ASCII art (optional)
   glyph_sim.py            glyph-similarity soft-target matrix
+  text_embed.py           frozen CLIP text encoder for prompt conditioning
 model/
   ascii_bert.py           the model
   embeddings.py           token embedding + 2D RoPE
@@ -132,7 +135,8 @@ training/
   train.py                two-stage training loop
   evaluate.py             val metrics, sample generation, inpainting demo
 app/
-  streamlit_app.py        web UI (generate + inpainting)
+  streamlit_app.py        web UI (prompted generation + inpainting +
+                          training-progress gallery)
 tests/                    CPU-fast pytest suite
 ```
 
@@ -153,11 +157,15 @@ Two packages of improvements sit on top of the base model.
 - **Vectorized sampling**: one batched `multinomial` over the grid.
 
 **Trained-in (require run #2 with the new data/model):**
-- **Class conditioning + classifier-free guidance (CFG)**: ImageNet-Sketch
-  ships 1000 class labels; the model learns them (additive class embedding,
-  10% label dropout during training) so you can ask for a specific class,
-  with a guidance knob trading diversity for adherence. `generate(...,
-  class_label=k, guidance_scale=3.0)`.
+- **Text-prompt conditioning + classifier-free guidance (CFG)**: every
+  dataset now carries captions — geometry samples describe their
+  primitives ("a rectangle and a cross"), ImageNet-Sketch contributes its
+  class names, and human ASCII art keeps its titles. Captions are embedded
+  once with a frozen CLIP text encoder (`data/text_embed.py`) and projected
+  into the token stream; 10% caption dropout to a learned null embedding
+  during training enables CFG, with a guidance knob trading diversity for
+  adherence. `generate(..., prompt="a small sailboat",
+  guidance_scale=3.0)` (or pass a precomputed `cond_emb`).
 - **Mask-ratio conditioning**: the model is told what fraction of the grid
   is hidden — the denoising "noise level" a plain masked LM never gets.
 - **Glyph-aware soft labels** (`data/glyph_sim.py`): confusing `/` with `|`
@@ -174,7 +182,10 @@ Two packages of improvements sit on top of the base model.
 The conditioning params are **zero-initialized**, so they are a no-op until
 trained: a checkpoint from a run without conditioning (e.g. run #1) loads
 with `strict=False` and behaves identically, and the inference-time
-improvements above apply to it unchanged.
+improvements above apply to it unchanged. The frozen text encoder is only
+needed where new text appears (data prep, the start of a conditioned
+training stage, interactive generation) — never inside the training loop,
+which reads precomputed embeddings of each dataset's unique captions.
 
 ## Multi-GPU training (DDP)
 
@@ -249,9 +260,13 @@ Next steps, roughly in order:
    app works out of the box.
 3. ~~Better unmasking schedule~~ — **done** (cosine + Gumbel + revision).
 4. ~~Vectorize inference sampling~~ — **done**.
-5. ~~Conditioning~~ — **done** (class conditioning + CFG; run #2 trains it).
-6. **Text conditioning** — cross-attend to a caption embedding for
-   free-text prompts ("a small sailboat") beyond the 1000 fixed classes.
+5. ~~Conditioning~~ — **done** (text-prompt conditioning + CFG via a frozen
+   CLIP text encoder; run #2 trains it. All three stages carry captions —
+   geometry primitive descriptions, ImageNet-Sketch class names, human-art
+   titles).
+6. **Richer captions** — the additive single-vector conditioning could
+   become cross-attention over caption *tokens* if single-vector prompts
+   prove too coarse for compositional prompts.
 7. **Larger grids** — RoPE supports up to 96×160; the strided-anchor
    training now makes 2× upscaling in-distribution. Train with variable
    grid sizes to push further.
@@ -260,6 +275,6 @@ Next steps, roughly in order:
    becomes a neural image→ASCII renderer that can beat the deterministic
    converter.
 9. **Stronger conditioning** — AdaLN-Zero modulation (DiT-style) instead of
-   additive conditioning, if class control needs to be sharper.
+   additive conditioning, if prompt control needs to be sharper.
 10. **More human data** — `mrzjy/ascii_art_generation_140k` (139k pieces)
     and `Csplk/THE.ASCII.ART.EMPORIUM` (3.1M rows) as stage-3 expansions.

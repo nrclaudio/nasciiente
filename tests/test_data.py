@@ -3,7 +3,6 @@ import torch
 from config import GRID_H, GRID_W, VOCAB_SIZE
 from data.charset import MASK_TOKEN
 from data.generate_geometry import generate_sample, PRIMITIVES, _blank_grid
-from config import NULL_CLASS
 from training.dataset import ASCIIDataset
 from training.masking import (
     random_mask, block_mask, anchor_mask, mixed_mask,
@@ -13,12 +12,13 @@ from training.masking import (
 def test_geometry_sample_shape_and_range():
     torch.manual_seed(0)
     for _ in range(20):
-        grid = generate_sample()
+        grid, caption = generate_sample()
         assert grid.shape == (GRID_H, GRID_W)
         assert grid.dtype == torch.long
         # Only printable chars (indices 2..97) — never PAD or MASK
         assert grid.min().item() >= 2
         assert grid.max().item() < VOCAB_SIZE
+        assert isinstance(caption, str) and caption
 
 
 def test_each_primitive_draws_in_bounds():
@@ -31,7 +31,7 @@ def test_each_primitive_draws_in_bounds():
 
 
 def test_random_mask_invariants():
-    grid = generate_sample()
+    grid, _ = generate_sample()
     masked, target, mask, ratio = random_mask(grid)
     assert (target == grid).all()
     assert (masked[mask] == MASK_TOKEN).all()
@@ -41,7 +41,7 @@ def test_random_mask_invariants():
 
 
 def test_block_mask_is_contiguous_rectangle():
-    grid = generate_sample()
+    grid, _ = generate_sample()
     masked, target, mask, ratio = block_mask(grid)
     assert (masked[mask] == MASK_TOKEN).all()
     rows = mask.any(dim=1).nonzero().flatten()
@@ -52,7 +52,7 @@ def test_block_mask_is_contiguous_rectangle():
 
 
 def test_anchor_mask_keeps_strided_lattice():
-    grid = generate_sample()
+    grid, _ = generate_sample()
     for stride in (2, 3):
         masked, target, mask, ratio = anchor_mask(grid, stride=stride)
         # Anchor cells are NOT masked and keep their original value
@@ -61,7 +61,7 @@ def test_anchor_mask_keeps_strided_lattice():
 
 
 def test_mixed_mask_returns_valid_tuple():
-    grid = generate_sample()
+    grid, _ = generate_sample()
     for _ in range(20):
         masked, target, mask, ratio = mixed_mask(grid)
         assert (masked[mask] == MASK_TOKEN).all()
@@ -70,22 +70,53 @@ def test_mixed_mask_returns_valid_tuple():
 
 
 def test_dataset_getitem():
-    data = torch.stack([generate_sample() for _ in range(4)])
-    labels = torch.tensor([7, 3, 999, 0])
-    ds = ASCIIDataset(data, labels)
+    data = torch.stack([generate_sample()[0] for _ in range(4)])
+    caption_ids = torch.tensor([1, 0, -1, 1])
+    caption_embs = torch.randn(2, 8)
+    ds = ASCIIDataset(data, caption_ids, caption_embs)
     assert len(ds) == 4
-    masked, target, mask, ratio, label = ds[0]
+    masked, target, mask, ratio, cond_emb, has_cond = ds[0]
     assert masked.shape == target.shape == mask.shape == (GRID_H, GRID_W)
     assert mask.dtype == torch.bool
     assert ratio.dtype == torch.float
-    assert int(label) == 7
+    assert bool(has_cond)
+    assert torch.allclose(cond_emb, caption_embs[1])
+    # Uncaptioned sample (caption_id -1): zero embedding, has_cond False
+    _, _, _, _, cond_emb2, has_cond2 = ds[2]
+    assert not bool(has_cond2)
+    assert torch.equal(cond_emb2, torch.zeros(8))
 
 
-def test_dataset_without_labels_uses_null_class():
-    data = torch.stack([generate_sample() for _ in range(2)])
+def test_dataset_without_captions_is_unconditional():
+    from config import TEXT_EMB_DIM
+    data = torch.stack([generate_sample()[0] for _ in range(2)])
     ds = ASCIIDataset(data)
-    _, _, _, _, label = ds[0]
-    assert int(label) == NULL_CLASS
+    _, _, _, _, cond_emb, has_cond = ds[0]
+    assert not bool(has_cond)
+    assert torch.equal(cond_emb, torch.zeros(TEXT_EMB_DIM))
+
+
+def test_load_data_and_captions_formats(tmp_path):
+    import training.train as T
+    grids = torch.randint(2, 98, (4, 8, 8), dtype=torch.uint8)
+
+    bare = tmp_path / "bare.pt"
+    torch.save(grids, bare)
+    data, ids, caps = T._load_data_and_captions(str(bare))
+    assert torch.equal(data, grids) and ids is None and caps is None
+
+    legacy = tmp_path / "legacy.pt"  # interim class-label format
+    torch.save({"data": grids, "labels": torch.tensor([1, 2, 3, 4])}, legacy)
+    data, ids, caps = T._load_data_and_captions(str(legacy))
+    assert torch.equal(data, grids) and ids is None and caps is None
+
+    new = tmp_path / "new.pt"
+    torch.save({"data": grids, "caption_ids": torch.tensor([0, 1, -1, 0]),
+                "captions": ["a cat", "a dog"]}, new)
+    data, ids, caps = T._load_data_and_captions(str(new))
+    assert torch.equal(data, grids)
+    assert ids.tolist() == [0, 1, -1, 0]
+    assert caps == ["a cat", "a dog"]
 
 
 def test_distributed_defaults_without_torchrun():

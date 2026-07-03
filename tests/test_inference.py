@@ -118,10 +118,10 @@ def test_cfg_generation_runs_and_conditions():
     from model.ascii_bert import ASCIIBert
     torch.manual_seed(0)
     model = ASCIIBert(embed_dim=32, num_layers=2, num_heads=2, ffn_dim=64,
-                      num_classes=10)
+                      text_dim=16)
     model.eval()
-    # Class-conditioned with guidance
-    _, final = generate(model, H, W, num_steps=4, class_label=3,
+    # Prompt-conditioned with guidance
+    _, final = generate(model, H, W, num_steps=4, cond_emb=torch.randn(16),
                         guidance_scale=3.0, revision_steps=1, device="cpu")
     assert final.shape == (H, W)
     assert (final != MASK_TOKEN).all()
@@ -130,11 +130,38 @@ def test_cfg_generation_runs_and_conditions():
 def test_cfg_scale_one_equals_plain_conditional():
     from model.ascii_bert import ASCIIBert
     model = ASCIIBert(embed_dim=32, num_layers=2, num_heads=2, ffn_dim=64,
-                      num_classes=10)
+                      text_dim=16)
     model.eval()
     from model.inference import _model_logits
     grid = torch.randint(2, 98, (H, W))
-    a = _model_logits(model, grid, class_label=2, guidance_scale=1.0,
+    emb = torch.randn(16)
+    a = _model_logits(model, grid, cond_emb=emb, guidance_scale=1.0,
                       mask_ratio=0.5)
-    b = model(grid.unsqueeze(0), class_label=2, mask_ratio=0.5).squeeze(0)
+    b = model(grid.unsqueeze(0), cond_emb=emb, mask_ratio=0.5).squeeze(0)
     assert torch.allclose(a, b)
+
+
+def test_batched_cfg_matches_two_forward_passes():
+    # The batch-2 CFG forward must give the same result as running the
+    # conditional and unconditional passes separately.
+    from model.ascii_bert import ASCIIBert
+    from model.inference import _model_logits
+    torch.manual_seed(0)
+    model = ASCIIBert(embed_dim=32, num_layers=2, num_heads=2, ffn_dim=64,
+                      text_dim=16)
+    # give conditioning real weights so cond != uncond
+    with torch.no_grad():
+        model.conditioning.text_proj[-1].weight.normal_(0, 1)
+        model.conditioning.null_emb.normal_(0, 1)
+    model.eval()
+    grid = torch.randint(2, 98, (H, W))
+    emb = torch.randn(16)
+    scale = 3.0
+    with torch.no_grad():
+        a = _model_logits(model, grid, cond_emb=emb, guidance_scale=scale,
+                          mask_ratio=0.5)
+        cond = model(grid.unsqueeze(0), cond_emb=emb,
+                     mask_ratio=0.5).squeeze(0)
+        uncond = model(grid.unsqueeze(0), mask_ratio=0.5).squeeze(0)
+    b = uncond + scale * (cond - uncond)
+    assert torch.allclose(a, b, atol=1e-5)

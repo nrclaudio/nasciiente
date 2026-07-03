@@ -16,8 +16,10 @@ import torch
 # Ensure project root is importable
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+import glob
+
 from config import (GRID_H, GRID_W, UNMASK_STEPS, TEMPERATURE, VOCAB_SIZE,
-                    MAX_ROWS, MAX_COLS)
+                    MAX_ROWS, MAX_COLS, CFG_SCALE)
 from model.ascii_bert import ASCIIBert
 from model.inference import generate, upscale_grid
 from data.charset import grid_to_string, MASK_TOKEN
@@ -28,15 +30,17 @@ from app.utils import text_to_partial_grid, count_fixed_positions
 def load_model(checkpoint_path):
     """Load the trained model on CPU (for deployment).
 
-    strict=False so a checkpoint trained before the conditioning params
-    existed (run #1) still loads — its zero-initialized conditioning is a
-    no-op, so behavior is unchanged. Only conditioning params may be
-    absent, though: any other key mismatch means the checkpoint doesn't
-    match this architecture, and loading it would silently leave random
-    weights, so fail loudly instead.
+    strict=False so checkpoints from before the current text-conditioning
+    scheme (unconditional run #1, class-conditioned Pack B) still load —
+    their conditioning params are absent or ignored, and the zero-init
+    module is a no-op. Only conditioning.* keys may mismatch, though: any
+    other mismatch means the checkpoint doesn't match this architecture,
+    and loading it would silently leave random weights, so fail loudly
+    instead.
 
     Returns (model, device, conditioned) — conditioned is False for
-    pre-conditioning checkpoints so the UI can hide the class controls.
+    checkpoints without trained text conditioning so the UI can hide the
+    prompt controls.
     """
     device = torch.device("cpu")
     model = ASCIIBert().to(device)
@@ -44,14 +48,68 @@ def load_model(checkpoint_path):
     state = ckpt["model_state_dict"] if (isinstance(ckpt, dict)
             and "model_state_dict" in ckpt) else ckpt
     missing, unexpected = model.load_state_dict(state, strict=False)
-    bad = [k for k in missing if "conditioning" not in k] + list(unexpected)
+    bad = ([k for k in missing if not k.startswith("conditioning.")]
+           + [k for k in unexpected if not k.startswith("conditioning.")])
     if bad:
         raise ValueError(f"Checkpoint {os.path.basename(checkpoint_path)} "
                          f"does not match the model (mismatched keys: "
                          f"{bad[:5]}...)")
-    conditioned = not any("conditioning" in k for k in missing)
+    conditioned = not any(k.startswith("conditioning.") for k in missing)
     model.eval()
     return model, device, conditioned
+
+
+@st.cache_data
+def embed_prompt(text):
+    """Embed one prompt (cached so regenerating doesn't rerun the encoder)."""
+    from data.text_embed import embed_texts
+    return embed_texts([text])[0]
+
+
+# Curriculum order for the training-progress browser; stages not listed
+# sort after these, alphabetically
+STAGE_ORDER = {"geometry": 0, "shading": 1, "human": 2}
+
+
+def show_training_progress():
+    """Browse the per-epoch samples written by training.
+
+    train.py saves one generated sample per epoch to
+    checkpoints/samples/{stage}_epoch{NNN}.txt; scrubbing through them
+    shows the model learning over the curriculum.
+    """
+    st.subheader("Training progress")
+    sample_dir = os.path.join(os.path.dirname(__file__), "..",
+                              "checkpoints", "samples")
+    files = sorted(glob.glob(os.path.join(sample_dir, "*_epoch*.txt")))
+    if not files:
+        st.info("No training samples found. They are written to "
+                "`checkpoints/samples/` during training — one generated "
+                "sample per epoch.")
+        return
+
+    by_stage = {}
+    for path in files:
+        stage, _, epoch_part = os.path.basename(path)[:-4].rpartition("_epoch")
+        try:
+            epoch = int(epoch_part)
+        except ValueError:
+            continue
+        by_stage.setdefault(stage, []).append((epoch, path))
+
+    stages = sorted(by_stage, key=lambda s: (STAGE_ORDER.get(s, 99), s))
+    stage = st.selectbox("Stage", stages)
+    epochs = sorted(by_stage[stage])
+    if len(epochs) > 1:
+        idx = st.slider("Epoch", 1, len(epochs), len(epochs),
+                        help="Drag to scrub through the stage's epochs.")
+    else:
+        idx = 1
+    epoch, path = epochs[idx - 1]
+    st.caption(f"Stage **{stage}**, epoch {epoch} "
+               f"({len(epochs)} epochs recorded)")
+    with open(path) as f:
+        st.code(f.read(), language=None)
 
 
 def find_checkpoint():
@@ -88,7 +146,12 @@ def main():
 
     # Controls
     st.sidebar.header("Controls")
-    mode = st.sidebar.radio("Mode", ["Generate from scratch", "Inpainting"])
+    mode = st.sidebar.radio("Mode", ["Generate from scratch", "Inpainting",
+                                     "Training progress"])
+
+    if mode == "Training progress":
+        show_training_progress()
+        return
     temperature = st.sidebar.slider("Temperature", 0.1, 2.0, TEMPERATURE, 0.1)
     num_steps = st.sidebar.slider("Unmasking steps", 1, 20, UNMASK_STEPS)
     grid_option = st.sidebar.selectbox("Grid size", ["48×80", "24×40", "64×128"])
@@ -109,26 +172,29 @@ def main():
     gen_kwargs = dict(schedule=schedule, gumbel_scale=gumbel_scale,
                       revision_steps=revision_steps)
 
-    # Class conditioning — only offered when the loaded checkpoint actually
+    # Prompt conditioning — only offered when the loaded checkpoint actually
     # has trained conditioning params; on older checkpoints the controls
     # would silently do nothing.
-    st.sidebar.subheader("Class conditioning")
+    st.sidebar.subheader("Prompt")
     if not conditioned:
-        st.sidebar.caption("Unavailable — this checkpoint predates class "
-                           "conditioning.")
-        use_class = False
+        st.sidebar.caption("Unavailable — this checkpoint was trained "
+                           "without text conditioning.")
     else:
-        use_class = st.sidebar.checkbox(
-            "Condition on ImageNet class",
-            help="Requires a class-trained checkpoint (Pack B). ImageNet class "
-                 "index 0–999.")
-    if use_class:
-        class_label = st.sidebar.number_input(
-            "Class index (0–999)", min_value=0, max_value=999, value=0, step=1)
-        guidance = st.sidebar.slider(
-            "Guidance (CFG)", 1.0, 8.0, 3.0, 0.5,
-            help="Higher = stronger adherence to the class, less diversity.")
-        gen_kwargs.update(class_label=int(class_label), guidance_scale=guidance)
+        prompt = st.sidebar.text_input(
+            "Text prompt (optional)",
+            placeholder="a cat, a rocket, a diamond ...",
+            help="Embedded with a frozen CLIP text encoder; empty = "
+                 "unconditional generation.")
+        if prompt.strip():
+            guidance = st.sidebar.slider(
+                "Guidance (CFG)", 1.0, 8.0, CFG_SCALE, 0.5,
+                help="Higher = stronger adherence to the prompt, "
+                     "less diversity.")
+            try:
+                gen_kwargs.update(cond_emb=embed_prompt(prompt.strip()),
+                                  guidance_scale=guidance)
+            except ImportError as e:
+                st.sidebar.warning(str(e))
 
     if grid_option == "24×40":
         gh, gw = 24, 40

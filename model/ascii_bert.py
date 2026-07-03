@@ -4,7 +4,7 @@ import torch.nn.functional as F
 
 from config import (
     VOCAB_SIZE, EMBED_DIM, GRID_H, GRID_W,
-    NUM_LAYERS, NUM_HEADS, FFN_DIM, DROPOUT, NUM_CLASSES,
+    NUM_LAYERS, NUM_HEADS, FFN_DIM, DROPOUT, TEXT_EMB_DIM,
 )
 from model.embeddings import CombinedEmbedding, ConditioningEmbedding
 from model.transformer import TransformerEncoder
@@ -15,32 +15,36 @@ class ASCIIBert(nn.Module):
     MaskGIT-style model for ASCII art with 2D RoPE attention.
 
     Input:  [B, H, W] integer grid (some positions set to MASK_TOKEN)
-            + optional class label and mask ratio (global conditioning)
+            + optional text-prompt embedding and mask ratio (global
+            conditioning)
     Output: [B, H, W, VOCAB_SIZE] logits for every grid position
     """
 
     def __init__(self, vocab_size=VOCAB_SIZE, embed_dim=EMBED_DIM,
                  num_layers=NUM_LAYERS, num_heads=NUM_HEADS,
-                 ffn_dim=FFN_DIM, dropout=DROPOUT, num_classes=NUM_CLASSES):
+                 ffn_dim=FFN_DIM, dropout=DROPOUT, text_dim=TEXT_EMB_DIM):
         super().__init__()
         self.embedding = CombinedEmbedding(vocab_size, embed_dim, dropout)
-        self.conditioning = ConditioningEmbedding(num_classes, embed_dim)
+        self.conditioning = ConditioningEmbedding(text_dim, embed_dim)
         self.transformer = TransformerEncoder(num_layers, embed_dim,
                                               num_heads, ffn_dim, dropout)
         self.norm = nn.LayerNorm(embed_dim)
         self.head = nn.Linear(embed_dim, vocab_size)
 
-    def forward(self, x, class_label=None, mask_ratio=None):
+    def forward(self, x, cond_emb=None, cond_drop=None, mask_ratio=None):
         """
         Args:
             x: [B, H, W] long tensor of token indices
-            class_label: None | int | [B] long — global class conditioning
+            cond_emb: None | [text_dim] | [B, text_dim] float — text prompt
+                      embeddings (None -> the learned null embedding)
+            cond_drop: optional [B] bool — rows to force to the null
+                       embedding (CFG dropout / unconditional branch)
             mask_ratio: None | float | [B] float — fraction of grid masked
         Returns:
             logits: [B, H, W, VOCAB_SIZE]
         """
         B, H, W = x.shape
-        cond = self.conditioning(B, x.device, class_label, mask_ratio)
+        cond = self.conditioning(B, x.device, cond_emb, cond_drop, mask_ratio)
         emb = self.embedding(x, cond)     # [B, H*W, D]
         out = self.transformer(emb, H, W) # [B, H*W, D]
         out = self.norm(out)              # [B, H*W, D]

@@ -11,9 +11,11 @@ build/
 data/stl10/
 data/geometry_data.pt
 data/shading_data.pt
+data/human_data.pt
 
-# Checkpoints
+# Checkpoints + per-epoch training samples
 checkpoints/*.pt
+checkpoints/samples/
 
 # Environment
 .env

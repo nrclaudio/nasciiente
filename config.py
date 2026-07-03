@@ -18,17 +18,18 @@ DROPOUT = 0.1
 MAX_ROWS = 96   # max supported grid height (for RoPE precomputation)
 MAX_COLS = 160  # max supported grid width (allows 2x upscale of 48x80)
 
-# Conditioning (Pack B). The model always accepts an optional class label
-# and the current mask ratio; unlabeled data uses the null class. Class
-# labels come from ImageNet-Sketch (1000 classes); index NUM_CLASSES is
-# the null/unconditional token used for CFG and unlabeled data.
-NUM_CLASSES = 1000
-NULL_CLASS = NUM_CLASSES  # embedding index for "no class"
+# Text conditioning. Prompts (dataset captions, class names, user text) are
+# embedded with a frozen text encoder and projected into the token stream;
+# the model also always receives the current mask ratio. Samples without a
+# caption train against a learned null embedding, which doubles as the
+# unconditional branch for classifier-free guidance.
+TEXT_ENCODER = "openai/clip-vit-base-patch32"  # frozen; only used to embed text
+TEXT_EMB_DIM = 512                             # CLIP projection dim
 
 # Classifier-free guidance (inference default)
 CFG_SCALE = 3.0
-# Probability of dropping the class label to null during training (enables CFG)
-CLASS_DROPOUT = 0.1
+# Probability of dropping the caption to null during training (enables CFG)
+COND_DROPOUT = 0.1
 
 # Glyph-aware soft labels: blend one-hot targets with a visual-similarity
 # distribution over glyphs, so confusing '/' with '|' costs less than
