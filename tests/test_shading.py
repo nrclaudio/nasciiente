@@ -103,3 +103,12 @@ def test_preprocessing_output_ranges():
     out = _clahe(img)
     assert out.shape == img.shape
     assert out.min() >= -1e-6 and out.max() <= 1.0 + 1e-6
+
+
+def test_record_image_finds_pil_under_any_column():
+    from PIL import Image
+    from data.generate_shading import _record_image
+    img = Image.new("L", (8, 8))
+    assert _record_image({"jpg": img, "cls": 3}) is img
+    assert _record_image({"image": img}) is img
+    assert _record_image({"label": 1, "text": "x"}) is None
