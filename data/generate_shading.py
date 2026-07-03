@@ -476,8 +476,7 @@ def _load_imagenet(data_dir, num_samples):
     """
     from datasets import load_dataset
     print(f"\nStreaming ImageNet from HuggingFace (fetching up to {num_samples:,})...")
-    ds = load_dataset("ILSVRC/imagenet-1k", split="train", streaming=True,
-                      trust_remote_code=True)
+    ds = load_dataset("ILSVRC/imagenet-1k", split="train", streaming=True)
     all_images = []
     skipped = 0
     for item in ds:
@@ -495,33 +494,81 @@ def _load_imagenet(data_dir, num_samples):
     return all_images
 
 
+def _record_image(item):
+    """Pull the PIL image out of a dataset record, whatever its column
+    name — parquet mirrors use 'image', webdataset mirrors 'jpg'/'webp'."""
+    from PIL.Image import Image as PILImage
+    for value in item.values():
+        if isinstance(value, PILImage):
+            return value
+    return None
+
+
 def _load_imagenet_sketch(num_samples):
     """Load ImageNet-Sketch via HuggingFace streaming. Returns list of tensors.
 
     ~50k black-on-white sketch renditions of the 1000 ImageNet classes.
     Line drawings convert to far cleaner ASCII than photos, and their
     distribution matches the stage-1 geometry data much better.
+
+    The original repos are script-based, which datasets>=4 refuses to
+    load — try the Hub's auto-converted parquet branch first, then a
+    WebDataset mirror.
     """
     from datasets import load_dataset
+
     print(f"\nStreaming ImageNet-Sketch from HuggingFace "
           f"(fetching up to {num_samples:,})...")
+
+    attempts = [
+        ("songweig/imagenet_sketch @refs/convert/parquet",
+         lambda: load_dataset("songweig/imagenet_sketch",
+                              revision="refs/convert/parquet",
+                              split="train", streaming=True)),
+        ("imagenet_sketch @refs/convert/parquet",
+         lambda: load_dataset("imagenet_sketch",
+                              revision="refs/convert/parquet",
+                              split="train", streaming=True)),
+        ("songweig/imagenet_sketch parquet files (explicit glob)",
+         lambda: load_dataset(
+             "parquet", split="train", streaming=True,
+             data_files="hf://datasets/songweig/imagenet_sketch"
+                        "@refs/convert/parquet/default/*/*.parquet")),
+        ("clip-benchmark/wds_imagenet_sketch (webdataset, test split)",
+         lambda: load_dataset("clip-benchmark/wds_imagenet_sketch",
+                              split="test", streaming=True)),
+        ("clip-benchmark/wds_imagenet_sketch (webdataset, train split)",
+         lambda: load_dataset("clip-benchmark/wds_imagenet_sketch",
+                              split="train", streaming=True)),
+    ]
+
     ds = None
     last_err = None
-    for name in ("songweig/imagenet_sketch", "imagenet_sketch"):
+    for label, make in attempts:
         try:
-            ds = load_dataset(name, split="train", streaming=True,
-                              trust_remote_code=True)
-            print(f"  Using dataset id: {name}")
+            candidate = make()
+            # Probe one real record: many loading failures only surface
+            # on iteration, and a dud here must not cost a full pass
+            if _record_image(next(iter(candidate))) is None:
+                raise ValueError("no image column in first record")
+            ds = candidate
+            print(f"  Using: {label}")
             break
-        except Exception as e:  # try the next known id
+        except Exception as e:
+            print(f"  ({label}: {type(e).__name__} — trying next mirror)")
             last_err = e
     if ds is None:
-        raise RuntimeError(f"Could not load ImageNet-Sketch: {last_err}")
+        raise RuntimeError(
+            f"Could not load ImageNet-Sketch from any mirror: {last_err}")
 
     all_images = []
     skipped = 0
-    for item in ds:
-        tensor = _pil_to_tensor(item["image"])
+    for item in ds:  # streaming datasets restart cleanly after the probe
+        img = _record_image(item)
+        if img is None:
+            skipped += 1
+            continue
+        tensor = _pil_to_tensor(img)
         if min(tensor.shape[1], tensor.shape[2]) >= MIN_IMAGE_DIM:
             all_images.append(_to_gray_u8(tensor))
         else:
@@ -529,7 +576,7 @@ def _load_imagenet_sketch(num_samples):
         if len(all_images) >= num_samples:
             break
     if skipped:
-        print(f"  Skipped {skipped} images smaller than {MIN_IMAGE_DIM}px")
+        print(f"  Skipped {skipped} records (too small or no image)")
     print(f"Total ImageNet-Sketch images loaded: {len(all_images):,}")
     return all_images
 
