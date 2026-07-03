@@ -37,6 +37,7 @@ from config import (
     GRID_H, GRID_W, UNMASK_STEPS, TEMPERATURE,
     MASK_RATIO_MIN, MASK_RATIO_MAX,
     COND_DROPOUT, GLYPH_LABEL_SMOOTH, EMA_DECAY, USE_BF16, TEXT_ENCODER,
+    CFG_SCALE,
 )
 from model.ascii_bert import ASCIIBert
 from model.inference import generate
@@ -289,25 +290,43 @@ def validate(model, loader, device, soft_target=None):
     return avg_loss, accuracy
 
 
-def print_sample(model, device, save_path=None):
-    """Generate and print a sample from a fully masked grid (rank 0 only).
+def print_sample(model, device, save_path=None, probe=None):
+    """Generate and print per-epoch samples (rank 0 only).
 
-    With save_path, the sample is also written to disk — one file per
-    epoch under checkpoints/samples/, which the Streamlit app renders as a
-    training-progress gallery.
+    Always generates unconditionally; with probe=(prompt_text, cond_emb)
+    it also generates a prompted sample with guidance. The unconditional
+    mode only sees COND_DROPOUT of the training signal on captioned data
+    (and sparse grids collapse it toward all-blank early on), so the
+    prompted sample is the meaningful progress signal for conditioned
+    stages.
+
+    With save_path, the samples are also written to disk — one file per
+    epoch under checkpoints/samples/, which the Streamlit app renders as
+    a training-progress gallery.
     """
     if RANK != 0:
         return
     _, final = generate(unwrap(model), GRID_H, GRID_W,
                         num_steps=UNMASK_STEPS, temperature=TEMPERATURE,
                         device=device)
-    print("--- Generated Sample ---")
-    print(grid_to_string(final))
-    print()
+    sections = [("unconditional", final)]
+    if probe is not None:
+        text, emb = probe
+        _, prompted = generate(unwrap(model), GRID_H, GRID_W,
+                               num_steps=UNMASK_STEPS,
+                               temperature=TEMPERATURE, device=device,
+                               cond_emb=emb, guidance_scale=CFG_SCALE)
+        sections.append((f'prompt: "{text}" (guidance {CFG_SCALE})',
+                         prompted))
+    for title, grid in sections:
+        print(f"--- Generated Sample ({title}) ---")
+        print(grid_to_string(grid))
+        print()
     if save_path is not None:
         os.makedirs(os.path.dirname(save_path), exist_ok=True)
         with open(save_path, "w") as f:
-            f.write(grid_to_string(final))
+            f.write("\n\n".join(f"=== {title} ===\n{grid_to_string(grid)}"
+                                for title, grid in sections))
 
 
 def save_checkpoint(model, optimizer, epoch, stage, path, ema=None):
@@ -422,11 +441,15 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
             f"Stage ETA: {eta_stage/60:.1f}min | "
             f"LR: {lr_now:.2e}")
 
-        # Print a generated sample each epoch, and archive it so the app
-        # can show how samples evolve over the curriculum
+        # Print generated samples each epoch, and archive them so the app
+        # can show how samples evolve over the curriculum. For captioned
+        # stages, probe with the stage's first caption so the prompted
+        # mode (the one 90% of training optimizes) is visible too.
         sample_path = os.path.join(ckpt_dir, "samples",
                                    f"{stage_name}_epoch{epoch+1:03d}.txt")
-        print_sample(model, device, save_path=sample_path)
+        probe = ((captions[0], caption_embs[0])
+                 if caption_embs is not None else None)
+        print_sample(model, device, save_path=sample_path, probe=probe)
 
         if ema is not None:
             ema.restore(unwrap(model))
