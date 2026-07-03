@@ -72,6 +72,22 @@ def main():
     num_steps = st.sidebar.slider("Unmasking steps", 1, 20, UNMASK_STEPS)
     grid_option = st.sidebar.selectbox("Grid size", ["48×80", "24×40", "64×128"])
 
+    st.sidebar.subheader("Sampling (advanced)")
+    schedule = st.sidebar.selectbox(
+        "Unmask schedule", ["cosine", "linear"],
+        help="cosine (MaskGIT): few careful commits early, more late. "
+             "linear: even per step.")
+    gumbel_scale = st.sidebar.slider(
+        "Exploration (Gumbel)", 0.0, 2.0, 1.0, 0.1,
+        help="Annealed noise on the commit order. 0 = greedy.")
+    revision_steps = st.sidebar.slider(
+        "Refinement passes", 0, 5, 2,
+        help="Re-mask the least-confident cells and refill — cheap "
+             "self-correction the one-pass loop can't do.")
+
+    gen_kwargs = dict(schedule=schedule, gumbel_scale=gumbel_scale,
+                      revision_steps=revision_steps)
+
     if grid_option == "24×40":
         gh, gw = 24, 40
     elif grid_option == "64×128":
@@ -88,7 +104,7 @@ def main():
                 steps, final = generate(model, gh, gw,
                                         num_steps=num_steps,
                                         temperature=temperature,
-                                        device=device)
+                                        device=device, **gen_kwargs)
                 elapsed = time.time() - t0
 
             st.session_state["last_grid"] = final
@@ -111,7 +127,7 @@ def main():
                     _, upscaled = upscale_grid(model, final, factor=2,
                                                num_steps=num_steps,
                                                temperature=temperature,
-                                               device=device)
+                                               device=device, **gen_kwargs)
                 st.session_state["upscaled_grid"] = upscaled
                 st.session_state["upscale_elapsed"] = time.time() - t0
 
@@ -149,7 +165,7 @@ def main():
                                         num_steps=num_steps,
                                         temperature=temperature,
                                         initial_grid=partial,
-                                        device=device)
+                                        device=device, **gen_kwargs)
                 elapsed = time.time() - t0
 
             st.code(grid_to_string(final), language=None)
