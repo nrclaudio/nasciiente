@@ -1,7 +1,8 @@
 """Generate ASCII shading data from image datasets.
 
-Supports multiple image sources: ImageNet (HuggingFace streaming), Imagenette,
-Caltech-256, Caltech-101, and STL-10 (legacy). Use --source to select.
+Supports multiple image sources: ImageNet-Sketch (default), ImageNet,
+Imagenette, Caltech-256, Caltech-101, and STL-10 (legacy). Use --source
+to select.
 
 Uses 6D shape vector matching (Alex Harri, 2025): each cell is divided into
 6 sub-regions (3 columns x 2 rows of sampling circles). Characters are matched
@@ -28,7 +29,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-from config import GRID_H, GRID_W, SHADING_NUM_SAMPLES
+from config import GRID_H, GRID_W, SHADING_NUM_SAMPLES, NULL_CLASS
 from data.charset import char_to_idx, grid_to_string
 
 # Sub-cell resolution for shape matching
@@ -57,6 +58,11 @@ CLAHE_CLIP = 3.0
 
 # Minimum image dimension — skip images smaller than this
 MIN_IMAGE_DIM = 64
+
+# Ink below this (before contrast enhancement) renders as whitespace.
+# Kills the "backtick halo" that adaptive gamma + CLAHE otherwise amplify
+# out of near-flat backgrounds.
+WHITESPACE_FLOOR = 0.06
 
 
 def _find_mono_font(size=32):
@@ -209,11 +215,25 @@ def _clahe(img_np):
 
     result = ((1 - fy) * (1 - fx) * v00 + (1 - fy) * fx * v01 +
               fy * (1 - fx) * v10 + fy * fx * v11)
-    return result.astype(np.float32)
+    # Bins below a tile's first non-zero CDF entry map slightly negative
+    # when a neighboring tile's mapping is interpolated in — clip them.
+    return np.clip(result, 0.0, 1.0).astype(np.float32)
+
+
+def _border_ink_mean(ink):
+    """Mean ink along the image border (~5% of the short side wide)."""
+    h, w = ink.shape
+    b = max(1, int(0.05 * min(h, w)))
+    border = torch.cat([
+        ink[:b].flatten(), ink[-b:].flatten(),
+        ink[:, :b].flatten(), ink[:, -b:].flatten(),
+    ])
+    return border.mean().item()
 
 
 def image_to_ascii_grid(img_tensor, shape_vectors, masks, char_indices,
-                        mask_sums, sv_sq_sum):
+                        mask_sums, sv_sq_sum, letterbox=True,
+                        auto_polarity=True, whitespace_floor=WHITESPACE_FLOOR):
     """Convert a [3, H, W] image tensor to [GRID_H, GRID_W] char indices.
 
     Pipeline: grayscale -> invert -> upscale -> adaptive gamma -> CLAHE ->
@@ -227,19 +247,50 @@ def image_to_ascii_grid(img_tensor, shape_vectors, masks, char_indices,
         char_indices: [NUM_CHARS] vocab indices
         mask_sums: [NUM_REGIONS] precomputed sum of each mask
         sv_sq_sum: [1, NUM_CHARS] precomputed squared norms of shape vectors
+        letterbox: preserve aspect ratio, padding with whitespace
+        auto_polarity: flip ink so the (border-estimated) background is sparse
+        whitespace_floor: ink below this renders as space (0 disables)
+
+    Also accepts the compact loader format: [H, W] (or [1, H, W]) uint8
+    grayscale, as produced by _to_gray_u8.
     """
     # Grayscale -> invert -> [0, 1]
-    gray = (0.2989 * img_tensor[0] + 0.5870 * img_tensor[1]
-            + 0.1140 * img_tensor[2])
-    inverted = 1.0 - gray
+    if img_tensor.dtype == torch.uint8:
+        gray = img_tensor.squeeze(0) if img_tensor.ndim == 3 else img_tensor
+        gray = gray.float() / 255.0
+    else:
+        gray = (0.2989 * img_tensor[0] + 0.5870 * img_tensor[1]
+                + 0.1140 * img_tensor[2])
+    ink = 1.0 - gray
+
+    # Flip polarity when the background (border) would render dense —
+    # dark photos otherwise become walls of 'N'/'M'.
+    if auto_polarity and _border_ink_mean(ink) > 0.5:
+        ink = 1.0 - ink
 
     # Upscale to sub-cell resolution
-    inv_4d = inverted.unsqueeze(0).unsqueeze(0)
+    inv_4d = ink.unsqueeze(0).unsqueeze(0)
     target_h, target_w = GRID_H * CELL_H, GRID_W * CELL_W
-    upscaled = F.interpolate(
-        inv_4d, size=(target_h, target_w),
-        mode="bilinear", align_corners=False
-    ).squeeze().numpy()
+    if letterbox:
+        h, w = ink.shape
+        scale = min(target_h / h, target_w / w)
+        nh = max(1, min(target_h, round(h * scale)))
+        nw = max(1, min(target_w, round(w * scale)))
+        resized = F.interpolate(inv_4d, size=(nh, nw),
+                                mode="bilinear", align_corners=False)
+        canvas = torch.zeros(1, 1, target_h, target_w)
+        top, left = (target_h - nh) // 2, (target_w - nw) // 2
+        canvas[:, :, top:top + nh, left:left + nw] = resized
+        upscaled = canvas.squeeze().numpy()
+    else:
+        upscaled = F.interpolate(
+            inv_4d, size=(target_h, target_w),
+            mode="bilinear", align_corners=False
+        ).squeeze().numpy()
+
+    # Remember pre-enhancement ink: pixels that start below the whitespace
+    # floor must stay blank no matter what the contrast chain does to them.
+    raw_ink = upscaled.copy()
 
     # --- Adaptive gamma ---
     upscaled = _adaptive_gamma(upscaled)
@@ -261,6 +312,10 @@ def image_to_ascii_grid(img_tensor, shape_vectors, masks, char_indices,
     if edge_max > 0:
         edge_map = edge_map / edge_max
     upscaled = torch.clamp(up_t + EDGE_BLEND * edge_map, 0, 1).numpy()
+
+    # --- Whitespace floor ---
+    if whitespace_floor > 0:
+        upscaled[raw_ink < whitespace_floor] = 0.0
 
     # Reshape into cells: [GRID_H, GRID_W, CELL_H, CELL_W]
     cells = (upscaled.reshape(GRID_H, CELL_H, GRID_W, CELL_W)
@@ -321,6 +376,29 @@ def _pil_to_tensor(pil_img):
     return T.ToTensor()(pil_img)
 
 
+def _to_gray_u8(img_tensor):
+    """Compress a [3, H, W] float image for in-RAM storage.
+
+    Grayscale uint8, downscaled to fit the conversion canvas. Holding
+    tens of thousands of full-size RGB float32 images needs hundreds of
+    GB of RAM; this is ~40x smaller with zero pipeline quality loss —
+    the converter grayscales and letterboxes into the same canvas anyway.
+
+    Returns [H', W'] uint8 with max dims (GRID_H*CELL_H, GRID_W*CELL_W).
+    """
+    gray = (0.2989 * img_tensor[0] + 0.5870 * img_tensor[1]
+            + 0.1140 * img_tensor[2])
+    h, w = gray.shape
+    target_h, target_w = GRID_H * CELL_H, GRID_W * CELL_W
+    scale = min(target_h / h, target_w / w)
+    if scale < 1.0:  # only ever downscale; upscaling happens at convert time
+        nh = max(1, round(h * scale))
+        nw = max(1, round(w * scale))
+        gray = F.interpolate(gray[None, None], size=(nh, nw),
+                             mode="area").squeeze(0).squeeze(0)
+    return (gray.clamp(0, 1) * 255).to(torch.uint8)
+
+
 def _load_stl10(data_dir):
     """Load STL-10 images (legacy). Returns list of [3, H, W] tensors."""
     print("\nLoading STL-10...")
@@ -330,7 +408,7 @@ def _load_stl10(data_dir):
         ds = torchvision.datasets.STL10(
             root=data_dir, split=split, download=True, transform=transform)
         for img, _ in ds:
-            all_images.append(img)
+            all_images.append(_to_gray_u8(img))
         print(f"  {split}: {len(ds):,} images ({all_images[-1].shape})")
     print(f"Total STL-10 images: {len(all_images):,}")
     return all_images
@@ -346,7 +424,7 @@ def _load_imagenette(data_dir):
         for img, _ in ds:
             tensor = _pil_to_tensor(img)
             if min(tensor.shape[1], tensor.shape[2]) >= MIN_IMAGE_DIM:
-                all_images.append(tensor)
+                all_images.append(_to_gray_u8(tensor))
         print(f"  {split}: {len(ds):,} images")
     print(f"Total Imagenette images: {len(all_images):,}")
     return all_images
@@ -362,7 +440,7 @@ def _load_caltech101(data_dir):
         img, _ = ds[i]
         tensor = _pil_to_tensor(img)
         if min(tensor.shape[1], tensor.shape[2]) >= MIN_IMAGE_DIM:
-            all_images.append(tensor)
+            all_images.append(_to_gray_u8(tensor))
         else:
             skipped += 1
     if skipped:
@@ -381,7 +459,7 @@ def _load_caltech256(data_dir):
         img, _ = ds[i]
         tensor = _pil_to_tensor(img)
         if min(tensor.shape[1], tensor.shape[2]) >= MIN_IMAGE_DIM:
-            all_images.append(tensor)
+            all_images.append(_to_gray_u8(tensor))
         else:
             skipped += 1
     if skipped:
@@ -398,15 +476,17 @@ def _load_imagenet(data_dir, num_samples):
     """
     from datasets import load_dataset
     print(f"\nStreaming ImageNet from HuggingFace (fetching up to {num_samples:,})...")
-    ds = load_dataset("ILSVRC/imagenet-1k", split="train", streaming=True,
-                      trust_remote_code=True)
+    ds = load_dataset("ILSVRC/imagenet-1k", split="train", streaming=True)
     all_images = []
+    all_labels = []
     skipped = 0
     for item in ds:
         img = item["image"]
         tensor = _pil_to_tensor(img)
         if min(tensor.shape[1], tensor.shape[2]) >= MIN_IMAGE_DIM:
-            all_images.append(tensor)
+            all_images.append(_to_gray_u8(tensor))
+            lbl = _record_label(item)
+            all_labels.append(NULL_CLASS if lbl is None else lbl)
         else:
             skipped += 1
         if len(all_images) >= num_samples:
@@ -414,10 +494,135 @@ def _load_imagenet(data_dir, num_samples):
     if skipped:
         print(f"  Skipped {skipped} images smaller than {MIN_IMAGE_DIM}px")
     print(f"Total ImageNet images loaded: {len(all_images):,}")
-    return all_images
+    return all_images, all_labels
+
+
+def _record_image(item):
+    """Pull the PIL image out of a dataset record, whatever its column
+    name — parquet mirrors use 'image', webdataset mirrors 'jpg'/'webp'."""
+    from PIL.Image import Image as PILImage
+    for value in item.values():
+        if isinstance(value, PILImage):
+            return value
+    return None
+
+
+def _record_label(item):
+    """Pull an integer class label (0..999) from a dataset record, or None."""
+    for k in ("label", "cls", "fine_label", "class", "labels"):
+        v = item.get(k) if hasattr(item, "get") else None
+        if isinstance(v, int):
+            return v
+    return None
+
+
+def _load_imagenet_sketch(num_samples):
+    """Load ImageNet-Sketch via HuggingFace streaming. Returns list of tensors.
+
+    ~50k black-on-white sketch renditions of the 1000 ImageNet classes.
+    Line drawings convert to far cleaner ASCII than photos, and their
+    distribution matches the stage-1 geometry data much better.
+
+    The original repos are script-based, which datasets>=4 refuses to
+    load — try the Hub's auto-converted parquet branch first, then a
+    WebDataset mirror.
+    """
+    from datasets import load_dataset
+
+    print(f"\nStreaming ImageNet-Sketch from HuggingFace "
+          f"(fetching up to {num_samples:,})...")
+
+    attempts = [
+        ("songweig/imagenet_sketch @refs/convert/parquet",
+         lambda: load_dataset("songweig/imagenet_sketch",
+                              revision="refs/convert/parquet",
+                              split="train", streaming=True)),
+        ("imagenet_sketch @refs/convert/parquet",
+         lambda: load_dataset("imagenet_sketch",
+                              revision="refs/convert/parquet",
+                              split="train", streaming=True)),
+        ("songweig/imagenet_sketch parquet files (explicit glob)",
+         lambda: load_dataset(
+             "parquet", split="train", streaming=True,
+             data_files="hf://datasets/songweig/imagenet_sketch"
+                        "@refs/convert/parquet/default/*/*.parquet")),
+        ("clip-benchmark/wds_imagenet_sketch (webdataset, test split)",
+         lambda: load_dataset("clip-benchmark/wds_imagenet_sketch",
+                              split="test", streaming=True)),
+        ("clip-benchmark/wds_imagenet_sketch (webdataset, train split)",
+         lambda: load_dataset("clip-benchmark/wds_imagenet_sketch",
+                              split="train", streaming=True)),
+    ]
+
+    ds = None
+    last_err = None
+    for label, make in attempts:
+        try:
+            candidate = make()
+            # Probe one real record: many loading failures only surface
+            # on iteration, and a dud here must not cost a full pass
+            if _record_image(next(iter(candidate))) is None:
+                raise ValueError("no image column in first record")
+            ds = candidate
+            print(f"  Using: {label}")
+            break
+        except Exception as e:
+            print(f"  ({label}: {type(e).__name__} — trying next mirror)")
+            last_err = e
+    if ds is None:
+        raise RuntimeError(
+            f"Could not load ImageNet-Sketch from any mirror: {last_err}")
+
+    all_images = []
+    all_labels = []
+    skipped = 0
+    for item in ds:  # streaming datasets restart cleanly after the probe
+        img = _record_image(item)
+        if img is None:
+            skipped += 1
+            continue
+        tensor = _pil_to_tensor(img)
+        if min(tensor.shape[1], tensor.shape[2]) >= MIN_IMAGE_DIM:
+            all_images.append(_to_gray_u8(tensor))
+            lbl = _record_label(item)
+            all_labels.append(NULL_CLASS if lbl is None else lbl)
+        else:
+            skipped += 1
+        if len(all_images) >= num_samples:
+            break
+    if skipped:
+        print(f"  Skipped {skipped} records (too small or no image)")
+    n_labeled = sum(1 for l in all_labels if l != NULL_CLASS)
+    print(f"Total ImageNet-Sketch images loaded: {len(all_images):,} "
+          f"({n_labeled:,} with class labels)")
+    return all_images, all_labels
+
+
+def _apply_segmentation(img_tensor):
+    """Remove the background with rembg, compositing the subject on white.
+
+    Optional dependency: pip install rembg onnxruntime
+    """
+    try:
+        from rembg import remove
+    except ImportError as e:
+        raise ImportError(
+            "Background segmentation requires rembg: "
+            "pip install rembg onnxruntime") from e
+
+    if img_tensor.dtype == torch.uint8:  # compact grayscale loader format
+        arr = np.stack([img_tensor.numpy()] * 3, axis=-1)
+    else:
+        arr = (img_tensor.permute(1, 2, 0).numpy() * 255).astype(np.uint8)
+    out = remove(Image.fromarray(arr))  # RGBA
+    rgba = np.asarray(out.convert("RGBA")).astype(np.float32) / 255.0
+    alpha = rgba[..., 3:4]
+    rgb = rgba[..., :3] * alpha + (1.0 - alpha)  # composite on white
+    return _to_gray_u8(torch.from_numpy(rgb).permute(2, 0, 1))
 
 
 SOURCES = {
+    "imagenet_sketch": "ImageNet-Sketch (HF streaming, ~50k line drawings)",
     "imagenet": "ImageNet (HuggingFace streaming, ~469x387 variable)",
     "imagenette": "Imagenette 320px (10 classes, ~13k images)",
     "caltech101": "Caltech-101 (101 classes, ~9k images)",
@@ -427,17 +632,24 @@ SOURCES = {
 
 
 def load_images(source, data_dir, num_samples):
-    """Load images from the specified source. Returns list of [3,H,W] tensors."""
-    if source == "stl10":
-        return _load_stl10(os.path.join(data_dir, "stl10"))
-    elif source == "imagenette":
-        return _load_imagenette(data_dir)
-    elif source == "caltech101":
-        return _load_caltech101(data_dir)
-    elif source == "caltech256":
-        return _load_caltech256(data_dir)
+    """Load images from a source. Returns (images, labels).
+
+    labels is a list of ImageNet class ids (0..999) aligned with images for
+    the ImageNet-derived sources, or None for sources whose label space
+    doesn't map to the 1000 classes (they train unconditionally).
+    """
+    if source == "imagenet_sketch":
+        return _load_imagenet_sketch(num_samples)
     elif source == "imagenet":
         return _load_imagenet(data_dir, num_samples)
+    elif source == "stl10":
+        return _load_stl10(os.path.join(data_dir, "stl10")), None
+    elif source == "imagenette":
+        return _load_imagenette(data_dir), None
+    elif source == "caltech101":
+        return _load_caltech101(data_dir), None
+    elif source == "caltech256":
+        return _load_caltech256(data_dir), None
     else:
         raise ValueError(f"Unknown source: {source}. Choose from: {list(SOURCES)}")
 
@@ -451,17 +663,28 @@ def main():
         ),
     )
     parser.add_argument(
-        "--source", default="imagenet", choices=list(SOURCES),
-        help="Image dataset source (default: imagenet)",
+        "--source", default="imagenet_sketch", choices=list(SOURCES),
+        help="Image dataset source (default: imagenet_sketch)",
     )
     parser.add_argument(
         "--num-samples", type=int, default=SHADING_NUM_SAMPLES,
         help=f"Number of shading samples to generate (default: {SHADING_NUM_SAMPLES:,})",
     )
+    parser.add_argument(
+        "--segment", action="store_true",
+        help="Remove image backgrounds with rembg before conversion "
+             "(requires: pip install rembg onnxruntime)",
+    )
     args = parser.parse_args()
+    generate_dataset(args.source, args.num_samples, segment=args.segment)
 
+
+def generate_dataset(source, num_samples, segment=False, out_path=None):
+    """Generate the shading dataset and save it. Returns the [N, H, W] tensor."""
     t_start = time.time()
     data_dir = os.path.dirname(__file__)
+    if out_path is None:
+        out_path = os.path.join(data_dir, "shading_data.pt")
 
     # Build circle masks and character shape vectors
     print("Building 6D shape vectors...")
@@ -473,54 +696,67 @@ def main():
     sv_sq_sum = (shape_vectors ** 2).sum(axis=1, keepdims=True).T  # [1, NUM_CHARS]
 
     print(f"\nGrid: {GRID_H}x{GRID_W}, Cell: {CELL_H}x{CELL_W}")
-    print(f"Source: {args.source} — {SOURCES[args.source]}")
+    print(f"Source: {source} — {SOURCES[source]}")
     print(f"Method: 6D shape vector matching ({NUM_CHARS} chars)")
     print(f"Pre-processing: adaptive_gamma (kernel={AG_KERNEL}), "
           f"CLAHE (clip={CLAHE_CLIP}, tiles={CLAHE_TILE_H}x{CLAHE_TILE_W})")
     print(f"Post-processing: edge_blend={EDGE_BLEND}, edge_boost={EDGE_BOOST}, "
-          f"contrast_power={CONTRAST_POWER}")
+          f"contrast_power={CONTRAST_POWER}, "
+          f"whitespace_floor={WHITESPACE_FLOOR}")
+    if segment:
+        print("Segmentation: rembg background removal enabled")
 
     # Load images from selected source
-    all_images = load_images(args.source, data_dir, args.num_samples)
+    all_images, all_labels = load_images(source, data_dir, num_samples)
     total_available = len(all_images)
 
     if total_available == 0:
         print("ERROR: No images loaded. Check dataset source and auth.")
         sys.exit(1)
 
-    if total_available < args.num_samples:
+    if total_available < num_samples:
         print(f"\n  Note: {total_available:,} images available, will cycle with "
-              f"augmentation to reach {args.num_samples:,} samples")
+              f"augmentation to reach {num_samples:,} samples")
 
     # Generate all samples
-    print(f"\nGenerating {args.num_samples:,} shading samples...")
+    print(f"\nGenerating {num_samples:,} shading samples...")
     samples = []
+    sample_labels = [] if all_labels is not None else None
     t_gen = time.time()
     log_interval = 5_000
+    segmented = set()
 
-    for i in range(args.num_samples):
-        img = all_images[i % total_available]
+    for i in range(num_samples):
+        idx = i % total_available
+        img = all_images[idx]
+        # Segment lazily and cache, so cycled images pay the cost once
+        if segment and idx not in segmented:
+            all_images[idx] = img = _apply_segmentation(img)
+            segmented.add(idx)
         # Augment cycled images with random horizontal flip
         if i >= total_available and torch.rand(1).item() > 0.5:
             img = img.flip(-1)
 
         samples.append(image_to_ascii_grid(
             img, shape_vectors, masks, char_indices, mask_sums, sv_sq_sum))
+        if sample_labels is not None:
+            sample_labels.append(all_labels[idx])
 
         if (i + 1) % log_interval == 0:
             elapsed = time.time() - t_gen
             rate = (i + 1) / elapsed
-            eta = (args.num_samples - i - 1) / rate
-            print(f"  {i + 1:>7,}/{args.num_samples:,}  "
-                  f"({100 * (i + 1) / args.num_samples:5.1f}%)  "
+            eta = (num_samples - i - 1) / rate
+            print(f"  {i + 1:>7,}/{num_samples:,}  "
+                  f"({100 * (i + 1) / num_samples:5.1f}%)  "
                   f"{rate:.0f} img/s  ETA {eta:.0f}s")
 
     gen_elapsed = time.time() - t_gen
     print(f"\nGeneration done in {gen_elapsed:.1f}s "
-          f"({args.num_samples / gen_elapsed:.0f} img/s)")
+          f"({num_samples / gen_elapsed:.0f} img/s)")
 
     print("Stacking tensors...")
-    data = torch.stack(samples)
+    # uint8: the 98-char vocab fits in a byte — 8x smaller file
+    data = torch.stack(samples).to(torch.uint8)
     print(f"Tensor shape: {data.shape}, dtype: {data.dtype}")
 
     # Character usage stats
@@ -533,10 +769,19 @@ def main():
         pct = 100 * counts[idx].item() / data.numel()
         print(f"  '{ch}' (idx {unique[idx].item():>2}): {pct:.1f}%")
 
-    save_path = os.path.join(os.path.dirname(__file__), "shading_data.pt")
-    print(f"\nSaving to {save_path}...")
-    torch.save(data, save_path)
-    size_mb = os.path.getsize(save_path) / 1e6
+    # Save as {data, labels} when class labels are available (enables
+    # class-conditioned training + CFG); a bare tensor otherwise.
+    if sample_labels is not None and any(l != NULL_CLASS for l in sample_labels):
+        labels = torch.tensor(sample_labels, dtype=torch.long)
+        payload = {"data": data, "labels": labels}
+        n_labeled = int((labels != NULL_CLASS).sum())
+        print(f"\nSaving to {out_path} with labels "
+              f"({n_labeled:,}/{len(labels):,} class-labeled)...")
+    else:
+        payload = data
+        print(f"\nSaving to {out_path} (unconditional, no labels)...")
+    torch.save(payload, out_path)
+    size_mb = os.path.getsize(out_path) / 1e6
     print(f"Saved ({size_mb:.1f} MB)")
 
     total_elapsed = time.time() - t_start
@@ -548,6 +793,8 @@ def main():
         print(f"--- Sample {i} ---")
         print(grid_to_string(samples[i]))
         print()
+
+    return data
 
 
 if __name__ == "__main__":

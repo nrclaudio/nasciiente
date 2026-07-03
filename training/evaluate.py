@@ -30,14 +30,16 @@ def evaluate_val(model, data, device, num_batches=50):
     total_masked = 0
     count = 0
 
-    for masked_grid, target_grid, mask in loader:
+    for masked_grid, target_grid, mask, ratio, label in loader:
         if count >= num_batches:
             break
         masked_grid = masked_grid.to(device)
         target_grid = target_grid.to(device)
         mask = mask.to(device)
+        ratio = ratio.to(device)
+        label = label.to(device)
 
-        logits = model(masked_grid)
+        logits = model(masked_grid, class_label=label, mask_ratio=ratio)
         loss = model.compute_loss(logits, target_grid, mask)
         total_loss += loss.item()
 
@@ -107,10 +109,10 @@ def main():
 
     model = ASCIIBert().to(device)
     ckpt = torch.load(args.checkpoint, map_location=device, weights_only=True)
-    if "model_state_dict" in ckpt:
-        model.load_state_dict(ckpt["model_state_dict"])
-    else:
-        model.load_state_dict(ckpt)
+    state = ckpt["model_state_dict"] if "model_state_dict" in ckpt else ckpt
+    # strict=False: pre-conditioning checkpoints load (zero-init conditioning
+    # is a no-op)
+    model.load_state_dict(state, strict=False)
     print("Model loaded.")
 
     # Generate from scratch
@@ -119,6 +121,8 @@ def main():
     # Validation + inpainting if data provided
     if args.data:
         data = torch.load(args.data, weights_only=True)
+        if isinstance(data, dict):  # new label-carrying format
+            data = data["data"]
         val_loss, val_acc = evaluate_val(model, data, device)
         print(f"Validation Loss: {val_loss:.4f}, Accuracy: {val_acc:.3f}")
         inpainting_demo(model, data, device, n=3)
