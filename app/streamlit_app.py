@@ -1,11 +1,15 @@
 """
 Streamlit web interface for ASCII Art Transformer.
 
-Modes:
-  - Generate from scratch (fully masked → iterative unmasking)
-  - Inpainting (user provides partial ASCII, model fills the rest)
+A terminal-styled studio around the MaskGIT-style model:
+  - Generate: prompt-conditioned generation with preset chips, seeds,
+    variations, and a step-by-step "materialize" animation
+  - Inpaint: fill in the blanks around your own characters, iteratively
+  - Guidance lab: one seed swept across guidance scales, side by side
+  - Training progress: scrub the per-epoch samples written by train.py
 """
 
+import glob
 import os
 import sys
 import time
@@ -16,34 +20,65 @@ import torch
 # Ensure project root is importable
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-import glob
-
 from config import (GRID_H, GRID_W, UNMASK_STEPS, TEMPERATURE, VOCAB_SIZE,
                     MAX_ROWS, MAX_COLS, CFG_SCALE)
 from model.ascii_bert import ASCIIBert
 from model.inference import generate, upscale_grid
 from data.charset import grid_to_string, MASK_TOKEN
-from app.utils import text_to_partial_grid, count_fixed_positions
+from app.utils import (text_to_partial_grid, count_fixed_positions,
+                       grid_to_png_bytes, PNG_SCHEMES)
+
+PRESET_PROMPTS = ["a cat", "a sailboat", "a rocket", "a castle", "a skull",
+                  "a diamond", "a rectangle and a cross", "a tree"]
+
+TERMINAL_CSS = """
+<style>
+.stApp { background: #060c06; }
+h1, h2, h3, .stMarkdown, label, .stCaption, p, span, div { color: #9fdc9f; }
+[data-testid="stSidebar"] { background: #0a120a; border-right: 1px solid #1d3a1d; }
+[data-testid="stHeader"] { background: rgba(0,0,0,0); }
+.stCode, pre, code {
+    background: #041004 !important;
+    color: #4af626 !important;
+    border: 1px solid #1d3a1d !important;
+    border-radius: 6px;
+    font-size: 11px !important;
+    line-height: 1.05 !important;
+    text-shadow: 0 0 6px rgba(74, 246, 38, 0.35);
+}
+.stButton > button, .stDownloadButton > button {
+    background: #0a1a0a; color: #4af626; border: 1px solid #2d5a2d;
+}
+.stButton > button:hover, .stDownloadButton > button:hover {
+    border-color: #4af626; color: #baffb0;
+}
+.stTabs [data-baseweb="tab"] { color: #9fdc9f; }
+.stTabs [aria-selected="true"] { color: #4af626; }
+</style>
+"""
+
+BANNER = r"""
+   _____  _________ .___.___    _____         __
+  /  _  \/   _____/ |   |   |  /  _  \_______/  |_
+ /  /_\  \_____  \  |   |   | /  /_\  \_  __ \   __\
+/    |    /        \ |   |   |/    |    \  | \/|  |
+\____|__ /_______  / |___|___|\____|__  /__|   |__|
+        \/       \/                   \/  transformer
+"""
 
 
 @st.cache_resource
-def load_model(checkpoint_path):
-    """Load the trained model on CPU (for deployment).
+def load_model(checkpoint_path, device_str):
+    """Load the trained model.
 
-    strict=False so checkpoints from before the current text-conditioning
-    scheme (unconditional run #1, class-conditioned Pack B) still load —
-    their conditioning params are absent or ignored, and the zero-init
-    module is a no-op. Only conditioning.* keys may mismatch, though: any
-    other mismatch means the checkpoint doesn't match this architecture,
-    and loading it would silently leave random weights, so fail loudly
-    instead.
+    Tolerates checkpoints from before the current text-conditioning scheme
+    (their conditioning modules stay zero-init no-ops); any other mismatch
+    fails loudly instead of silently generating noise.
 
-    Returns (model, device, conditioned) — conditioned is False for
-    checkpoints without trained text conditioning so the UI can hide the
-    prompt controls.
+    Returns (model, device, conditioned).
     """
     from model.ascii_bert import load_compatible_state
-    device = torch.device("cpu")
+    device = torch.device(device_str)
     model = ASCIIBert().to(device)
     ckpt = torch.load(checkpoint_path, map_location=device, weights_only=True)
     state = ckpt["model_state_dict"] if (isinstance(ckpt, dict)
@@ -66,19 +101,233 @@ def embed_prompt(text):
     return tokens[0], mask[0]
 
 
+def pick_device():
+    """cuda when it exists AND has headroom (don't fight a training run
+    for VRAM); cpu otherwise."""
+    if torch.cuda.is_available():
+        try:
+            free, _ = torch.cuda.mem_get_info()
+            if free > 3e9:
+                return "cuda"
+        except Exception:
+            pass
+    return "cpu"
+
+
 # Curriculum order for the training-progress browser; stages not listed
 # sort after these, alphabetically
 STAGE_ORDER = {"geometry": 0, "shading": 1, "human": 2}
 
 
-def show_training_progress():
-    """Browse the per-epoch samples written by training.
+def find_checkpoint():
+    """Find the best available checkpoint."""
+    ckpt_dir = os.path.join(os.path.dirname(__file__), "..", "checkpoints")
+    final = os.path.join(ckpt_dir, "final_model.pt")
+    if os.path.exists(final):
+        return final
+    # Fall back to latest checkpoint
+    if os.path.isdir(ckpt_dir):
+        pts = sorted([f for f in os.listdir(ckpt_dir) if f.endswith(".pt")])
+        if pts:
+            return os.path.join(ckpt_dir, pts[-1])
+    return None
 
-    train.py saves one generated sample per epoch to
-    checkpoints/samples/{stage}_epoch{NNN}.txt; scrubbing through them
-    shows the model learning over the curriculum.
-    """
-    st.subheader("Training progress")
+
+def animate_steps(placeholder, steps, delay=0.05):
+    """Replay the unmasking steps — the grid materializing out of noise."""
+    for step_grid in steps:
+        placeholder.code(grid_to_string(step_grid), language=None)
+        time.sleep(delay)
+
+
+def show_grid_actions(grid, key, model, device, gen_kwargs, num_steps,
+                      temperature, steps=None):
+    """Download / animate / upscale controls under a rendered grid."""
+    cols = st.columns(4)
+    txt = grid_to_string(grid)
+    cols[0].download_button("txt", txt, file_name=f"ascii_{key}.txt",
+                            key=f"dl_txt_{key}")
+    cols[1].download_button("png", grid_to_png_bytes(grid),
+                            file_name=f"ascii_{key}.png",
+                            key=f"dl_png_{key}")
+    if steps and len(steps) > 1:
+        if cols[2].button("replay", key=f"anim_{key}",
+                          help="Watch it materialize step by step"):
+            ph = st.empty()
+            animate_steps(ph, steps)
+    h, w = grid.shape
+    if h * 2 <= MAX_ROWS and w * 2 <= MAX_COLS:
+        if cols[3].button(f"upscale ×2", key=f"up_{key}",
+                          help="Anchor on a 2x canvas and inpaint the gaps"):
+            with st.spinner("Upscaling..."):
+                _, up = upscale_grid(model, grid, factor=2,
+                                     num_steps=num_steps,
+                                     temperature=temperature,
+                                     device=device, **gen_kwargs)
+            st.code(grid_to_string(up), language=None)
+            st.download_button("upscaled txt", grid_to_string(up),
+                               file_name=f"ascii_{key}_2x.txt",
+                               key=f"dl_up_{key}")
+    else:
+        cols[3].caption(f"×2 needs ≤{MAX_ROWS}×{MAX_COLS}")
+
+
+def tab_generate(model, device, conditioned, gh, gw, num_steps, temperature,
+                 base_kwargs, seed, randomize):
+    # --- Prompt row -----------------------------------------------------
+    if "prompt" not in st.session_state:
+        st.session_state["prompt"] = ""
+    if conditioned:
+        chip_cols = st.columns(len(PRESET_PROMPTS))
+        for col, preset in zip(chip_cols, PRESET_PROMPTS):
+            if col.button(preset, key=f"chip_{preset}"):
+                st.session_state["prompt"] = preset
+        prompt = st.text_input("Prompt (empty = unconditional)",
+                               key="prompt",
+                               placeholder="describe what to draw ...")
+        guidance = st.slider(
+            "Guidance", 1.0, 6.0, 2.0, 0.25,
+            help="How hard to steer toward the prompt. ~1.5–2 = one clean "
+                 "subject; higher = more ink AND more duplicates. 1 = off.")
+    else:
+        st.caption("This checkpoint has no trained text conditioning — "
+                   "generation is unconditional.")
+        prompt, guidance = "", 1.0
+
+    n_var = st.radio("Variations", [1, 2, 4], horizontal=True)
+
+    gen_kwargs = dict(base_kwargs)
+    if prompt.strip() and conditioned:
+        try:
+            toks, msk = embed_prompt(prompt.strip())
+            gen_kwargs.update(cond_tokens=toks, cond_mask=msk,
+                              guidance_scale=guidance)
+        except ImportError as e:
+            st.warning(str(e))
+
+    if st.button("▷ GENERATE", type="primary", use_container_width=True):
+        results = []
+        with st.spinner(f"Dreaming in ASCII on {device.type} ..."):
+            for i in range(n_var):
+                s = int(time.time_ns() % 2**31) if randomize else seed + i
+                torch.manual_seed(s)
+                t0 = time.time()
+                steps, final = generate(model, gh, gw, num_steps=num_steps,
+                                        temperature=temperature,
+                                        device=device, **gen_kwargs)
+                results.append((s, steps, final, time.time() - t0))
+        st.session_state["gen_results"] = results
+        st.session_state["gen_prompt"] = prompt
+        history = st.session_state.setdefault("history", [])
+        for s, _, final, _ in results:
+            history.append((prompt or "(unconditional)", s, final))
+        del history[:-12]  # keep the last 12
+
+    results = st.session_state.get("gen_results", [])
+    if results:
+        cols = st.columns(min(len(results), 2))
+        for i, (s, steps, final, took) in enumerate(results):
+            with cols[i % len(cols)]:
+                st.code(grid_to_string(final), language=None)
+                st.caption(f"seed {s} · {took:.1f}s · {num_steps} steps")
+                show_grid_actions(final, f"g{i}", model, device, gen_kwargs,
+                                  num_steps, temperature, steps=steps)
+
+    history = st.session_state.get("history", [])
+    if history:
+        with st.expander(f"Session gallery ({len(history)})"):
+            for j, (p, s, g) in enumerate(reversed(history)):
+                st.caption(f'"{p}" · seed {s}')
+                st.code(grid_to_string(g), language=None)
+
+
+def tab_inpaint(model, device, conditioned, gh, gw, num_steps, temperature,
+                base_kwargs):
+    st.write("Type some characters; the model fills everything you leave "
+             "blank. Send a result back to the editor to riff on it.")
+    default_text = st.session_state.pop("inpaint_seed_text", "")
+    user_text = st.text_area("Partial ASCII art", value=default_text,
+                             height=260,
+                             placeholder="Draw a few strokes ...\n"
+                                         "Blank areas get imagined.")
+    gen_kwargs = dict(base_kwargs)
+    if conditioned:
+        hint = st.text_input("Optional prompt to steer the fill",
+                             key="inpaint_prompt")
+        if hint.strip():
+            try:
+                toks, msk = embed_prompt(hint.strip())
+                gen_kwargs.update(cond_tokens=toks, cond_mask=msk,
+                                  guidance_scale=2.0)
+            except ImportError as e:
+                st.warning(str(e))
+
+    if st.button("▷ FILL IN", type="primary") and user_text.strip():
+        partial = text_to_partial_grid(user_text, gh, gw)
+        st.caption(f"Fixed positions: {count_fixed_positions(partial)}"
+                   f"/{gh * gw}")
+        with st.spinner("Inpainting..."):
+            t0 = time.time()
+            steps, final = generate(model, gh, gw, num_steps=num_steps,
+                                    temperature=temperature,
+                                    initial_grid=partial, device=device,
+                                    **gen_kwargs)
+        st.session_state["inpaint_result"] = (steps, final, time.time() - t0)
+
+    if "inpaint_result" in st.session_state:
+        steps, final, took = st.session_state["inpaint_result"]
+        st.code(grid_to_string(final), language=None)
+        st.caption(f"Completed in {took:.1f}s")
+        show_grid_actions(final, "inp", model, device, gen_kwargs,
+                          num_steps, temperature, steps=steps)
+        if st.button("↩ send result to editor"):
+            st.session_state["inpaint_seed_text"] = grid_to_string(final)
+            st.rerun()
+
+
+def tab_guidance_lab(model, device, conditioned, gh, gw, num_steps,
+                     temperature, base_kwargs, seed):
+    st.write("Same seed, same prompt, different guidance — watch the dial "
+             "act like an object-count knob.")
+    if not conditioned:
+        st.info("Needs a text-conditioned checkpoint.")
+        return
+    prompt = st.text_input("Prompt", value="a cat", key="lab_prompt")
+    scales = st.multiselect("Guidance scales", [1.0, 1.5, 2.0, 3.0, 5.0],
+                            default=[1.5, 2.0, 3.0])
+    if st.button("▷ RUN SWEEP", type="primary") and prompt.strip() and scales:
+        try:
+            toks, msk = embed_prompt(prompt.strip())
+        except ImportError as e:
+            st.warning(str(e))
+            return
+        sweeps = []
+        with st.spinner("Sweeping..."):
+            for g in sorted(scales):
+                torch.manual_seed(seed)
+                _, final = generate(model, gh, gw, num_steps=num_steps,
+                                    temperature=temperature, device=device,
+                                    cond_tokens=toks, cond_mask=msk,
+                                    guidance_scale=g,
+                                    **{k: v for k, v in base_kwargs.items()
+                                       if k not in ("cond_tokens",
+                                                    "cond_mask",
+                                                    "guidance_scale")})
+                sweeps.append((g, final))
+        st.session_state["lab_results"] = (prompt, sweeps)
+
+    if "lab_results" in st.session_state:
+        prompt, sweeps = st.session_state["lab_results"]
+        st.caption(f'"{prompt}"')
+        cols = st.columns(len(sweeps))
+        for col, (g, final) in zip(cols, sweeps):
+            ink = int((final > 2).sum())
+            col.markdown(f"**guidance {g:g}** · ink {ink}")
+            col.code(grid_to_string(final), language=None)
+
+
+def tab_training_progress():
+    """Browse the per-epoch samples written by training."""
     sample_dir = os.path.join(os.path.dirname(__file__), "..",
                               "checkpoints", "samples")
     files = sorted(glob.glob(os.path.join(sample_dir, "*_epoch*.txt")))
@@ -111,91 +360,65 @@ def show_training_progress():
     with open(path) as f:
         st.code(f.read(), language=None)
 
-
-def find_checkpoint():
-    """Find the best available checkpoint."""
-    ckpt_dir = os.path.join(os.path.dirname(__file__), "..", "checkpoints")
-    final = os.path.join(ckpt_dir, "final_model.pt")
-    if os.path.exists(final):
-        return final
-    # Fall back to latest checkpoint
-    if os.path.isdir(ckpt_dir):
-        pts = sorted([f for f in os.listdir(ckpt_dir) if f.endswith(".pt")])
-        if pts:
-            return os.path.join(ckpt_dir, pts[-1])
-    return None
+    if len(epochs) > 1 and st.button("▷ play all epochs"):
+        ph = st.empty()
+        cap = st.empty()
+        for e, p in epochs:
+            with open(p) as f:
+                ph.code(f.read(), language=None)
+            cap.caption(f"epoch {e}/{epochs[-1][0]}")
+            time.sleep(0.6)
 
 
 def main():
-    st.set_page_config(page_title="ASCII Art Transformer", layout="wide")
-    st.title("ASCII Art Transformer")
-    st.caption("MaskGIT-style iterative generation of ASCII art")
+    st.set_page_config(page_title="ASCII Art Transformer", layout="wide",
+                       page_icon="▚")
+    st.markdown(TERMINAL_CSS, unsafe_allow_html=True)
+    st.code(BANNER, language=None)
+    st.caption("MaskGIT-style iterative generation · prompt-conditioned "
+               "via CLIP cross-attention")
 
-    # Load model
     ckpt_path = find_checkpoint()
     if ckpt_path is None:
-        st.error("No model checkpoint found in `checkpoints/`. Train the model first.")
+        st.error("No model checkpoint found in `checkpoints/`. "
+                 "Train the model first.")
+        # Training progress can still be useful mid-run
+        tab_training_progress()
         return
 
+    # --- Sidebar --------------------------------------------------------
+    st.sidebar.code(" MODEL ", language=None)
+    device_choice = st.sidebar.radio(
+        "Device", ["auto", "cpu", "cuda"], horizontal=True,
+        help="auto picks cuda only when >3GB VRAM is free, so it won't "
+             "fight a training run.")
+    device_str = pick_device() if device_choice == "auto" else device_choice
     try:
-        model, device, conditioned = load_model(ckpt_path)
+        model, device, conditioned = load_model(ckpt_path, device_str)
     except ValueError as e:
         st.error(str(e))
         return
-    st.sidebar.success(f"Model loaded from `{os.path.basename(ckpt_path)}`")
+    n_params = sum(p.numel() for p in model.parameters())
+    st.sidebar.success(f"`{os.path.basename(ckpt_path)}`\n\n"
+                       f"{n_params / 1e6:.1f}M params · {device.type} · "
+                       f"{'text-conditioned' if conditioned else 'unconditional'}")
 
-    # Controls
-    st.sidebar.header("Controls")
-    mode = st.sidebar.radio("Mode", ["Generate from scratch", "Inpainting",
-                                     "Training progress"])
-
-    if mode == "Training progress":
-        show_training_progress()
-        return
-    temperature = st.sidebar.slider("Temperature", 0.1, 2.0, TEMPERATURE, 0.1)
+    st.sidebar.code(" SAMPLING ", language=None)
     num_steps = st.sidebar.slider("Unmasking steps", 1, 20, UNMASK_STEPS)
-    grid_option = st.sidebar.selectbox("Grid size", ["48×80", "24×40", "64×128"])
-
-    st.sidebar.subheader("Sampling (advanced)")
+    temperature = st.sidebar.slider("Temperature", 0.1, 2.0, TEMPERATURE, 0.1)
+    grid_option = st.sidebar.selectbox("Grid size",
+                                       ["48×80", "24×40", "64×128"])
     schedule = st.sidebar.selectbox(
         "Unmask schedule", ["cosine", "linear"],
-        help="cosine (MaskGIT): few careful commits early, more late. "
-             "linear: even per step.")
+        help="cosine (MaskGIT): few careful commits early, more late.")
     gumbel_scale = st.sidebar.slider(
         "Exploration (Gumbel)", 0.0, 2.0, 1.0, 0.1,
         help="Annealed noise on the commit order. 0 = greedy.")
     revision_steps = st.sidebar.slider(
         "Refinement passes", 0, 5, 2,
-        help="Re-mask the least-confident cells and refill — cheap "
-             "self-correction the one-pass loop can't do.")
-
-    gen_kwargs = dict(schedule=schedule, gumbel_scale=gumbel_scale,
-                      revision_steps=revision_steps)
-
-    # Prompt conditioning — only offered when the loaded checkpoint actually
-    # has trained conditioning params; on older checkpoints the controls
-    # would silently do nothing.
-    st.sidebar.subheader("Prompt")
-    if not conditioned:
-        st.sidebar.caption("Unavailable — this checkpoint was trained "
-                           "without text conditioning.")
-    else:
-        prompt = st.sidebar.text_input(
-            "Text prompt (optional)",
-            placeholder="a cat, a rocket, a diamond ...",
-            help="Embedded with a frozen CLIP text encoder; empty = "
-                 "unconditional generation.")
-        if prompt.strip():
-            guidance = st.sidebar.slider(
-                "Guidance (CFG)", 1.0, 8.0, CFG_SCALE, 0.5,
-                help="Higher = stronger adherence to the prompt, "
-                     "less diversity.")
-            try:
-                toks, msk = embed_prompt(prompt.strip())
-                gen_kwargs.update(cond_tokens=toks, cond_mask=msk,
-                                  guidance_scale=guidance)
-            except ImportError as e:
-                st.sidebar.warning(str(e))
+        help="Re-mask the least-confident cells and refill.")
+    seed = st.sidebar.number_input("Seed", 0, 2**31 - 1, 0)
+    randomize = st.sidebar.toggle("New seed every run", value=True)
 
     if grid_option == "24×40":
         gh, gw = 24, 40
@@ -204,90 +427,22 @@ def main():
     else:
         gh, gw = GRID_H, GRID_W
 
-    show_animation = st.sidebar.checkbox("Show step-by-step", value=False)
+    base_kwargs = dict(schedule=schedule, gumbel_scale=gumbel_scale,
+                       revision_steps=revision_steps)
 
-    if mode == "Generate from scratch":
-        if st.button("Generate"):
-            with st.spinner("Generating..."):
-                t0 = time.time()
-                steps, final = generate(model, gh, gw,
-                                        num_steps=num_steps,
-                                        temperature=temperature,
-                                        device=device, **gen_kwargs)
-                elapsed = time.time() - t0
-
-            st.session_state["last_grid"] = final
-            st.session_state["last_elapsed"] = elapsed
-            st.session_state["last_steps"] = steps
-            st.session_state.pop("upscaled_grid", None)
-
-        if "last_grid" in st.session_state:
-            final = st.session_state["last_grid"]
-            st.code(grid_to_string(final), language=None)
-            st.caption(f"Generated in {st.session_state['last_elapsed']:.1f}s "
-                       f"({num_steps} steps)")
-
-            h, w = final.shape
-            if h * 2 > MAX_ROWS or w * 2 > MAX_COLS:
-                st.caption(f"Upscale ×2 unavailable: {h*2}×{w*2} exceeds the "
-                           f"model's RoPE limit ({MAX_ROWS}×{MAX_COLS}).")
-            elif st.button(f"Upscale ×2 → {h*2}×{w*2}",
-                           help="Anchor each character on a 2× canvas and "
-                                "inpaint the gaps (MaskGIT super-resolution)"):
-                with st.spinner("Upscaling..."):
-                    t0 = time.time()
-                    _, upscaled = upscale_grid(model, final, factor=2,
-                                               num_steps=num_steps,
-                                               temperature=temperature,
-                                               device=device, **gen_kwargs)
-                st.session_state["upscaled_grid"] = upscaled
-                st.session_state["upscale_elapsed"] = time.time() - t0
-
-            if "upscaled_grid" in st.session_state:
-                st.subheader("Upscaled ×2")
-                st.code(grid_to_string(st.session_state["upscaled_grid"]),
-                        language=None)
-                st.caption(f"Upscaled in "
-                           f"{st.session_state['upscale_elapsed']:.1f}s")
-
-            steps = st.session_state["last_steps"]
-            if show_animation and len(steps) > 1:
-                st.subheader("Step-by-step")
-                for i, step_grid in enumerate(steps):
-                    with st.expander(f"Step {i}"):
-                        st.code(grid_to_string(step_grid), language=None)
-
-    else:  # Inpainting
-        st.write("Enter partial ASCII art below. Empty areas will be filled by the model.")
-        user_text = st.text_area(
-            "Partial ASCII art",
-            height=300,
-            placeholder="Type some ASCII characters...\n"
-                        "Leave areas blank for the model to fill in.",
-        )
-
-        if st.button("Fill in") and user_text.strip():
-            partial = text_to_partial_grid(user_text, gh, gw)
-            fixed = count_fixed_positions(partial)
-            st.caption(f"Fixed positions: {fixed}/{gh*gw}")
-
-            with st.spinner("Inpainting..."):
-                t0 = time.time()
-                steps, final = generate(model, gh, gw,
-                                        num_steps=num_steps,
-                                        temperature=temperature,
-                                        initial_grid=partial,
-                                        device=device, **gen_kwargs)
-                elapsed = time.time() - t0
-
-            st.code(grid_to_string(final), language=None)
-            st.caption(f"Completed in {elapsed:.1f}s")
-
-            if show_animation and len(steps) > 1:
-                st.subheader("Step-by-step")
-                for i, step_grid in enumerate(steps):
-                    with st.expander(f"Step {i}"):
-                        st.code(grid_to_string(step_grid), language=None)
+    tabs = st.tabs(["⚡ Generate", "▦ Inpaint", "◫ Guidance lab",
+                    "▁▃▅ Training progress"])
+    with tabs[0]:
+        tab_generate(model, device, conditioned, gh, gw, num_steps,
+                     temperature, base_kwargs, int(seed), randomize)
+    with tabs[1]:
+        tab_inpaint(model, device, conditioned, gh, gw, num_steps,
+                    temperature, base_kwargs)
+    with tabs[2]:
+        tab_guidance_lab(model, device, conditioned, gh, gw, num_steps,
+                         temperature, base_kwargs, int(seed))
+    with tabs[3]:
+        tab_training_progress()
 
 
 if __name__ == "__main__":
