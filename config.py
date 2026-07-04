@@ -63,7 +63,10 @@ MASK_RATIO_MIN = 0.15
 MASK_RATIO_MAX = 1.0
 
 # Stage 1: Geometry
-GEOMETRY_EPOCHS = 15
+# Geometry converges fast: observed train loss flat (0.034) from epoch 2
+# on 200k samples. 6 epochs with a full cosine anneal beats paying for 15
+# — the conditioning pathway keeps training through stages 2 and 3 anyway.
+GEOMETRY_EPOCHS = 6
 GEOMETRY_NUM_SAMPLES = 200_000
 GEOMETRY_TRAIN_SAMPLES = 200_000
 
