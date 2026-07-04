@@ -27,3 +27,12 @@ def test_unknown_chars_become_mask():
     assert grid[0, 0].item() == char_to_idx("a")
     assert grid[0, 1].item() == MASK_TOKEN
     assert grid[0, 2].item() == char_to_idx("b")
+
+
+def test_grid_to_png_bytes():
+    from app.utils import grid_to_png_bytes, PNG_SCHEMES
+    grid = torch.randint(2, 97, (8, 12))
+    for scheme in PNG_SCHEMES:
+        png = grid_to_png_bytes(grid, scheme=scheme)
+        assert png[:8] == b"\x89PNG\r\n\x1a\n"  # PNG magic
+        assert len(png) > 500

@@ -83,7 +83,10 @@ torchrun --standalone --nproc_per_node=4 training/train.py
 python training/evaluate.py --checkpoint checkpoints/final_model.pt \
                             --data data/geometry_data.pt
 
-# Web UI (needs a trained checkpoint in checkpoints/)
+# Web UI — terminal-styled studio: prompted generation with preset chips,
+# seeds/variations, a step-by-step materialize animation, inpainting with
+# iterative riffing, a guidance-sweep lab, per-epoch training progress,
+# txt/PNG export. Uses the GPU when >3GB VRAM is free, else CPU.
 streamlit run app/streamlit_app.py
 ```
 
@@ -135,8 +138,8 @@ training/
   train.py                two-stage training loop
   evaluate.py             val metrics, sample generation, inpainting demo
 app/
-  streamlit_app.py        web UI (prompted generation + inpainting +
-                          training-progress gallery)
+  streamlit_app.py        web UI (generate / inpaint / guidance lab /
+                          training progress, terminal aesthetic)
 tests/                    CPU-fast pytest suite
 ```
 
