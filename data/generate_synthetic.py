@@ -33,8 +33,11 @@ from data.prompt_bank import build_prompts
 
 # Style wrapper for the t2i model. The BARE caption is what gets stored —
 # the model should learn "a dragon", not the rendering instructions.
-STYLE = ("minimal black ink line drawing of {}, clean thick outlines, "
-         "white background, no shading, centered")
+# Icon phrasing won the preview tuning: bold isolated silhouettes survive
+# 48x80 conversion; "line drawing" styles produced shading and thin
+# strokes that converted to soup.
+STYLE = ("simple flat black and white icon of {}, bold shapes, centered, "
+         "isolated on plain white background")
 NEGATIVE = "photo, color, shading, background clutter, text, watermark"
 
 # Reject conversions that came out empty or muddy
@@ -293,8 +296,9 @@ def main():
                         help="any diffusers text2img id "
                              f"(default: {DEFAULT_MODEL})")
     parser.add_argument("--batch", type=int, default=8)
-    parser.add_argument("--steps", type=int, default=2,
-                        help="denoising steps (sd-turbo: 1-4)")
+    parser.add_argument("--steps", type=int, default=4,
+                        help="denoising steps (sd-turbo: 1-4; 4 won the "
+                             "preview tuning)")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--merge", default=None,
                         help="existing dataset file to append (e.g. "
@@ -307,16 +311,18 @@ def main():
     parser.add_argument("--preview-dir", default=None,
                         help="dump every image/grid pair here (use with a "
                              "small --num-samples to tune style/filters)")
-    parser.add_argument("--clip-filter", type=float, default=0.0,
+    parser.add_argument("--clip-filter", type=float, default=0.2,
                         help="reject images whose CLIP similarity to their "
-                             "own caption is below this (try 0.2; 0=off)")
+                             "own caption is below this (0 = off)")
     parser.add_argument("--trim", type=float, default=0.04,
                         help="fraction cropped off every image edge before "
                              "conversion (kills t2i border bands)")
-    parser.add_argument("--binarize", action="store_true",
+    parser.add_argument("--binarize", action=argparse.BooleanOptionalAction,
+                        default=True,
                         help="threshold images to pure black/white before "
                              "conversion — strips the shading t2i models "
-                             "sneak in despite line-drawing prompts")
+                             "sneak in despite line-drawing prompts "
+                             "(--no-binarize to disable)")
     args = parser.parse_args()
     generate_dataset(args.num_samples, args.out, model_id=args.model,
                      batch_size=args.batch, steps=args.steps,

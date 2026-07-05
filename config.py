@@ -76,7 +76,10 @@ GEOMETRY_NUM_SAMPLES = 200_000
 GEOMETRY_TRAIN_SAMPLES = 200_000
 
 # Stage 2: Shading
-SHADING_EPOCHS = 15
+# 6 epochs: the shading stage now trains on ~310k samples (synthetic +
+# sketch + geometry replay) — 6 epochs of that sees more unique content
+# than 15 epochs of the old 100k set, at 40% of the cost
+SHADING_EPOCHS = 6
 SHADING_NUM_SAMPLES = 100_000
 SHADING_TRAIN_SAMPLES = 100_000
 SHADING_LR = 1e-4
