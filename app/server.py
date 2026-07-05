@@ -29,12 +29,13 @@ from model.ascii_bert import ASCIIBert, load_compatible_state
 from model.inference import generate
 
 try:
-    from fastapi import FastAPI, HTTPException
+    from fastapi import FastAPI, File, HTTPException, UploadFile
+    from fastapi.responses import Response
     from fastapi.staticfiles import StaticFiles
     from pydantic import BaseModel, Field
 except ImportError as e:  # pragma: no cover
     raise ImportError("The showcase site needs: pip install fastapi "
-                      "uvicorn") from e
+                      "uvicorn python-multipart") from e
 
 _STATE = {}
 
@@ -159,6 +160,80 @@ def api_generate(req: GenRequest):
     return {"results": results,
             "conditioned": conditioned,
             "prompt_used": bool(prompt and conditioned)}
+
+
+def _converter_tables():
+    if "tables" not in _STATE:
+        import contextlib
+        import io as _io
+        from data.generate_synthetic import _build_tables
+        with contextlib.redirect_stdout(_io.StringIO()):
+            _STATE["tables"] = _build_tables()
+    return _STATE["tables"]
+
+
+MAX_FRAMES = 60
+
+
+@app.post("/api/convert")
+async def api_convert(file: UploadFile = File(...), binarize: bool = True):
+    """Convert an uploaded image (or animated GIF, frame by frame) to
+    ASCII via the 6D shape-matching converter used for training data."""
+    import io as _io
+
+    from PIL import Image, ImageSequence
+
+    from data.generate_synthetic import images_to_grids
+
+    raw = await file.read()
+    if len(raw) > 20e6:
+        raise HTTPException(413, "File too large (20MB max)")
+    try:
+        img = Image.open(_io.BytesIO(raw))
+    except Exception:
+        raise HTTPException(422, "Not a readable image")
+
+    frames = [f.convert("RGB") for f in
+              ImageSequence.Iterator(img)][:MAX_FRAMES]
+    converted = images_to_grids(frames, _converter_tables(),
+                                min_ink=0.0, max_ink=1.0,
+                                binarize=binarize)
+    texts = [grid_to_string(g.long()) for g, _ in converted]
+    fps = 10
+    if getattr(img, "is_animated", False):
+        duration = img.info.get("duration") or 100
+        fps = max(1, min(20, round(1000 / max(duration, 1))))
+    return {"frames": texts, "fps": fps,
+            "animated": len(texts) > 1}
+
+
+class GifRequest(BaseModel):
+    frames: list[str] = Field(..., min_length=1, max_length=120)
+    fps: float = Field(8, ge=1, le=30)
+
+
+@app.post("/api/gif")
+def api_gif(req: GifRequest):
+    """Render ASCII frames to an animated GIF via the glyph atlas —
+    makes any animation on the site (materialize replays, converted
+    GIFs) exportable and shareable."""
+    import io as _io
+
+    from PIL import Image
+
+    from data.charset import string_to_grid
+    from model.render import render_grid
+
+    images = []
+    for text in req.frames:
+        grid = string_to_grid(text)
+        arr = ((1.0 - render_grid(grid).clamp(0, 1)) * 255).byte().numpy()
+        images.append(Image.fromarray(arr).convert("P"))
+    buf = _io.BytesIO()
+    images[0].save(buf, format="GIF", save_all=True,
+                   append_images=images[1:],
+                   duration=int(1000 / req.fps), loop=0)
+    return Response(buf.getvalue(), media_type="image/gif")
 
 
 @app.get("/api/progress")
