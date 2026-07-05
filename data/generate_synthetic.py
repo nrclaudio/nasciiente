@@ -70,8 +70,22 @@ def _load_pipeline(model_id, device):
     return pipe
 
 
+def _binarize(gray_u8, ink_percentile=25.0):
+    """Force a shaded image into two-tone line art.
+
+    Pixels darker than the given luminance percentile become pure black
+    (ink), everything else pure white — the shading a t2i model sneaks in
+    despite line-drawing prompts is exactly what converts to glyph soup,
+    and this strips it while keeping the strokes.
+    """
+    t = gray_u8.float()
+    thresh = torch.quantile(t.flatten(), ink_percentile / 100.0)
+    return torch.where(t <= thresh, torch.zeros_like(t),
+                       torch.full_like(t, 255.0)).to(torch.uint8)
+
+
 def images_to_grids(pil_images, tables, min_ink=MIN_INK_FRAC,
-                    max_ink=MAX_INK_FRAC):
+                    max_ink=MAX_INK_FRAC, binarize=False):
     """Convert PIL images -> list of (grid_or_None, ink_fraction).
 
     grid is a [GRID_H, GRID_W] uint8 tensor, or None when the conversion
@@ -85,6 +99,8 @@ def images_to_grids(pil_images, tables, min_ink=MIN_INK_FRAC,
     total = GRID_H * GRID_W
     for img in pil_images:
         gray = _to_gray_u8(_pil_to_tensor(img))
+        if binarize:
+            gray = _binarize(gray)
         grid = image_to_ascii_grid(gray, shape_vectors, masks, char_indices,
                                    mask_sums, sv_sq_sum)
         ink_frac = float((grid > 2).sum()) / total
@@ -120,7 +136,7 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
                      batch_size=8, steps=2, seed=0, merge=None,
                      device=None, save_every=5_000, pipe=None,
                      min_ink=MIN_INK_FRAC, max_ink=MAX_INK_FRAC,
-                     style=STYLE, preview_dir=None):
+                     style=STYLE, preview_dir=None, binarize=False):
     """Generate `num_samples` captioned grids and save the payload.
 
     pipe: injectable for tests — any callable matching the diffusers
@@ -171,7 +187,8 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
                       num_inference_steps=steps, guidance_scale=0.0,
                       generator=generator)
         converted = images_to_grids(result.images, tables,
-                                    min_ink=min_ink, max_ink=max_ink)
+                                    min_ink=min_ink, max_ink=max_ink,
+                                    binarize=binarize)
         for caption, image, (grid, ink_frac) in zip(batch, result.images,
                                                     converted):
             processed += 1
@@ -253,12 +270,17 @@ def main():
     parser.add_argument("--preview-dir", default=None,
                         help="dump every image/grid pair here (use with a "
                              "small --num-samples to tune style/filters)")
+    parser.add_argument("--binarize", action="store_true",
+                        help="threshold images to pure black/white before "
+                             "conversion — strips the shading t2i models "
+                             "sneak in despite line-drawing prompts")
     args = parser.parse_args()
     generate_dataset(args.num_samples, args.out, model_id=args.model,
                      batch_size=args.batch, steps=args.steps,
                      seed=args.seed, merge=args.merge,
                      min_ink=args.min_ink, max_ink=args.max_ink,
-                     style=args.style, preview_dir=args.preview_dir)
+                     style=args.style, preview_dir=args.preview_dir,
+                     binarize=args.binarize)
 
 
 if __name__ == "__main__":
