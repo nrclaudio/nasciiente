@@ -30,6 +30,22 @@ def _load_scorer(device="cpu"):
 
 
 @torch.no_grad()
+def clip_image_scores(pil_images, captions, device="cpu"):
+    """Cosine similarity between each PIL image and ITS OWN caption.
+
+    The data engine's consistency filter: generations that don't depict
+    their prompt (subject misses, degenerate outputs) score low and get
+    dropped before they become wrong training labels.
+    """
+    model, processor, dev = _load_scorer(device)
+    inputs = processor(text=list(captions), images=list(pil_images),
+                       return_tensors="pt", padding=True,
+                       truncation=True).to(dev)
+    out = model(**inputs)
+    return (out.image_embeds * out.text_embeds).sum(-1).float().cpu()
+
+
+@torch.no_grad()
 def clip_scores(grids, prompt, device="cpu"):
     """Cosine similarity of each rendered grid to the prompt.
 

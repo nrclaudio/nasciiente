@@ -98,37 +98,56 @@ def _plural(word):
     return word + "s"
 
 
-def _full_pool():
-    """Every caption the bank can express, deduplicated, in a stable
-    order: singles with attributes, counted subjects, ordered pairs.
-    ~57k captions with the default subject lists."""
+def _singles_pool():
     pool = {}
     for x in SUBJECTS:
         for template in SINGLE_TEMPLATES:
             pool[template.format(a=_article(x), x=x)] = None
-        for count in COUNT_WORDS:
-            pool[f"{count} {_plural(x)}"] = None
-    for x in SUBJECTS:
-        for y in SUBJECTS:
-            if x != y:
-                pool[f"{_article(x)} and {_article(y)}"] = None
     return list(pool)
 
 
-def build_prompts(n, seed=0):
-    """Return n captions, deterministically for a given seed.
+def _counts_pool():
+    return [f"{count} {_plural(x)}" for x in SUBJECTS
+            for count in COUNT_WORDS]
 
-    The full pool is shuffled and cycled: for n up to the pool size
-    (~57k) captions are unique; beyond that they repeat — which is what
-    training wants anyway, since each repeat pairs the caption with a
-    DIFFERENT generated image (many images per caption, like ImageNet's
-    many images per class).
-    """
-    rng = random.Random(seed)
-    pool = _full_pool()
-    prompts = []
-    while len(prompts) < n:
+
+def _pairs_pool():
+    return [f"{_article(x)} and {_article(y)}"
+            for x in SUBJECTS for y in SUBJECTS if x != y]
+
+
+def _full_pool():
+    """Every caption the bank can express (used by tests/statistics)."""
+    return list(dict.fromkeys(_singles_pool() + _counts_pool()
+                              + _pairs_pool()))
+
+
+def _cycler(pool, rng):
+    """Yield the pool endlessly, reshuffled each pass."""
+    while True:
         chunk = pool[:]
         rng.shuffle(chunk)
-        prompts.extend(chunk)
-    return prompts[:n]
+        yield from chunk
+
+
+def build_prompts(n, seed=0, mix=(0.75, 0.15, 0.10)):
+    """Return n captions, deterministically for a given seed.
+
+    mix = (singles, counts, pairs) sampling fractions. Singles dominate
+    by design: few-step t2i models render one subject faithfully but tend
+    to FUSE two-subject prompts into chimeras, so pair captions are kept
+    as a small seasoning rather than the diet (composition is taught
+    cleanly by the geometry stage's exact captions anyway). Each category
+    cycles its own shuffled pool, so repeats pair the same caption with
+    different generated images.
+    """
+    rng = random.Random(seed)
+    cyclers = [_cycler(_singles_pool(), rng),
+               _cycler(_counts_pool(), rng),
+               _cycler(_pairs_pool(), rng)]
+    prompts = []
+    for _ in range(n):
+        roll = rng.random()
+        k = 0 if roll < mix[0] else (1 if roll < mix[0] + mix[1] else 2)
+        prompts.append(next(cyclers[k]))
+    return prompts

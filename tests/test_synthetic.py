@@ -15,14 +15,24 @@ def test_prompt_bank_unique_and_deterministic():
 
 
 def test_prompt_bank_survives_pool_exhaustion():
-    # Asking for more captions than the pool holds must terminate (this
-    # hung the 200k-sample engine run) and cycle with repeats instead
-    from data.prompt_bank import _full_pool
-    pool_size = len(_full_pool())
-    n = pool_size * 2 + 100
+    # Asking for more captions than any category pool holds must
+    # terminate (this hung the 200k engine run) and cycle with repeats
+    from data.prompt_bank import _singles_pool
+    n = len(_singles_pool()) * 3
     prompts = build_prompts(n, seed=1)
     assert len(prompts) == n
-    assert len(set(prompts)) == pool_size  # full coverage, then repeats
+
+
+def test_prompt_bank_mix_is_singles_heavy():
+    # Two-subject prompts fuse into chimeras on few-step t2i models, so
+    # pairs must be a small fraction — not the accidental 93% a naive
+    # combinatorial pool gives
+    prompts = build_prompts(10_000, seed=0)
+    pair_frac = sum(" and a" in p or " and an" in p for p in prompts) / 1e4
+    count_frac = sum(p.startswith(("two ", "three "))
+                     for p in prompts) / 1e4
+    assert 0.06 < pair_frac < 0.14
+    assert 0.10 < count_frac < 0.20
 
 
 def test_prompt_grammar_helpers():
@@ -122,3 +132,23 @@ def test_trim_removes_border_bands():
     assert int((grid[:, 4:10] > 2).sum()) == 0
     # The actual subject (rectangle) survived
     assert int((grid > 2).sum()) > 20
+
+
+def test_clip_filter_drops_off_prompt_images(tmp_path):
+    from data.generate_synthetic import generate_dataset
+
+    scored = []
+
+    def fake_scorer(images, captions):
+        # every second image "doesn't match" its caption
+        scores = torch.tensor([0.5 if i % 2 == 0 else 0.05
+                               for i in range(len(images))])
+        scored.append(len(images))
+        return scores
+
+    out = tmp_path / "synth.pt"
+    n = generate_dataset(num_samples=4, out_path=str(out), batch_size=4,
+                         seed=0, device="cpu", pipe=_FakePipe(),
+                         clip_filter=0.2, clip_scorer=fake_scorer)
+    assert n == 4
+    assert scored  # the filter actually ran
