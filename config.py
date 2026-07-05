@@ -90,6 +90,12 @@ HUMAN_LR = 5e-5
 # shading samples (0 disables)
 HUMAN_REPLAY_SAMPLES = 20_000
 
+# Likewise mix replayed geometry samples into the shading stage: keeps
+# geometry-prompt skills alive and — when resuming from a stage-1
+# checkpoint trained under an older objective — re-trains those samples
+# under the current loss (0 disables)
+SHADING_REPLAY_SAMPLES = 10_000
+
 # Inference
 UNMASK_STEPS = 10
 TEMPERATURE = 1.0
