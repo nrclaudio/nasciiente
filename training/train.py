@@ -37,7 +37,7 @@ from config import (
     GRID_H, GRID_W, UNMASK_STEPS, TEMPERATURE,
     MASK_RATIO_MIN, MASK_RATIO_MAX,
     COND_DROPOUT, GLYPH_LABEL_SMOOTH, EMA_DECAY, USE_BF16, TEXT_ENCODER,
-    CFG_SCALE, HUMAN_REPLAY_SAMPLES,
+    CFG_SCALE, HUMAN_REPLAY_SAMPLES, SHADING_REPLAY_SAMPLES,
 )
 from model.ascii_bert import ASCIIBert
 from model.inference import generate
@@ -613,13 +613,17 @@ def main():
                     max_samples=GEOMETRY_TRAIN_SAMPLES,
                     ema=ema, soft_target=soft_target)
 
-    # Stage 2: Shading
+    # Stage 2: Shading, with a slice of replayed geometry so stage-1
+    # skills stay alive (and get re-trained under the current objective
+    # when resuming from an older stage-1 checkpoint)
     shading_path = os.path.join(data_dir, "shading_data.pt")
     if "shading" in stages:
         train_stage(model, shading_path, SHADING_EPOCHS, SHADING_LR,
                     "shading", device, ckpt_dir,
                     max_samples=SHADING_TRAIN_SAMPLES,
-                    ema=ema, soft_target=soft_target)
+                    ema=ema, soft_target=soft_target,
+                    replay_path=geometry_path,
+                    replay_samples=SHADING_REPLAY_SAMPLES)
 
     # Stage 3 (optional): fine-tune on human-made ASCII art, with a slice
     # of replayed shading data so prompt conditioning doesn't erode
