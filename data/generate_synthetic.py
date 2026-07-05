@@ -70,9 +70,14 @@ def _load_pipeline(model_id, device):
     return pipe
 
 
-def images_to_grids(pil_images, tables):
-    """Convert PIL images -> list of [GRID_H, GRID_W] uint8 grids or None
-    (None = rejected by the ink filter)."""
+def images_to_grids(pil_images, tables, min_ink=MIN_INK_FRAC,
+                    max_ink=MAX_INK_FRAC):
+    """Convert PIL images -> list of (grid_or_None, ink_fraction).
+
+    grid is a [GRID_H, GRID_W] uint8 tensor, or None when the conversion
+    fell outside the [min_ink, max_ink] band (the ink fraction is still
+    reported so callers can diagnose WHY images are being rejected).
+    """
     from data.generate_shading import _pil_to_tensor, _to_gray_u8, \
         image_to_ascii_grid
     shape_vectors, masks, char_indices, mask_sums, sv_sq_sum = tables
@@ -82,11 +87,11 @@ def images_to_grids(pil_images, tables):
         gray = _to_gray_u8(_pil_to_tensor(img))
         grid = image_to_ascii_grid(gray, shape_vectors, masks, char_indices,
                                    mask_sums, sv_sq_sum)
-        ink = int((grid > 2).sum())
-        if MIN_INK_FRAC * total <= ink <= MAX_INK_FRAC * total:
-            out.append(grid.to(torch.uint8))
+        ink_frac = float((grid > 2).sum()) / total
+        if min_ink <= ink_frac <= max_ink:
+            out.append((grid.to(torch.uint8), ink_frac))
         else:
-            out.append(None)
+            out.append((None, ink_frac))
     return out
 
 
@@ -113,11 +118,17 @@ def _save(out_path, grids, caption_ids, captions, merge_payload=None):
 
 def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
                      batch_size=8, steps=2, seed=0, merge=None,
-                     device=None, save_every=5_000, pipe=None):
+                     device=None, save_every=5_000, pipe=None,
+                     min_ink=MIN_INK_FRAC, max_ink=MAX_INK_FRAC,
+                     style=STYLE, preview_dir=None):
     """Generate `num_samples` captioned grids and save the payload.
 
     pipe: injectable for tests — any callable matching the diffusers
     text2img interface (returns an object with .images).
+    preview_dir: also dump every processed sample there as an image/grid
+    pair named with its caption, ink fraction and kept/rejected verdict —
+    run with --num-samples 24 --preview-dir ... to eyeball what the
+    filter is doing before a long run.
     """
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -129,9 +140,11 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
 
     tables = _build_tables()
     # Over-provision prompts: some images fail the ink filter
-    prompts = build_prompts(int(num_samples * 1.5) + 64, seed=seed)
-    print(f"Prompt bank: {len(prompts):,} unique captions "
+    prompts = build_prompts(int(num_samples * 3) + 64, seed=seed)
+    print(f"Prompt bank: {len(prompts):,} captions "
           f"(e.g. {prompts[:3]})")
+    if preview_dir:
+        os.makedirs(preview_dir, exist_ok=True)
 
     merge_payload = None
     if merge:
@@ -144,7 +157,8 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
     generator = torch.Generator(device=device.type).manual_seed(seed)
     grids, caption_ids = [], []
     caption_index = {}
-    rejected = 0
+    too_blank = too_dense = 0
+    processed = 0
     cursor = 0
     t0 = time.time()
     next_report, next_save = 0, save_every
@@ -152,24 +166,42 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
     while len(grids) < num_samples and cursor < len(prompts):
         batch = prompts[cursor:cursor + batch_size]
         cursor += len(batch)
-        result = pipe(prompt=[STYLE.format(p) for p in batch],
+        result = pipe(prompt=[style.format(p) for p in batch],
                       negative_prompt=[NEGATIVE] * len(batch),
                       num_inference_steps=steps, guidance_scale=0.0,
                       generator=generator)
-        for caption, grid in zip(batch, images_to_grids(result.images,
-                                                        tables)):
+        converted = images_to_grids(result.images, tables,
+                                    min_ink=min_ink, max_ink=max_ink)
+        for caption, image, (grid, ink_frac) in zip(batch, result.images,
+                                                    converted):
+            processed += 1
+            if preview_dir:
+                verdict = "kept" if grid is not None else "rejected"
+                stem = (f"{processed:03d}_{verdict}_ink{ink_frac:.3f}_"
+                        + "".join(c if c.isalnum() else "_"
+                                  for c in caption)[:40])
+                image.save(os.path.join(preview_dir, stem + ".png"))
+                if grid is not None:
+                    with open(os.path.join(preview_dir, stem + ".txt"),
+                              "w") as f:
+                        f.write(grid_to_string(grid.long()))
             if grid is None:
-                rejected += 1
+                if ink_frac < min_ink:
+                    too_blank += 1
+                else:
+                    too_dense += 1
                 continue
             grids.append(grid)
             caption_ids.append(caption_index.setdefault(caption,
                                                         len(caption_index)))
 
         done = len(grids)
-        if done >= next_report:
+        if done >= next_report or processed <= batch_size:
             rate = done / (time.time() - t0)
             eta = (num_samples - done) / max(rate, 1e-9)
-            print(f"  {done:,}/{num_samples:,} kept ({rejected:,} rejected)"
+            print(f"  {done:,}/{num_samples:,} kept "
+                  f"(rejected: {too_blank:,} too blank, "
+                  f"{too_dense:,} too dense)"
                   f"  {rate:.1f} img/s  ETA {eta/3600:.1f}h", flush=True)
             # First feedback after one batch, then every 500
             next_report = done + (500 if done else 1)
@@ -213,10 +245,20 @@ def main():
     parser.add_argument("--merge", default=None,
                         help="existing dataset file to append (e.g. "
                              "data/shading_data.pt)")
+    parser.add_argument("--min-ink", type=float, default=MIN_INK_FRAC)
+    parser.add_argument("--max-ink", type=float, default=MAX_INK_FRAC)
+    parser.add_argument("--style", default=STYLE,
+                        help="t2i style wrapper; must contain {} for the "
+                             "caption")
+    parser.add_argument("--preview-dir", default=None,
+                        help="dump every image/grid pair here (use with a "
+                             "small --num-samples to tune style/filters)")
     args = parser.parse_args()
     generate_dataset(args.num_samples, args.out, model_id=args.model,
                      batch_size=args.batch, steps=args.steps,
-                     seed=args.seed, merge=args.merge)
+                     seed=args.seed, merge=args.merge,
+                     min_ink=args.min_ink, max_ink=args.max_ink,
+                     style=args.style, preview_dir=args.preview_dir)
 
 
 if __name__ == "__main__":
