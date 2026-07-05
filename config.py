@@ -39,6 +39,11 @@ COND_DROPOUT = 0.1
 # confusing '/' with '@'. 0 disables (plain cross-entropy).
 GLYPH_LABEL_SMOOTH = 0.1
 
+# Down-weight space cells in the loss. ~80% of target cells are space, so
+# plain CE makes "space" the low-risk answer everywhere — the exact prior
+# behind blank-collapse in free generation. 1.0 disables.
+SPACE_LOSS_WEIGHT = 0.4
+
 # EMA of weights for evaluation/final checkpoint (0 disables)
 EMA_DECAY = 0.999
 
@@ -80,6 +85,10 @@ SHADING_LR = 1e-4
 # data/human_data.pt exists; see data/prepare_human_ascii.py)
 HUMAN_EPOCHS = 10
 HUMAN_LR = 5e-5
+# Mix replayed shading samples into the human stage so fine-tuning on ~5k
+# pieces doesn't erode the prompt conditioning learned on 100k captioned
+# shading samples (0 disables)
+HUMAN_REPLAY_SAMPLES = 20_000
 
 # Inference
 UNMASK_STEPS = 10

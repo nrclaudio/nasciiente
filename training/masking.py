@@ -1,9 +1,21 @@
+import math
 import random
 
 import torch
 
 from data.charset import MASK_TOKEN
 from config import MASK_RATIO_MIN, MASK_RATIO_MAX
+
+
+def _sample_ratio(lo, hi):
+    """Mask ratio with density concentrated toward `hi` (Muse-style).
+
+    Generation's make-or-break early steps run at mask ratios near 1.0;
+    uniform sampling spends only a sliver of training there. sin(pi/2 * u)
+    puts most of the mass at high ratios (mean ~lo + 0.64*(hi-lo)) while
+    still covering the low end for inpainting/late-step contexts.
+    """
+    return lo + (hi - lo) * math.sin(0.5 * math.pi * random.random())
 
 
 def _apply(grid, mask):
@@ -21,7 +33,7 @@ def random_mask(grid, mask_ratio_min=MASK_RATIO_MIN, mask_ratio_max=MASK_RATIO_M
     Returns (masked_grid, target_grid, mask, ratio).
     """
     H, W = grid.shape
-    ratio = random.uniform(mask_ratio_min, mask_ratio_max)
+    ratio = _sample_ratio(mask_ratio_min, mask_ratio_max)
     num_to_mask = int(H * W * ratio)
     perm = torch.randperm(H * W)[:num_to_mask]
     mask = torch.zeros(H * W, dtype=torch.bool)
@@ -36,7 +48,7 @@ def block_mask(grid, mask_ratio_min=MASK_RATIO_MIN, mask_ratio_max=MASK_RATIO_MA
     rather than something the random-cell scheme only approximates.
     """
     H, W = grid.shape
-    ratio = random.uniform(mask_ratio_min, mask_ratio_max)
+    ratio = _sample_ratio(mask_ratio_min, mask_ratio_max)
     # Rectangle area ~= ratio * H * W, with a randomized aspect ratio
     area = ratio * H * W
     aspect = random.uniform(0.5, 2.0)

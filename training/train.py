@@ -37,7 +37,7 @@ from config import (
     GRID_H, GRID_W, UNMASK_STEPS, TEMPERATURE,
     MASK_RATIO_MIN, MASK_RATIO_MAX,
     COND_DROPOUT, GLYPH_LABEL_SMOOTH, EMA_DECAY, USE_BF16, TEXT_ENCODER,
-    CFG_SCALE,
+    CFG_SCALE, HUMAN_REPLAY_SAMPLES,
 )
 from model.ascii_bert import ASCIIBert
 from model.inference import generate
@@ -100,6 +100,36 @@ def _load_data_and_captions(path):
             return data, obj["caption_ids"], list(obj["captions"])
         return data, None, None
     return obj, None, None
+
+
+def _mix_replay(data, caption_ids, captions, replay_path, replay_samples):
+    """Append a fixed random slice of another dataset (with its captions).
+
+    Caption tables are concatenated and the replay slice's ids offset into
+    the combined table. The selection uses a fixed generator so every DDP
+    rank builds the identical mix.
+    """
+    r_data, r_ids, r_caps = _load_data_and_captions(replay_path)
+    take = min(replay_samples, len(r_data))
+    sel = torch.randperm(len(r_data),
+                         generator=torch.Generator().manual_seed(7))[:take]
+
+    captions = list(captions) if captions else []
+    if caption_ids is None:
+        caption_ids = torch.full((len(data),), -1, dtype=torch.long)
+    if r_ids is None:
+        r_sel_ids = torch.full((take,), -1, dtype=torch.long)
+        r_caps = []
+    else:
+        r_sel_ids = r_ids[sel].long().clone()
+        r_caps = list(r_caps) if r_caps else []
+        # Offset replay ids into the merged caption table
+        r_sel_ids[r_sel_ids >= 0] += len(captions)
+
+    data = torch.cat([data.to(torch.uint8), r_data[sel].to(torch.uint8)])
+    caption_ids = torch.cat([caption_ids.long(), r_sel_ids])
+    captions = captions + r_caps
+    return data, caption_ids, (captions if captions else None)
 
 
 # Filled in by setup_distributed(); defaults describe a single process.
@@ -354,7 +384,8 @@ def save_checkpoint(model, optimizer, epoch, stage, path, ema=None):
 
 
 def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
-                max_samples=None, ema=None, soft_target=None):
+                max_samples=None, ema=None, soft_target=None,
+                replay_path=None, replay_samples=0):
     base_lr, lr = lr, scale_lr(lr)
     log(f"\n{'='*60}")
     log(f"  Stage: {stage_name.upper()}")
@@ -370,6 +401,12 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
         data = data[:max_samples]
         if caption_ids is not None:
             caption_ids = caption_ids[:max_samples]
+    if replay_path and replay_samples > 0 and os.path.exists(replay_path):
+        n_before = len(data)
+        data, caption_ids, captions = _mix_replay(
+            data, caption_ids, captions, replay_path, replay_samples)
+        log(f"  Replay: +{len(data) - n_before:,} samples from "
+            f"{os.path.basename(replay_path)} (guards against forgetting)")
     caption_tokens = caption_masks = None
     if captions is not None:
         # Embed the unique-caption vocabulary once up front; the training
@@ -482,7 +519,27 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
     log(f"{'='*60}")
 
 
+def parse_args():
+    """CLI for partial runs: initialize from a checkpoint and/or run a
+    subset of stages, so training-recipe changes don't cost a full
+    curriculum rerun (e.g. --init-from checkpoints/geometry_best.pt
+    --stages shading,human). parse_known_args so main.py can call
+    train_main() in-process with its own argv."""
+    import argparse
+    # allow_abbrev=False: main.py calls train_main() in-process with its own
+    # --stage flag, which prefix-matching would otherwise swallow as --stages
+    parser = argparse.ArgumentParser(allow_abbrev=False)
+    parser.add_argument("--init-from", default=None,
+                        help="checkpoint to initialize model weights from")
+    parser.add_argument("--stages", default="geometry,shading,human",
+                        help="comma-separated stages to run")
+    args, _ = parser.parse_known_args()
+    return args
+
+
 def main():
+    args = parse_args()
+    stages = {s.strip() for s in args.stages.split(",") if s.strip()}
     rank, world_size, local_rank = setup_distributed()
     # Different seed per rank for masking/augmentation randomness; the
     # train/val split uses its own fixed generator so it stays identical
@@ -518,6 +575,16 @@ def main():
     log(f"\nModel: {total_params:,} params ({trainable:,} trainable)")
     log(f"Gradient checkpointing: {model.transformer.gradient_checkpointing}")
 
+    if args.init_from:
+        from model.ascii_bert import load_compatible_state
+        ckpt = torch.load(args.init_from, map_location=device,
+                          weights_only=True)
+        state = (ckpt["model_state_dict"]
+                 if isinstance(ckpt, dict) and "model_state_dict" in ckpt
+                 else ckpt)
+        load_compatible_state(model, state)
+        log(f"Initialized weights from {args.init_from}")
+
     if world_size > 1:
         from torch.nn.parallel import DistributedDataParallel as DDP
         # DDP broadcasts rank 0's weights at construction, so all
@@ -540,22 +607,30 @@ def main():
 
     # Stage 1: Geometry
     geometry_path = os.path.join(data_dir, "geometry_data.pt")
-    train_stage(model, geometry_path, GEOMETRY_EPOCHS, LEARNING_RATE,
-                "geometry", device, ckpt_dir, max_samples=GEOMETRY_TRAIN_SAMPLES,
-                ema=ema, soft_target=soft_target)
+    if "geometry" in stages:
+        train_stage(model, geometry_path, GEOMETRY_EPOCHS, LEARNING_RATE,
+                    "geometry", device, ckpt_dir,
+                    max_samples=GEOMETRY_TRAIN_SAMPLES,
+                    ema=ema, soft_target=soft_target)
 
     # Stage 2: Shading
     shading_path = os.path.join(data_dir, "shading_data.pt")
-    train_stage(model, shading_path, SHADING_EPOCHS, SHADING_LR,
-                "shading", device, ckpt_dir, max_samples=SHADING_TRAIN_SAMPLES,
-                ema=ema, soft_target=soft_target)
+    if "shading" in stages:
+        train_stage(model, shading_path, SHADING_EPOCHS, SHADING_LR,
+                    "shading", device, ckpt_dir,
+                    max_samples=SHADING_TRAIN_SAMPLES,
+                    ema=ema, soft_target=soft_target)
 
-    # Stage 3 (optional): fine-tune on human-made ASCII art
+    # Stage 3 (optional): fine-tune on human-made ASCII art, with a slice
+    # of replayed shading data so prompt conditioning doesn't erode
     human_path = os.path.join(data_dir, "human_data.pt")
-    if os.path.exists(human_path):
+    if "human" in stages and os.path.exists(human_path):
         train_stage(model, human_path, HUMAN_EPOCHS, HUMAN_LR,
-                    "human", device, ckpt_dir, ema=ema, soft_target=soft_target)
-    else:
+                    "human", device, ckpt_dir, ema=ema,
+                    soft_target=soft_target,
+                    replay_path=shading_path,
+                    replay_samples=HUMAN_REPLAY_SAMPLES)
+    elif "human" in stages:
         log("\nNo human_data.pt found — skipping stage 3 "
             "(run data/prepare_human_ascii.py to enable it)")
 

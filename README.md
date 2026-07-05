@@ -172,8 +172,20 @@ Two packages of improvements sit on top of the base model.
   guidance knob trading diversity for adherence. `generate(...,
   prompt="a small sailboat", guidance_scale=3.0)` (or pass precomputed
   `cond_tokens`/`cond_mask`).
-- **Full mask-ratio coverage**: training mask ratios now reach 1.0, so the
-  fully-masked grid every generation starts from is in-distribution.
+- **Full mask-ratio coverage, biased high**: training mask ratios reach
+  1.0 and are sampled with density concentrated toward high ratios
+  (Muse-style), so the near-empty canvases generation actually visits get
+  most of the practice.
+- **Space-weighted loss** (`SPACE_LOSS_WEIGHT`): ~80% of cells are space,
+  and plain CE makes "space" the low-risk answer everywhere — the prior
+  behind blank-collapse in free generation. Space cells are down-weighted
+  so ink placement carries the gradient.
+- **Stage-3 replay** (`HUMAN_REPLAY_SAMPLES`): the human fine-tune mixes
+  in replayed captioned shading samples so prompt conditioning doesn't
+  erode in the final stage.
+- **Partial runs**: `python training/train.py --init-from
+  checkpoints/geometry_best.pt --stages shading,human` retrains the later
+  stages without repaying for geometry.
 - **Mask-ratio conditioning**: the model is told what fraction of the grid
   is hidden — the denoising "noise level" a plain masked LM never gets.
 - **Glyph-aware soft labels** (`data/glyph_sim.py`): confusing `/` with `|`
