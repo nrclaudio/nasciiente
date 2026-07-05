@@ -70,18 +70,26 @@ def _load_pipeline(model_id, device):
     return pipe
 
 
-def _binarize(gray_u8, ink_percentile=25.0):
-    """Force a shaded image into two-tone line art.
+def _binarize(gray_u8):
+    """Force a shaded image into two-tone line art via Otsu's threshold.
 
-    Pixels darker than the given luminance percentile become pure black
-    (ink), everything else pure white — the shading a t2i model sneaks in
-    despite line-drawing prompts is exactly what converts to glyph soup,
-    and this strips it while keeping the strokes.
+    Finds the split that maximizes between-class variance — the natural
+    dark/light boundary of THIS image — instead of forcing a fixed ink
+    quota (a fixed percentile fattens strokes and drags shading along on
+    mostly-white images). Genuinely unimodal images threshold to near
+    nothing and get caught by the too-blank filter downstream.
     """
-    t = gray_u8.float()
-    thresh = torch.quantile(t.flatten(), ink_percentile / 100.0)
-    return torch.where(t <= thresh, torch.zeros_like(t),
-                       torch.full_like(t, 255.0)).to(torch.uint8)
+    hist = torch.bincount(gray_u8.flatten().long(), minlength=256).float()
+    total = hist.sum()
+    omega = torch.cumsum(hist, 0) / total                    # P(class 0)
+    mu = torch.cumsum(hist * torch.arange(256), 0) / total   # cum. mean
+    mu_t = mu[-1]
+    between = (mu_t * omega - mu).pow(2) / (omega * (1 - omega)).clamp_min(
+        1e-9)
+    thresh = int(between.argmax())
+    return torch.where(gray_u8.long() <= thresh,
+                       torch.zeros_like(gray_u8),
+                       torch.full_like(gray_u8, 255)).to(torch.uint8)
 
 
 def images_to_grids(pil_images, tables, min_ink=MIN_INK_FRAC,
