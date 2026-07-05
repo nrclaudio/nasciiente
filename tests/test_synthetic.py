@@ -88,13 +88,20 @@ def test_generate_dataset_end_to_end(tmp_path):
     assert all(0 <= i < n_gen_caps for i in ids[:6].tolist())
 
 
-def test_binarize_strips_shading():
+def test_binarize_finds_natural_threshold():
     from data.generate_synthetic import _binarize
-    # a smooth gradient (pure shading) becomes exactly two tones
-    gradient = torch.linspace(0, 255, 100 * 80).view(100, 80).to(torch.uint8)
-    out = _binarize(gradient)
-    values = torch.unique(out)
-    assert set(values.tolist()) <= {0, 255}
-    # roughly the darkest quarter becomes ink
+    # Bimodal image: white page (240ish) with 10% dark strokes (30ish).
+    # Otsu must split between the modes — ink fraction ~= stroke fraction,
+    # NOT a forced quota
+    torch.manual_seed(0)
+    img = torch.normal(240.0, 5.0, (100, 80)).clamp(0, 255)
+    strokes = torch.rand(100, 80) < 0.10
+    img[strokes] = torch.normal(30.0, 10.0, (int(strokes.sum()),)).clamp(0, 255)
+    out = _binarize(img.to(torch.uint8))
+    assert set(torch.unique(out).tolist()) <= {0, 255}
     frac = float((out == 0).float().mean())
-    assert 0.2 < frac < 0.3
+    assert 0.08 < frac < 0.12  # matches the true stroke fraction
+
+    # Shaded gradient still collapses to exactly two tones
+    gradient = torch.linspace(0, 255, 100 * 80).view(100, 80).to(torch.uint8)
+    assert set(torch.unique(_binarize(gradient)).tolist()) <= {0, 255}
