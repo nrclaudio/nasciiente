@@ -87,7 +87,7 @@ def get_model():
     return _STATE
 
 
-app = FastAPI(title="ASCII Art Transformer")
+app = FastAPI(title="GLYPH48")
 
 
 class GenRequest(BaseModel):
