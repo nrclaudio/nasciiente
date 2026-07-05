@@ -5,326 +5,153 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>INTERFACE 2037</title>
 <style>
-  @font-face {
-    font-family: "VT323";
-    src: url("vt323.woff2") format("woff2");  /* bundled, OFL licensed */
-    font-display: block;
-  }
   :root {
-    --ink: #baf5ba;          /* MU/TH/UR pale phosphor */
-    --ink-hi: #e4ffe4;
-    --ink-mid: #6faf6f;
-    --ink-dim: #315231;
-    --amber: #e8c46a;
-    --bg: #010401;
+    --bg: #070707;
+    --fg: #c9c9c9;
+    --dim: #6f6f6f;
+    --faint: #434343;
+    --line: #232323;
+    --art: #dadada;
+    --glow: #b6ffb6;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { min-height: 100%; background: #000; }
+  html, body { background: var(--bg); }
   body {
-    color: var(--ink);
-    font-family: "VT323", "DejaVu Sans Mono", monospace;
-    font-size: 19px;
-    display: flex; align-items: flex-start; justify-content: center;
+    color: var(--fg);
+    font-family: ui-monospace, "SF Mono", "Menlo", "DejaVu Sans Mono",
+                 "Consolas", monospace;
+    font-size: 14px; line-height: 1.5;
   }
+  main { max-width: 1100px; margin: 9vh auto 12vh; padding: 0 28px; }
+  a { cursor: pointer; }
+  ::selection { background: var(--fg); color: var(--bg); }
 
-  /* ---- boot overlay ---------------------------------------------------- */
-  #boot {
-    position: fixed; inset: 0; z-index: 200; background: #000;
-    display: flex; align-items: flex-start; justify-content: flex-start;
-    padding: 7vh 8vw; cursor: pointer; transition: opacity .35s;
-  }
-  #boot pre {
-    font: 20px/1.5 "VT323", monospace; color: var(--ink);
-    white-space: pre-wrap; text-shadow: 0 0 6px rgba(150,255,150,.5);
-  }
-  #boot.done { opacity: 0; pointer-events: none; }
+  h1 { font-size: 12px; font-weight: normal; letter-spacing: .5em;
+       color: var(--dim); }
+  #sub { font-size: 12px; color: var(--faint); min-height: 1.5em;
+         margin-top: 2px; }
+  #bootlog { display: none; }   /* machine-readable state for tests */
+  .amber { color: #c9a35a; }
 
-  /* ---- the CRT itself (grows with content; footer rides its bottom) --- */
-  #crt {
-    position: relative; width: 100%; max-width: 1560px; margin: 14px;
-    min-height: calc(100vh - 28px);
-    background:
-      radial-gradient(ellipse 120% 90% at 50% 40%,
-        rgba(120,200,120,.07) 0%, transparent 55%),
-      var(--bg);
-    border-radius: 42px / 34px;
-    border: 2px solid #0c140c;
-    box-shadow:
-      inset 0 0 150px rgba(0,0,0,.94),
-      inset 0 0 26px rgba(90,160,90,.16),
-      0 0 46px rgba(40,90,40,.3);
-    padding: 38px 56px 64px;
-    overflow: hidden;
-    animation: flicker 5s infinite;
-  }
-  @keyframes flicker {                     /* tube brightness wander */
-    0%, 100% { opacity: 1; } 92% { opacity: 1; }
-    93% { opacity: .96; } 94% { opacity: 1; } 97% { opacity: .98; }
-  }
-  #crt::before {   /* scanlines */
-    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 60;
-    background: repeating-linear-gradient(0deg,
-      rgba(0,0,0,.30) 0 1px, transparent 1px 3px);
-    border-radius: inherit;
-  }
-  #crt::after {    /* rolling interference band */
-    content: ""; position: absolute; left: 0; right: 0; height: 90px;
-    pointer-events: none; z-index: 61;
-    background: linear-gradient(180deg, transparent,
-      rgba(160,255,160,.05), transparent);
-    animation: roll 9s linear infinite;
-  }
-  @keyframes roll { 0% { top: -18%; } 100% { top: 118%; } }
-  #noise {         /* phosphor grain */
-    position: absolute; inset: 0; pointer-events: none; z-index: 59;
-    opacity: .05; border-radius: inherit;
-    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180"><filter id="n"><feTurbulence baseFrequency="0.9" numOctaves="2"/></filter><rect width="180" height="180" filter="url(%23n)"/></svg>');
-    animation: grain .5s steps(3) infinite;
-  }
-  @keyframes grain {
-    0% { background-position: 0 0; } 33% { background-position: 40px -25px; }
-    66% { background-position: -30px 40px; } 100% { background-position: 0 0; }
-  }
-  #crt.glitch { transform: translateX(2px) skewX(.3deg); }
-  #crt.glitch .title { text-shadow: -3px 0 rgba(255,80,80,.55),
-                                     3px 0 rgba(80,120,255,.55); }
-  .glow { text-shadow: 0 0 2px currentColor, 0 0 10px rgba(150,255,150,.5); }
-  ::selection { background: var(--ink); color: #000; }
+  nav { display: flex; gap: 26px; margin: 40px 0 34px; font-size: 13px; }
+  nav a { color: var(--faint); }
+  nav a:hover { color: var(--dim); }
+  nav a.on { color: var(--fg); }
 
-  /* ---- shipboard chrome ------------------------------------------------ */
-  header { display: flex; justify-content: space-between; align-items: center;
-           letter-spacing: .22em; font-size: 17px; color: var(--ink-mid);
-           border-bottom: 1px solid var(--ink-dim); padding-bottom: 8px; }
-  header .badge { background: var(--ink); color: #000; padding: 0 12px;
-                  letter-spacing: .28em; text-shadow: none;
-                  box-shadow: 0 0 14px rgba(150,255,150,.4); }
-  #clock { color: var(--ink); }
-  #ticker { display: flex; justify-content: space-between;
-    font-size: 15px; letter-spacing: .2em; color: var(--ink-dim);
-    padding: 5px 2px 0; text-transform: uppercase; }
-  #ticker .dot { color: var(--amber); animation: blink 1.6s steps(1) infinite; }
+  /* ---- inquiry ---------------------------------------------------------- */
+  #prompt { width: 100%; background: transparent; border: none;
+    border-bottom: 1px solid var(--line); outline: none;
+    color: var(--fg); font: inherit; font-size: 17px; padding: 6px 0; }
+  #prompt::placeholder { color: var(--faint); }
+  #prompt:focus { border-bottom-color: var(--faint); }
 
-  #mother { text-align: center; margin: 34px 0 24px; }
-  #mother .title { font-size: 46px; letter-spacing: .5em; text-indent: .5em;
-                   color: var(--ink-hi); }
-  #mother .sub { margin-top: 8px; font-size: 19px; letter-spacing: .3em;
-                 color: var(--ink-mid); min-height: 1.2em; white-space: pre; }
+  .chips { margin: 12px 0 30px; font-size: 12px; color: var(--faint); }
+  .chips a { color: var(--dim); margin-right: 4px; }
+  .chips a:hover { color: var(--fg); }
 
-  nav { display: flex; gap: 40px; justify-content: center; margin: 4px 0 26px;
-        font-size: 19px; letter-spacing: .3em; }
-  nav a { color: var(--ink-dim); cursor: pointer; padding: 1px 12px; }
-  nav a:hover { color: var(--ink-mid); }
-  nav a.on { color: #000; background: var(--ink);
-             box-shadow: 0 0 16px rgba(150,255,150,.35); }
-
-  /* ---- corner-bracket panels ------------------------------------------- */
-  .panel { position: relative; padding: 14px 18px; margin-bottom: 20px;
-    background:
-      linear-gradient(var(--ink-mid), var(--ink-mid)) 0 0 / 16px 1px,
-      linear-gradient(var(--ink-mid), var(--ink-mid)) 0 0 / 1px 16px,
-      linear-gradient(var(--ink-mid), var(--ink-mid)) 100% 0 / 16px 1px,
-      linear-gradient(var(--ink-mid), var(--ink-mid)) 100% 0 / 1px 16px,
-      linear-gradient(var(--ink-mid), var(--ink-mid)) 0 100% / 16px 1px,
-      linear-gradient(var(--ink-mid), var(--ink-mid)) 0 100% / 1px 16px,
-      linear-gradient(var(--ink-mid), var(--ink-mid)) 100% 100% / 16px 1px,
-      linear-gradient(var(--ink-mid), var(--ink-mid)) 100% 100% / 1px 16px;
-    background-repeat: no-repeat;
-  }
-  .panel .tag { position: absolute; top: -10px; left: 22px;
-    background: var(--bg); padding: 0 8px; font-size: 14px;
-    letter-spacing: .3em; color: var(--ink-mid); }
-
-  /* ---- inquiry line ---------------------------------------------------- */
-  #promptline { display: flex; align-items: baseline; gap: 12px;
-                font-size: 27px; margin: 4px 0 14px; text-transform: uppercase; }
-  #promptline .ps1 { color: var(--ink-mid); letter-spacing: .1em; }
-  #inputwrap { position: relative; flex: 1; }
-  #prompt { width: 100%; background: transparent; border: none; outline: none;
-            color: var(--ink-hi); font: inherit; text-transform: uppercase;
-            letter-spacing: .1em; caret-color: transparent; }
-  #prompt::placeholder { color: var(--ink-dim); }
-  #measure { position: absolute; left: 0; top: 0; visibility: hidden;
-             white-space: pre; letter-spacing: .1em; }
-  #cursor { position: absolute; top: .08em; width: .55em; height: 1.05em;
-            background: var(--ink);
-            animation: blink 1.1s steps(1) infinite;
-            box-shadow: 0 0 10px rgba(150,255,150,.7); }
-  @keyframes blink { 50% { opacity: 0; } }
-
-  .chips { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
-  .chips a { border: 1px solid var(--ink-dim); color: var(--ink-mid);
-             padding: 0 10px; font-size: 16px; letter-spacing: .16em;
-             cursor: pointer; text-transform: uppercase; }
-  .chips a:hover { background: var(--ink); color: #000;
-                   box-shadow: 0 0 12px rgba(150,255,150,.4); }
-
-  /* ---- instruments (no stock widgets) ----------------------------------- */
-  .tuning { display: flex; flex-wrap: wrap; gap: 26px; align-items: center;
-            font-size: 16px; letter-spacing: .14em; color: var(--ink-mid);
-            text-transform: uppercase; }
-  .tuning label { display: flex; align-items: center; gap: 8px; }
-  .tuning .val { color: var(--ink); min-width: 2.2em; }
-
-  input[type=range] { -webkit-appearance: none; appearance: none;
-    width: 110px; height: 14px; background: transparent; cursor: pointer; }
-  input[type=range]::-webkit-slider-runnable-track {
-    height: 2px; background: var(--ink-dim); }
-  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none;
-    width: 9px; height: 16px; margin-top: -7px; background: var(--ink);
-    box-shadow: 0 0 10px rgba(150,255,150,.6); border: none; }
-  input[type=range]::-moz-range-track {
-    height: 2px; background: var(--ink-dim); }
-  input[type=range]::-moz-range-thumb {
-    width: 9px; height: 16px; background: var(--ink); border: none;
-    border-radius: 0; box-shadow: 0 0 10px rgba(150,255,150,.6); }
-
+  .tuning { display: flex; flex-wrap: wrap; gap: 22px; align-items: center;
+            font-size: 12px; color: var(--dim); margin-bottom: 28px; }
+  .tuning label { display: flex; align-items: center; gap: 7px; }
+  .tuning .val { color: var(--fg); min-width: 2em; }
+  input[type=range] { width: 90px; accent-color: #7a7a7a; }
   select, input[type=number] {
-    background: #000; color: var(--ink); font: inherit;
-    border: 1px solid var(--ink-dim); padding: 0 6px;
-    text-transform: uppercase; letter-spacing: .1em; }
-  select { appearance: none; -webkit-appearance: none; padding-right: 22px;
-    background-image: linear-gradient(45deg, transparent 46%, var(--ink-mid) 46%, var(--ink-mid) 54%, transparent 54%),
-                      linear-gradient(-45deg, transparent 46%, var(--ink-mid) 46%, var(--ink-mid) 54%, transparent 54%);
-    background-position: right 10px top 55%, right 5px top 55%;
-    background-size: 5px 5px; background-repeat: no-repeat; }
-  select:focus, input:focus { outline: none; border-color: var(--ink-mid); }
-
-  input[type=checkbox] { appearance: none; -webkit-appearance: none;
-    width: 17px; height: 17px; border: 1px solid var(--ink-mid);
-    background: #000; cursor: pointer; position: relative; }
-  input[type=checkbox]:checked { background: var(--ink);
-    box-shadow: 0 0 10px rgba(150,255,150,.5); }
-
+    background: transparent; color: var(--fg); font: inherit;
+    border: none; border-bottom: 1px solid var(--line); padding: 1px 2px; }
+  select:focus, input:focus { outline: none; }
+  select option { background: var(--bg); }
+  input[type=checkbox] { accent-color: #7a7a7a; }
   input[type=file] { display: none; }
-  .filebtn { border: 1px solid var(--ink-mid); padding: 1px 14px;
-    cursor: pointer; color: var(--ink); letter-spacing: .18em; }
-  .filebtn:hover { background: var(--ink); color: #000; }
-  #upload-name { color: var(--ink-dim); letter-spacing: .1em;
-    max-width: 260px; overflow: hidden; text-overflow: ellipsis;
-    white-space: nowrap; }
+  .filebtn { color: var(--dim); border-bottom: 1px solid var(--line);
+             padding-bottom: 1px; }
+  .filebtn:hover { color: var(--fg); }
+  #upload-name { color: var(--faint); max-width: 240px; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap; }
 
-  button { background: #000; color: var(--ink); font: inherit;
-    font-size: 17px; letter-spacing: .22em; border: 1px solid var(--ink-mid);
-    padding: 1px 18px; cursor: pointer; text-transform: uppercase; }
-  button:hover { background: var(--ink); color: #000;
-    box-shadow: 0 0 18px rgba(150,255,150,.55); }
-  button:disabled { opacity: .35; cursor: wait; }
-  button.prime { background: var(--ink); color: #000;
-    box-shadow: 0 0 14px rgba(150,255,150,.35); }
-  button.prime:hover { background: var(--ink-hi); }
+  button { background: none; color: var(--dim); font: inherit;
+    font-size: 12px; border: 1px solid var(--line); padding: 3px 14px;
+    cursor: pointer; }
+  button:hover { color: var(--fg); border-color: var(--faint); }
+  button:disabled { opacity: .4; cursor: wait; }
 
-  /* ---- readout panes ---------------------------------------------------- */
-  #console, #i-console { font-size: 17px; letter-spacing: .12em;
-    color: var(--ink-mid); white-space: pre-wrap; min-height: 1.4em;
-    margin-bottom: 14px; text-transform: uppercase; }
-  #out, #i-out { display: flex; flex-wrap: wrap; gap: 28px; }
+  #console, #i-console { font-size: 12px; color: var(--dim);
+    min-height: 1.5em; margin-bottom: 18px; white-space: pre-wrap; }
+
+  /* ---- output ------------------------------------------------------------ */
+  #out, #i-out { display: flex; flex-wrap: wrap; gap: 30px; }
   .pane { flex: 1 1 660px; max-width: 100%; }
   .pane .head { display: flex; justify-content: space-between;
-    font-size: 15px; letter-spacing: .2em; color: #000;
-    background: var(--ink-mid); padding: 0 10px;
-    text-transform: uppercase; }
+    font-size: 11px; color: var(--faint); margin-bottom: 6px; }
   .pane pre, #gallery pre {
-    font-family: "VT323", monospace; font-size: 15px; line-height: 1.0;
-    white-space: pre; border: 1px solid var(--ink-dim);
-    padding: 12px 14px; color: var(--ink); overflow-x: auto;
-    text-shadow: 0 0 2px currentColor, 0 0 7px rgba(150,255,150,.42);
-    background:
-      radial-gradient(ellipse 80% 70% at 50% 45%,
-        rgba(120,220,120,.045), transparent 70%),
-      rgba(120,220,120,.015);
-    min-height: 60px; }
-  .pane .meta { display: flex; gap: 10px; margin-top: 7px; }
-  .pane .meta button { font-size: 15px; padding: 0 12px; }
+    font-size: 12px; line-height: 1.05; white-space: pre;
+    color: var(--art); overflow-x: auto; padding: 14px 16px;
+    border: 1px solid var(--line); min-height: 60px; }
+  .pane .meta { display: flex; gap: 8px; margin-top: 8px; }
+  .pane .meta button { padding: 1px 10px; font-size: 11px; }
 
-  /* ---- flight recorder --------------------------------------------------- */
+  /* ---- the one indulgence: cells materialize in model commit order ------ */
+  .m { opacity: 0; animation: settle 1.3s both; }
+  @keyframes settle {
+    0%   { opacity: 0; }
+    2%   { opacity: 1; color: var(--glow);
+           text-shadow: 0 0 1px currentColor, 0 0 9px rgba(140,255,140,.95),
+                        0 0 26px rgba(120,255,120,.45); }
+    45%  { color: var(--glow);
+           text-shadow: 0 0 6px rgba(140,255,140,.5); }
+    100% { opacity: 1; color: var(--art); text-shadow: none; }
+  }
+
+  /* ---- flight recorder ---------------------------------------------------- */
   #gallery { display: none; }
   #gallery .row { display: flex; gap: 22px; align-items: center;
-    font-size: 16px; letter-spacing: .16em; color: var(--ink-mid);
-    text-transform: uppercase; margin-bottom: 14px; }
+    font-size: 12px; color: var(--dim); margin-bottom: 16px; }
 
-  footer { position: absolute; left: 56px; right: 56px; bottom: 16px;
-    display: flex; justify-content: space-between; font-size: 15px;
-    letter-spacing: .22em; color: var(--ink-dim); text-transform: uppercase;
-    z-index: 62; }
-  #ready { display: inline-block; width: .55em; height: .95em;
-    background: var(--ink-mid); vertical-align: text-bottom;
-    animation: blink 1.3s steps(1) infinite; margin-left: 8px; }
-  #bootlog { display: none; }   /* machine-readable boot state for tests */
-  .amber { color: var(--amber); }
+  footer { margin-top: 60px; font-size: 11px; color: var(--faint);
+           display: flex; gap: 18px; flex-wrap: wrap; }
 </style>
 </head>
 <body>
-<div id="boot"><pre id="boot-text"></pre></div>
-
-<div id="crt">
-  <div id="noise"></div>
-  <header>
-    <span>WEYLAND-YUTANI CORP &middot; SYNTHETIC IMAGERY DIV</span>
-    <span class="badge">MU/TH/UR 6000</span>
-    <span>REF 180924609 &middot; <span id="clock"></span></span>
-  </header>
-  <div id="ticker">
-    <span><span class="dot">&#9679;</span> REC</span>
-    <span id="ticker-msg"></span>
-    <span id="met">MET 0000:00:00</span>
-  </div>
-
-  <div id="mother">
-    <div class="title glow">INTERFACE 2037</div>
-    <div class="sub" id="sub"> </div>
-  </div>
+<main>
+  <h1>INTERFACE 2037</h1>
+  <p id="sub"></p>
   <div id="bootlog"></div>
 
   <nav>
-    <a id="tab-draw" class="on">INQUIRY</a>
-    <a id="tab-intake">IMAGE INTAKE</a>
-    <a id="tab-train">FLIGHT RECORDER</a>
+    <a id="tab-draw" class="on">generate</a>
+    <a id="tab-intake">convert an image</a>
+    <a id="tab-train">training record</a>
   </nav>
 
   <section id="draw">
-    <div id="promptline">
-      <span class="ps1 glow">INQUIRY?</span>
-      <span id="inputwrap">
-        <input id="prompt" autocomplete="off" spellcheck="false"
-               placeholder="DESCRIBE SUBJECT FOR SYNTHESIS" autofocus>
-        <span id="measure"></span>
-        <span id="cursor"></span>
-      </span>
-    </div>
+    <input id="prompt" autocomplete="off" spellcheck="false"
+           placeholder="describe a subject, press enter" autofocus>
     <div class="chips" id="chips"></div>
-    <div class="panel">
-      <span class="tag">SYNTHESIS PARAMETERS</span>
-      <div class="tuning">
-        <label>GUIDANCE <input type="range" id="guidance" min="1" max="6"
-               step="0.25" value="2"><span class="val" id="guidance-v">2.0</span></label>
-        <label>STEPS <input type="number" id="steps" min="1" max="20"
-               value="10" style="width:58px"></label>
-        <label>MATRIX <select id="size">
-          <option value="48,80">48&times;80</option>
-          <option value="24,40">24&times;40</option>
-          <option value="64,128">64&times;128</option></select></label>
-        <label>RUNS <select id="vars">
-          <option>1</option><option selected>2</option><option>4</option>
-        </select></label>
-        <label>INK BOOST <input type="range" id="bias" min="0" max="8"
-               step="0.5" value="0"><span class="val" id="bias-v">0</span></label>
-        <button id="go" class="prime">PROCESS &#9656;</button>
-      </div>
+    <div class="tuning">
+      <label>guidance <input type="range" id="guidance" min="1" max="6"
+             step="0.25" value="2"><span class="val" id="guidance-v">2.0</span></label>
+      <label>steps <input type="number" id="steps" min="1" max="20"
+             value="10" style="width:44px"></label>
+      <label>grid <select id="size">
+        <option value="48,80">48&times;80</option>
+        <option value="24,40">24&times;40</option>
+        <option value="64,128">64&times;128</option></select></label>
+      <label>runs <select id="vars">
+        <option>1</option><option selected>2</option><option>4</option>
+      </select></label>
+      <label>ink <input type="range" id="bias" min="0" max="8"
+             step="0.5" value="0"><span class="val" id="bias-v">0</span></label>
+      <button id="go">run</button>
     </div>
     <div id="console"></div>
     <div id="out"></div>
   </section>
 
   <section id="intake" style="display:none">
-    <div class="panel">
-      <span class="tag">SPECIMEN INTAKE</span>
-      <div class="tuning">
-        <label class="filebtn" for="upload">LOAD SPECIMEN &#9656;</label>
-        <input type="file" id="upload" accept="image/*">
-        <span id="upload-name">NO SPECIMEN LOADED</span>
-        <label>BINARIZE <input type="checkbox" id="i-binarize" checked></label>
-        <button id="i-convert" class="prime">CONVERT &#9656;</button>
-      </div>
+    <div class="tuning">
+      <label class="filebtn" for="upload">choose an image or gif</label>
+      <input type="file" id="upload" accept="image/*">
+      <span id="upload-name"></span>
+      <label>binarize <input type="checkbox" id="i-binarize" checked></label>
+      <button id="i-convert">convert</button>
     </div>
     <div id="i-console"></div>
     <div id="i-out"></div>
@@ -332,20 +159,19 @@
 
   <section id="gallery">
     <div class="row">
-      <label>STAGE <select id="g-stage"></select></label>
-      <label>EPOCH <input type="range" id="g-epoch" min="1" max="1"
+      <label>stage <select id="g-stage"></select></label>
+      <label>epoch <input type="range" id="g-epoch" min="1" max="1"
              value="1"><span class="val" id="g-epoch-v"></span></label>
-      <button id="g-play">PLAY &#9656;</button>
+      <button id="g-play">play</button>
     </div>
     <pre id="g-view"></pre>
   </section>
 
   <footer>
-    <span id="s-model">MODEL &hellip;</span>
-    <span>SPECIAL ORDER 937 &middot; SYNTHESIS PRIORITY ONE</span>
-    <span id="s-device"></span><span id="ready"></span>
+    <span id="s-model"></span>
+    <span id="s-device"></span>
   </footer>
-</div>
+</main>
 
 <script>
 "use strict";
@@ -354,122 +180,35 @@ const PRESETS = ["a goat", "a sailboat", "a castle", "a dragon",
                  "a rocket", "a skull", "two fish", "a windmill"];
 let busy = false, samples = [];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-async function typeOut(el, text, cps = 28) {
-  el.textContent = "";
-  for (const ch of text) {
-    el.textContent += ch;
-    await sleep(1000 / cps);
-  }
-}
-
-// ---- boot diagnostics -----------------------------------------------------
-const BOOT_LINES = [
-  "WEYLAND-YUTANI SYSTEMS",
-  "MU/TH/UR 6000 · 2.1 TERABYTE AI MAINFRAME",
-  "",
-  "SELF TEST ......................... OK",
-  "PHOSPHOR MATRIX 48×80 ............. OK",
-  "GLYPH ATLAS 98 SYMBOLS ............ RESIDENT",
-  "MASKGIT DECODER ................... STANDING BY",
-  "CLIP UPLINK ....................... CHANNEL OPEN",
-  "CREW STATUS ....................... 1 AWAKE / REST IN CRYOSTASIS",
-  "SPECIAL ORDER 937 ................. SCIENCE OFFICER EYES ONLY",
-  "",
-  "INTERFACE 2037 READY FOR INQUIRY",
-];
-let bootDone = false;
-async function bootSequence() {
-  const el = $("boot-text");
-  const skip = () => finishBoot();
-  $("boot").addEventListener("click", skip);
-  window.addEventListener("keydown", skip, {once: true});
-  for (const line of BOOT_LINES) {
-    if (bootDone) return;
-    el.textContent += line + "\n";
-    await sleep(line ? 120 : 220);
-  }
-  await sleep(500);
-  finishBoot();
-}
-function finishBoot() {
-  if (bootDone) return;
-  bootDone = true;
-  $("boot").classList.add("done");
-  setTimeout(() => $("boot").remove(), 400);
-}
+const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;")
+                  .replace(/>/g, "&gt;");
 
 // ---- boot ---------------------------------------------------------------
 async function boot() {
-  bootSequence();
-  await typeOut($("sub"), "INTERFACE 2037 READY FOR INQUIRY");
   try {
     const info = await (await fetch("/api/info")).json();
     $("bootlog").textContent = "ok: " + info.checkpoint;   // test hook
     $("s-model").textContent =
-      `MODEL ${info.checkpoint.toUpperCase()} · ${info.params_m}M PARAMS` +
-      (info.conditioned ? " · TEXT LINKED" : " · UNCONDITIONED");
-    $("s-device").textContent = `PROCESSOR ${info.device.toUpperCase()}`;
+      `${info.checkpoint} · ${info.params_m}M params` +
+      (info.conditioned ? " · text-conditioned" : " · unconditioned");
+    $("s-device").textContent = info.device;
     if (!info.conditioned)
-      $("prompt").placeholder = "CHECKPOINT NOT TEXT-LINKED — FREE SYNTHESIS ONLY";
+      $("prompt").placeholder = "checkpoint not text-conditioned — free synthesis only";
   } catch (e) {
-    $("sub").textContent = "NO RESPONSE FROM SYNTHESIS CORE";
+    $("sub").textContent = "model offline — image conversion still works";
     $("sub").classList.add("amber");
   }
 }
 
-// ---- ambient shipboard telemetry -------------------------------------------
-const TELEMETRY = [
-  "CRYOSTASIS NOMINAL", "REACTOR OUTPUT 99.02%", "HULL INTEGRITY 100%",
-  "AIRLOCK SEALS VERIFIED", "DEEP SPACE · SIGNAL DELAY 11 MIN",
-  "GLYPH ATLAS RESIDENT", "SYNTHESIS QUEUE EMPTY",
-  "ATMOSPHERE PROCESSORS NOMINAL", "NO LIFEFORM ANOMALIES DETECTED",
-  "COURSE LOCKED · THEDUS → EARTH",
-];
-let telIdx = 0;
-function tickTelemetry() {
-  typeOut($("ticker-msg"), TELEMETRY[telIdx++ % TELEMETRY.length], 40);
-}
-tickTelemetry();
-setInterval(tickTelemetry, 7000);
-
-const t0 = Date.now();
-function tickClock() {
-  const d = new Date();
-  const p = n => String(n).padStart(2, "0");
-  $("clock").textContent =
-    `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
-  const s = Math.floor((Date.now() - t0) / 1000);
-  $("met").textContent = `MET ${String(Math.floor(s / 3600)).padStart(4, "0")}` +
-    `:${p(Math.floor(s / 60) % 60)}:${p(s % 60)}`;
-}
-tickClock();
-setInterval(tickClock, 1000);
-
-setInterval(() => {           // occasional horizontal sync glitch
-  if (Math.random() < 0.45) {
-    $("crt").classList.add("glitch");
-    setTimeout(() => $("crt").classList.remove("glitch"),
-               70 + Math.random() * 130);
-  }
-}, 8000);
-
-// ---- block cursor tracks the typed text ------------------------------------
-function trackCursor() {
-  $("measure").textContent = $("prompt").value;
-  $("cursor").style.left = $("measure").offsetWidth + "px";
-}
-$("prompt").addEventListener("input", trackCursor);
-document.fonts && document.fonts.ready.then(trackCursor);
-trackCursor();
-
 // ---- preset chips ---------------------------------------------------------
-for (const p of PRESETS) {
+$("chips").append("try — ");
+PRESETS.forEach((p, i) => {
   const b = document.createElement("a");
   b.textContent = p;
-  b.onclick = () => { $("prompt").value = p; trackCursor(); go(); };
+  b.onclick = () => { $("prompt").value = p; go(); };
   $("chips").appendChild(b);
-}
+  if (i < PRESETS.length - 1) $("chips").append(" · ");
+});
 
 // ---- inquiry ---------------------------------------------------------------
 $("guidance").oninput = () =>
@@ -489,9 +228,8 @@ async function go() {
   };
   $("out").innerHTML = "";
   const con = $("console");
-  await typeOut(con, prompt
-    ? `PROCESSING INQUIRY: ${prompt.toUpperCase()}`
-    : "PROCESSING UNCONSTRAINED SYNTHESIS", 44);
+  con.classList.remove("amber");
+  con.textContent = prompt ? `synthesizing “${prompt}”` : "synthesizing";
   let dots = 0;
   const ticker = setInterval(() => {
     con.textContent = con.textContent.replace(/\.*$/, "")
@@ -504,16 +242,14 @@ async function go() {
     if (!resp.ok) throw new Error(await resp.text());
     const data = await resp.json();
     clearInterval(ticker);
-    con.textContent = data.prompt_used
-      ? `SYNTHESIS COMPLETE — ${data.results.length} RUN(S) — ` +
-        `RANKED BY VISUAL MATCH`
-      : `SYNTHESIS COMPLETE — ${data.results.length} RUN(S)`;
+    con.textContent = data.prompt_used && data.results.length > 1
+      ? `${data.results.length} runs, best visual match first`
+      : "";
     data.results.forEach((r, i) => addPane(r, i));
   } catch (e) {
     clearInterval(ticker);
-    con.textContent = "!! SYNTHESIS FAULT: " + e.message.slice(0, 160);
+    con.textContent = "fault: " + e.message.slice(0, 160);
     con.classList.add("amber");
-    setTimeout(() => con.classList.remove("amber"), 4000);
   }
   busy = false; $("go").disabled = false;
 }
@@ -524,29 +260,52 @@ function addPane(r, i) {
   const head = document.createElement("div");
   head.className = "head";
   const score = r.score != null
-    ? `MATCH ${r.score.toFixed(3)}${i === 0 ? " ◈ BEST" : ""}` : "";
-  head.innerHTML = `<span>RUN ${String(i + 1).padStart(2, "0")} · ` +
-    `SEED ${r.seed}</span><span>${score}</span>`;
+    ? `match ${r.score.toFixed(3)}${i === 0 ? " · best" : ""}` : "";
+  head.innerHTML = `<span>run ${i + 1} · seed ${r.seed}</span>` +
+    `<span>${score}</span>`;
   const pre = document.createElement("pre");
   const meta = document.createElement("div");
   meta.className = "meta";
   for (const [name, fn] of [
-      ["REPLAY", () => animate(pre, r.steps)],
-      ["COPY", () => navigator.clipboard.writeText(r.final)],
-      ["TXT", () => download(r.final)],
-      ["SVG", () => download(gridToSvg(r.final), "synthesis.svg",
+      ["replay", () => materialize(pre, r.steps, r.final)],
+      ["copy", () => navigator.clipboard.writeText(r.final)],
+      ["txt", () => download(r.final)],
+      ["svg", () => download(gridToSvg(r.final), "synthesis.svg",
                              "image/svg+xml")],
-      ["GIF", () => downloadGif(r.steps, 8, "materialize.gif")]]) {
+      ["gif", () => downloadGif(r.steps, 8, "materialize.gif")]]) {
     const b = document.createElement("button");
     b.textContent = name; b.onclick = fn; meta.appendChild(b);
   }
   pane.append(head, pre, meta);
   $("out").appendChild(pane);
-  animate(pre, r.steps);
+  materialize(pre, r.steps, r.final);
 }
 
-async function animate(pre, steps) {
-  for (const s of steps) { pre.textContent = s; await sleep(85); }
+// The one indulgence. Each cell knows the decoding step the model
+// committed it at (diffed from the intermediate grids), and appears in
+// exactly that order — a brief phosphor flash that cools to page grey.
+// The animation IS the algorithm: confident cells first, details last.
+const STEP_MS = 110;
+function materialize(pre, steps, final) {
+  const rows = final.split("\n");
+  const stepRows = steps.map(s => s.split("\n"));
+  let html = "";
+  rows.forEach((row, y) => {
+    for (let x = 0; x < row.length; x++) {
+      const ch = row[x];
+      if (ch === " ") { html += " "; continue; }
+      let commit = 0;                       // last step this cell changed
+      for (let s = stepRows.length - 1; s >= 0; s--) {
+        if (((stepRows[s][y] || "")[x] || " ") !== ch) {
+          commit = s + 1; break;
+        }
+      }
+      html += `<span class="m" style="animation-delay:${
+        commit * STEP_MS}ms">${esc(ch)}</span>`;
+    }
+    html += "\n";
+  });
+  pre.innerHTML = html;
 }
 
 function download(text, name = "synthesis.txt", type = "text/plain") {
@@ -561,15 +320,13 @@ function gridToSvg(text) {
   const cw = 8.4, ch = 14;
   const w = Math.max(...lines.map(l => l.length)) * cw + 40;
   const h = lines.length * ch + 40;
-  const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;")
-                    .replace(/>/g, "&gt;");
   const rows = lines.map((l, i) =>
     `<text x="20" y="${34 + i * ch}" xml:space="preserve">${esc(l)}</text>`
   ).join("\n");
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">
-<rect width="100%" height="100%" fill="#010401"/>
+<rect width="100%" height="100%" fill="#070707"/>
 <g font-family="Menlo,DejaVu Sans Mono,monospace" font-size="13"
-   fill="#cfe8cf">${rows}</g></svg>`;
+   fill="#dadada">${rows}</g></svg>`;
 }
 
 async function downloadGif(frames, fps = 8, name = "synthesis.gif") {
@@ -600,13 +357,12 @@ function switchTab(active) {
 let intakePlayer = null;
 $("upload").onchange = () => {
   const f = $("upload").files[0];
-  $("upload-name").textContent = f ? f.name.toUpperCase()
-                                   : "NO SPECIMEN LOADED";
+  $("upload-name").textContent = f ? f.name : "";
 };
 $("i-convert").onclick = async () => {
   const file = $("upload").files[0];
-  if (!file) { $("i-console").textContent = "NO SPECIMEN PROVIDED"; return; }
-  $("i-console").textContent = "ANALYZING SPECIMEN …";
+  if (!file) { $("i-console").textContent = "no image chosen"; return; }
+  $("i-console").textContent = "converting…";
   $("i-out").innerHTML = "";
   if (intakePlayer) { clearInterval(intakePlayer); intakePlayer = null; }
   const form = new FormData();
@@ -618,8 +374,8 @@ $("i-convert").onclick = async () => {
     if (!resp.ok) throw new Error(await resp.text());
     const data = await resp.json();
     $("i-console").textContent = data.animated
-      ? `SPECIMEN CONVERTED — ${data.frames.length} FRAMES @ ${data.fps}FPS`
-      : "SPECIMEN CONVERTED";
+      ? `converted — ${data.frames.length} frames @ ${data.fps}fps`
+      : "converted";
     const pane = document.createElement("div");
     pane.className = "pane";
     const pre = document.createElement("pre");
@@ -630,11 +386,11 @@ $("i-convert").onclick = async () => {
                     % data.frames.length]
       : data.frames[0];
     for (const [name, fn] of [
-        ["COPY", () => navigator.clipboard.writeText(current())],
-        ["TXT", () => download(current(), "converted.txt")],
-        ["SVG", () => download(gridToSvg(current()), "converted.svg",
+        ["copy", () => navigator.clipboard.writeText(current())],
+        ["txt", () => download(current(), "converted.txt")],
+        ["svg", () => download(gridToSvg(current()), "converted.svg",
                                "image/svg+xml")],
-        ...(data.animated ? [["GIF", () =>
+        ...(data.animated ? [["gif", () =>
             downloadGif(data.frames, data.fps, "converted.gif")]] : [])]) {
       const b = document.createElement("button");
       b.textContent = name; b.onclick = fn; meta.appendChild(b);
@@ -651,9 +407,11 @@ $("i-convert").onclick = async () => {
       pre.textContent = data.frames[0];
     }
   } catch (e) {
-    $("i-console").textContent = "!! INTAKE FAULT: " + e.message.slice(0, 140);
+    $("i-console").textContent = "fault: " + e.message.slice(0, 140);
   }
 };
+
+// ---- training record --------------------------------------------------------
 async function loadGallery() {
   samples = (await (await fetch("/api/progress")).json()).samples;
   const stages = [...new Set(samples.map(s => s.stage))];
@@ -663,7 +421,7 @@ async function loadGallery() {
   $("g-play").onclick = playEpochs;
   if (stages.length) setStage();
   else $("g-view").textContent =
-    "NO RECORDS — TRAINING WRITES ONE SYNTHESIS PER EPOCH";
+    "no records yet — training writes one sample per epoch";
 }
 const stageSamples = () =>
   samples.filter(s => s.stage === $("g-stage").value)
