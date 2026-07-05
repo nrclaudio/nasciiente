@@ -14,6 +14,17 @@ def test_prompt_bank_unique_and_deterministic():
     assert any(" and " in p for p in a)
 
 
+def test_prompt_bank_survives_pool_exhaustion():
+    # Asking for more captions than the pool holds must terminate (this
+    # hung the 200k-sample engine run) and cycle with repeats instead
+    from data.prompt_bank import _full_pool
+    pool_size = len(_full_pool())
+    n = pool_size * 2 + 100
+    prompts = build_prompts(n, seed=1)
+    assert len(prompts) == n
+    assert len(set(prompts)) == pool_size  # full coverage, then repeats
+
+
 def test_prompt_grammar_helpers():
     assert _article("owl") == "an owl"
     assert _article("cat") == "a cat"
