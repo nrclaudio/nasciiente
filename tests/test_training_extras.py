@@ -105,3 +105,75 @@ def test_embed_captions_padding_and_norm(monkeypatch):
     rms = toks[mask].pow(2).mean(-1).sqrt()
     assert torch.allclose(rms, torch.ones_like(rms), atol=1e-4)
     assert torch.equal(toks[~mask], torch.zeros_like(toks[~mask]))
+
+
+def test_mask_ratio_sampling_favors_high_ratios():
+    from training.masking import _sample_ratio
+    import random as _r
+    _r.seed(0)
+    samples = [_sample_ratio(0.15, 1.0) for _ in range(4000)]
+    assert all(0.15 <= s <= 1.0 for s in samples)
+    mean = sum(samples) / len(samples)
+    # sin(pi/2 u) has mean 2/pi ~ 0.64 -> ratio mean ~ 0.69, well above
+    # the uniform midpoint 0.575
+    assert mean > 0.63, mean
+    assert sum(s > 0.85 for s in samples) / len(samples) > 0.25
+
+
+def test_space_weighted_loss():
+    from model.ascii_bert import ASCIIBert, SPACE_IDX
+    torch.manual_seed(0)
+    model = ASCIIBert(embed_dim=32, num_layers=2, num_heads=2, ffn_dim=64,
+                      text_dim=16)
+    x = torch.randint(2, 98, (2, 8, 10))
+    mask = torch.ones(2, 8, 10, dtype=torch.bool)
+    logits = model(x)
+
+    # All-space targets: uniform weights -> weighted mean == plain mean
+    targets = torch.full((2, 8, 10), SPACE_IDX)
+    plain = model.compute_loss(logits, targets, mask, space_weight=1.0)
+    weighted = model.compute_loss(logits, targets, mask, space_weight=0.4)
+    assert torch.allclose(plain, weighted, atol=1e-6)
+
+    # Mixed targets: down-weighting space changes the loss
+    targets2 = targets.clone()
+    targets2[:, :4] = 40
+    a = model.compute_loss(logits, targets2, mask, space_weight=1.0)
+    b = model.compute_loss(logits, targets2, mask, space_weight=0.4)
+    assert not torch.allclose(a, b)
+
+
+def test_mix_replay_merges_captions(tmp_path):
+    import training.train as T
+    human = {"data": torch.randint(2, 98, (6, 4, 5), dtype=torch.uint8),
+             "caption_ids": torch.tensor([0, -1, 1, 0, -1, 1]),
+             "captions": ["h1", "h2"]}
+    shading = {"data": torch.randint(2, 98, (10, 4, 5), dtype=torch.uint8),
+               "caption_ids": torch.arange(10) % 3,
+               "captions": ["s1", "s2", "s3"]}
+    sp = tmp_path / "shading.pt"
+    torch.save(shading, sp)
+
+    data, ids, caps = T._mix_replay(human["data"], human["caption_ids"],
+                                    human["captions"], str(sp),
+                                    replay_samples=4)
+    assert len(data) == 10 and len(ids) == 10
+    assert caps == ["h1", "h2", "s1", "s2", "s3"]
+    # Human ids untouched; replay ids offset into the merged table
+    assert ids[:6].tolist() == [0, -1, 1, 0, -1, 1]
+    assert all(2 <= i <= 4 for i in ids[6:].tolist())
+    # Deterministic across calls (all DDP ranks build the same mix)
+    data2, ids2, _ = T._mix_replay(human["data"], human["caption_ids"],
+                                   human["captions"], str(sp),
+                                   replay_samples=4)
+    assert torch.equal(data, data2) and torch.equal(ids, ids2)
+
+
+def test_train_args_parsing(monkeypatch):
+    import training.train as T
+    monkeypatch.setattr("sys.argv",
+                        ["train.py", "--init-from", "ck.pt",
+                         "--stages", "shading,human", "--stage", "train"])
+    args = T.parse_args()  # unknown --stage (from main.py) must not crash
+    assert args.init_from == "ck.pt"
+    assert args.stages == "shading,human"

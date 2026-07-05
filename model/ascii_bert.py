@@ -5,7 +5,11 @@ import torch.nn.functional as F
 from config import (
     VOCAB_SIZE, EMBED_DIM, GRID_H, GRID_W,
     NUM_LAYERS, NUM_HEADS, FFN_DIM, DROPOUT, TEXT_EMB_DIM,
+    SPACE_LOSS_WEIGHT,
 )
+from data.charset import char_to_idx
+
+SPACE_IDX = char_to_idx(" ")
 from model.embeddings import CombinedEmbedding, ConditioningEmbedding
 from model.transformer import TransformerEncoder
 
@@ -84,7 +88,8 @@ class ASCIIBert(nn.Module):
         logits = logits.view(B, H, W, -1) # [B, H, W, VOCAB_SIZE]
         return logits
 
-    def compute_loss(self, logits, targets, mask, soft_target_matrix=None):
+    def compute_loss(self, logits, targets, mask, soft_target_matrix=None,
+                     space_weight=SPACE_LOSS_WEIGHT):
         """
         Cross-entropy loss computed only on masked positions.
 
@@ -95,6 +100,9 @@ class ASCIIBert(nn.Module):
             soft_target_matrix: optional [VOCAB_SIZE, VOCAB_SIZE] tensor whose
                 row t is the soft target distribution for true token t
                 (glyph-aware label smoothing). None -> plain cross-entropy.
+            space_weight: weight applied to cells whose TRUE token is space
+                (<1 counteracts the space-majority prior that drives
+                blank-collapse in free generation; 1.0 = plain mean)
         Returns:
             scalar loss
         """
@@ -104,9 +112,18 @@ class ASCIIBert(nn.Module):
             return logits.sum() * 0.0   # keep graph, no masked cells
 
         if soft_target_matrix is None:
-            return F.cross_entropy(masked_logits, masked_targets)
+            per_cell = F.cross_entropy(masked_logits, masked_targets,
+                                       reduction="none")
+        else:
+            # Soft targets: gather each position's target distribution
+            soft = soft_target_matrix.to(masked_logits.dtype)[masked_targets]
+            log_probs = F.log_softmax(masked_logits, dim=-1)
+            per_cell = -(soft * log_probs).sum(dim=-1)
 
-        # Soft targets: gather each masked position's target distribution
-        soft = soft_target_matrix.to(masked_logits.dtype)[masked_targets]
-        log_probs = F.log_softmax(masked_logits, dim=-1)
-        return -(soft * log_probs).sum(dim=-1).mean()
+        if space_weight == 1.0:
+            return per_cell.mean()
+        weights = torch.where(masked_targets == SPACE_IDX,
+                              torch.full_like(per_cell, space_weight),
+                              torch.ones_like(per_cell))
+        # Weighted mean keeps the loss scale comparable across batches
+        return (per_cell * weights).sum() / weights.sum().clamp_min(1e-8)
