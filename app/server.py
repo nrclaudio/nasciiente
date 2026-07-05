@@ -1,0 +1,189 @@
+"""FastAPI backend for the showcase site (app/static/index.html).
+
+Serves the model over a small JSON API and the static frontend at /.
+The frontend animates the MaskGIT unmasking steps client-side, so the
+API returns every intermediate grid, not just the final one.
+
+Run:
+    uvicorn app.server:app --host 0.0.0.0 --port 8501
+    # or: python -m app.server
+
+Env:
+    ASCII_CHECKPOINT  path override (default: checkpoints/final_model.pt,
+                      falling back to the latest .pt in checkpoints/)
+    ASCII_DEVICE      cpu|cuda override (default: cuda when >3GB free)
+"""
+
+import os
+import sys
+import time
+
+import torch
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+from config import (GRID_H, GRID_W, UNMASK_STEPS, TEMPERATURE, CFG_SCALE,
+                    MAX_ROWS, MAX_COLS)
+from data.charset import grid_to_string
+from model.ascii_bert import ASCIIBert, load_compatible_state
+from model.inference import generate
+
+try:
+    from fastapi import FastAPI, HTTPException
+    from fastapi.staticfiles import StaticFiles
+    from pydantic import BaseModel, Field
+except ImportError as e:  # pragma: no cover
+    raise ImportError("The showcase site needs: pip install fastapi "
+                      "uvicorn") from e
+
+_STATE = {}
+
+
+def _find_checkpoint():
+    env = os.environ.get("ASCII_CHECKPOINT")
+    if env:
+        return env
+    ckpt_dir = os.path.join(os.path.dirname(__file__), "..", "checkpoints")
+    final = os.path.join(ckpt_dir, "final_model.pt")
+    if os.path.exists(final):
+        return final
+    if os.path.isdir(ckpt_dir):
+        pts = sorted(f for f in os.listdir(ckpt_dir) if f.endswith(".pt"))
+        if pts:
+            return os.path.join(ckpt_dir, pts[-1])
+    return None
+
+
+def _pick_device():
+    env = os.environ.get("ASCII_DEVICE")
+    if env:
+        return torch.device(env)
+    if torch.cuda.is_available():
+        try:
+            free, _ = torch.cuda.mem_get_info()
+            if free > 3e9:
+                return torch.device("cuda")
+        except Exception:
+            pass
+    return torch.device("cpu")
+
+
+def get_model():
+    if "model" not in _STATE:
+        path = _find_checkpoint()
+        if path is None:
+            raise HTTPException(503, "No checkpoint found in checkpoints/")
+        device = _pick_device()
+        model = ASCIIBert().to(device)
+        ckpt = torch.load(path, map_location=device, weights_only=True)
+        state = (ckpt["model_state_dict"]
+                 if isinstance(ckpt, dict) and "model_state_dict" in ckpt
+                 else ckpt)
+        conditioned = load_compatible_state(model, state)
+        model.eval()
+        _STATE.update(model=model, device=device, conditioned=conditioned,
+                      checkpoint=os.path.basename(path))
+    return _STATE
+
+
+app = FastAPI(title="ASCII Art Transformer")
+
+
+class GenRequest(BaseModel):
+    prompt: str = ""
+    guidance: float = Field(CFG_SCALE, ge=1.0, le=8.0)
+    steps: int = Field(UNMASK_STEPS, ge=1, le=20)
+    temperature: float = Field(TEMPERATURE, ge=0.1, le=2.0)
+    rows: int = Field(GRID_H, ge=8, le=MAX_ROWS)
+    cols: int = Field(GRID_W, ge=8, le=MAX_COLS)
+    seed: int | None = None
+    variations: int = Field(1, ge=1, le=4)
+    space_bias: float = Field(0.0, ge=0.0, le=8.0)
+    revision_steps: int = Field(2, ge=0, le=5)
+
+
+@app.get("/api/info")
+def info():
+    s = get_model()
+    n_params = sum(p.numel() for p in s["model"].parameters())
+    return {"checkpoint": s["checkpoint"],
+            "params_m": round(n_params / 1e6, 1),
+            "conditioned": s["conditioned"],
+            "device": s["device"].type,
+            "grid": [GRID_H, GRID_W]}
+
+
+@app.post("/api/generate")
+def api_generate(req: GenRequest):
+    s = get_model()
+    model, device, conditioned = s["model"], s["device"], s["conditioned"]
+
+    kwargs = dict(space_bias=req.space_bias,
+                  revision_steps=req.revision_steps)
+    prompt = req.prompt.strip()
+    if prompt and conditioned:
+        from data.text_embed import embed_captions
+        toks, msk = embed_captions([prompt])
+        kwargs.update(cond_tokens=toks[0], cond_mask=msk[0],
+                      guidance_scale=req.guidance)
+
+    results = []
+    for i in range(req.variations):
+        seed = (req.seed + i if req.seed is not None
+                else int(time.time_ns() % 2**31) ^ (i * 7919))
+        torch.manual_seed(seed)
+        t0 = time.time()
+        steps, final = generate(model, req.rows, req.cols,
+                                num_steps=req.steps,
+                                temperature=req.temperature,
+                                device=device, **kwargs)
+        results.append({"seed": seed,
+                        "took": round(time.time() - t0, 2),
+                        "steps": [grid_to_string(g) for g in steps],
+                        "final": grid_to_string(final),
+                        "grids": None,
+                        "score": None,
+                        "_grid": final})
+
+    if prompt and conditioned and len(results) > 1:
+        try:
+            from data.clip_rank import clip_scores
+            scores = clip_scores([r["_grid"] for r in results], prompt)
+            for r, sc in zip(results, scores):
+                r["score"] = round(float(sc), 4)
+            results.sort(key=lambda r: r["score"], reverse=True)
+        except Exception:
+            pass
+    for r in results:
+        r.pop("_grid")
+    return {"results": results,
+            "conditioned": conditioned,
+            "prompt_used": bool(prompt and conditioned)}
+
+
+@app.get("/api/progress")
+def progress():
+    sample_dir = os.path.join(os.path.dirname(__file__), "..",
+                              "checkpoints", "samples")
+    import glob as _glob
+    entries = []
+    for path in sorted(_glob.glob(os.path.join(sample_dir,
+                                               "*_epoch*.txt"))):
+        stage, _, epoch = os.path.basename(path)[:-4].rpartition("_epoch")
+        try:
+            with open(path) as f:
+                entries.append({"stage": stage, "epoch": int(epoch),
+                                "text": f.read()})
+        except (ValueError, OSError):
+            continue
+    return {"samples": entries}
+
+
+app.mount("/", StaticFiles(
+    directory=os.path.join(os.path.dirname(__file__), "static"),
+    html=True), name="static")
+
+
+if __name__ == "__main__":  # pragma: no cover
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8501)
