@@ -86,3 +86,15 @@ def test_generate_dataset_end_to_end(tmp_path):
     assert all(i == -1 or i >= n_gen_caps for i in tail.tolist())
     # And every generated id points into the generated captions
     assert all(0 <= i < n_gen_caps for i in ids[:6].tolist())
+
+
+def test_binarize_strips_shading():
+    from data.generate_synthetic import _binarize
+    # a smooth gradient (pure shading) becomes exactly two tones
+    gradient = torch.linspace(0, 255, 100 * 80).view(100, 80).to(torch.uint8)
+    out = _binarize(gradient)
+    values = torch.unique(out)
+    assert set(values.tolist()) <= {0, 255}
+    # roughly the darkest quarter becomes ink
+    frac = float((out == 0).float().mean())
+    assert 0.2 < frac < 0.3
