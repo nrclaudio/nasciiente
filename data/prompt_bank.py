@@ -98,32 +98,37 @@ def _plural(word):
     return word + "s"
 
 
-def build_prompts(n, seed=0):
-    """Return n unique captions, deterministically for a given seed.
+def _full_pool():
+    """Every caption the bank can express, deduplicated, in a stable
+    order: singles with attributes, counted subjects, ordered pairs.
+    ~57k captions with the default subject lists."""
+    pool = {}
+    for x in SUBJECTS:
+        for template in SINGLE_TEMPLATES:
+            pool[template.format(a=_article(x), x=x)] = None
+        for count in COUNT_WORDS:
+            pool[f"{count} {_plural(x)}"] = None
+    for x in SUBJECTS:
+        for y in SUBJECTS:
+            if x != y:
+                pool[f"{_article(x)} and {_article(y)}"] = None
+    return list(pool)
 
-    Mix: ~60% single subjects with attributes, ~15% counted subjects,
-    ~25% two-subject compositions. Uniqueness is guaranteed; the pool is
-    combinatorially far larger than any realistic n.
+
+def build_prompts(n, seed=0):
+    """Return n captions, deterministically for a given seed.
+
+    The full pool is shuffled and cycled: for n up to the pool size
+    (~57k) captions are unique; beyond that they repeat — which is what
+    training wants anyway, since each repeat pairs the caption with a
+    DIFFERENT generated image (many images per caption, like ImageNet's
+    many images per class).
     """
     rng = random.Random(seed)
-    seen = set()
+    pool = _full_pool()
     prompts = []
-
-    def add(caption):
-        if caption not in seen:
-            seen.add(caption)
-            prompts.append(caption)
-
     while len(prompts) < n:
-        roll = rng.random()
-        x = rng.choice(SUBJECTS)
-        if roll < 0.60:
-            template = rng.choice(SINGLE_TEMPLATES)
-            add(template.format(a=_article(x), x=x))
-        elif roll < 0.75:
-            add(f"{rng.choice(COUNT_WORDS)} {_plural(x)}")
-        else:
-            y = rng.choice(SUBJECTS)
-            if y != x:
-                add(f"{_article(x)} and {_article(y)}")
-    return prompts
+        chunk = pool[:]
+        rng.shuffle(chunk)
+        prompts.extend(chunk)
+    return prompts[:n]
