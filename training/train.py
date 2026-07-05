@@ -533,6 +533,10 @@ def parse_args():
                         help="checkpoint to initialize model weights from")
     parser.add_argument("--stages", default="geometry,shading,human",
                         help="comma-separated stages to run")
+    parser.add_argument("--shading-data", default=None,
+                        help="alternative dataset file for the shading "
+                             "stage (e.g. data/synthetic_data.pt from the "
+                             "data engine)")
     args, _ = parser.parse_known_args()
     return args
 
@@ -616,7 +620,8 @@ def main():
     # Stage 2: Shading, with a slice of replayed geometry so stage-1
     # skills stay alive (and get re-trained under the current objective
     # when resuming from an older stage-1 checkpoint)
-    shading_path = os.path.join(data_dir, "shading_data.pt")
+    shading_path = args.shading_data or os.path.join(data_dir,
+                                                     "shading_data.pt")
     if "shading" in stages:
         train_stage(model, shading_path, SHADING_EPOCHS, SHADING_LR,
                     "shading", device, ckpt_dir,

@@ -52,6 +52,17 @@ fully masked grid ──▶ ASCIIBert ──▶ logits per cell ──▶ unmask
    additionally removes backgrounds with rembg (optional dependency:
    `pip install rembg onnxruntime`). See `data/DATASET_OPTIONS.md` for the
    dataset comparison.
+2b. **Synthetic prompts** (`data/generate_synthetic.py`, optional but
+   recommended) — the data engine: renders a combinatorial caption bank
+   ("a sleeping fox", "two sailboats", "a dragon and a castle") with a
+   small local text-to-image model (SD-Turbo by default) in a
+   line-drawing style, converts through the same 6D pipeline, and saves
+   the standard payload. This is what teaches open-prompt following —
+   ImageNet-Sketch alone caps captions at 1,000 single nouns. Needs a
+   GPU and `pip install diffusers accelerate`:
+   `python data/generate_synthetic.py --num-samples 200000 --merge
+   data/shading_data.pt`, then train with
+   `--shading-data data/synthetic_data.pt`.
 3. **Human ASCII art** (`data/prepare_human_ascii.py`, optional) —
    fine-tune on ~5k human-made pieces (HuggingFace `apehex/ascii-art`,
    scraped from asciiart.eu), normalized to 48×80 and filtered to the
