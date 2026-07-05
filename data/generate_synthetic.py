@@ -152,7 +152,7 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
                      device=None, save_every=5_000, pipe=None,
                      min_ink=MIN_INK_FRAC, max_ink=MAX_INK_FRAC,
                      style=STYLE, preview_dir=None, binarize=False,
-                     trim=0.04):
+                     trim=0.04, clip_filter=0.0, clip_scorer=None):
     """Generate `num_samples` captioned grids and save the payload.
 
     pipe: injectable for tests — any callable matching the diffusers
@@ -161,6 +161,10 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
     pair named with its caption, ink fraction and kept/rejected verdict —
     run with --num-samples 24 --preview-dir ... to eyeball what the
     filter is doing before a long run.
+    clip_filter: when > 0, reject images whose CLIP similarity to their
+    own bare caption falls below the threshold (subject misses, fused
+    chimeras scoring low, degenerate outputs). clip_scorer is injectable
+    for tests: callable(pil_images, captions) -> scores tensor.
     """
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -186,10 +190,17 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
         print(f"Will merge {len(merge_payload['data']):,} samples "
               f"from {merge}")
 
+    if clip_filter > 0 and clip_scorer is None:
+        from data.clip_rank import clip_image_scores
+
+        def clip_scorer(images, captions):
+            return clip_image_scores(images, captions,
+                                     device=device.type)
+
     generator = torch.Generator(device=device.type).manual_seed(seed)
     grids, caption_ids = [], []
     caption_index = {}
-    too_blank = too_dense = 0
+    too_blank = too_dense = off_prompt = 0
     processed = 0
     cursor = 0
     t0 = time.time()
@@ -202,10 +213,20 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
                       negative_prompt=[NEGATIVE] * len(batch),
                       num_inference_steps=steps, guidance_scale=0.0,
                       generator=generator)
-        converted = images_to_grids(result.images, tables,
+        images = list(result.images)
+        captions_batch = list(batch)
+        if clip_filter > 0:
+            sims = clip_scorer(images, captions_batch)
+            keep = [float(s) >= clip_filter for s in sims]
+            off_prompt += keep.count(False)
+            images = [im for im, k in zip(images, keep) if k]
+            captions_batch = [c for c, k in zip(captions_batch, keep) if k]
+            if not images:
+                continue
+        converted = images_to_grids(images, tables,
                                     min_ink=min_ink, max_ink=max_ink,
                                     binarize=binarize, trim=trim)
-        for caption, image, (grid, ink_frac) in zip(batch, result.images,
+        for caption, image, (grid, ink_frac) in zip(captions_batch, images,
                                                     converted):
             processed += 1
             if preview_dir:
@@ -234,7 +255,7 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
             eta = (num_samples - done) / max(rate, 1e-9)
             print(f"  {done:,}/{num_samples:,} kept "
                   f"(rejected: {too_blank:,} too blank, "
-                  f"{too_dense:,} too dense)"
+                  f"{too_dense:,} too dense, {off_prompt:,} off-prompt)"
                   f"  {rate:.1f} img/s  ETA {eta/3600:.1f}h", flush=True)
             # First feedback after one batch, then every 500
             next_report = done + (500 if done else 1)
@@ -286,6 +307,9 @@ def main():
     parser.add_argument("--preview-dir", default=None,
                         help="dump every image/grid pair here (use with a "
                              "small --num-samples to tune style/filters)")
+    parser.add_argument("--clip-filter", type=float, default=0.0,
+                        help="reject images whose CLIP similarity to their "
+                             "own caption is below this (try 0.2; 0=off)")
     parser.add_argument("--trim", type=float, default=0.04,
                         help="fraction cropped off every image edge before "
                              "conversion (kills t2i border bands)")
@@ -299,7 +323,8 @@ def main():
                      seed=args.seed, merge=args.merge,
                      min_ink=args.min_ink, max_ink=args.max_ink,
                      style=args.style, preview_dir=args.preview_dir,
-                     binarize=args.binarize, trim=args.trim)
+                     binarize=args.binarize, trim=args.trim,
+                     clip_filter=args.clip_filter)
 
 
 if __name__ == "__main__":
