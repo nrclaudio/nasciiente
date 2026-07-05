@@ -147,6 +147,7 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
     rejected = 0
     cursor = 0
     t0 = time.time()
+    next_report, next_save = 0, save_every
 
     while len(grids) < num_samples and cursor < len(prompts):
         batch = prompts[cursor:cursor + batch_size]
@@ -165,14 +166,19 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
                                                         len(caption_index)))
 
         done = len(grids)
-        if done and (done % save_every < batch_size or done >= num_samples):
-            n = _save(out_path, grids, caption_ids, list(caption_index),
-                      merge_payload)
+        if done >= next_report:
             rate = done / (time.time() - t0)
             eta = (num_samples - done) / max(rate, 1e-9)
             print(f"  {done:,}/{num_samples:,} kept ({rejected:,} rejected)"
-                  f"  {rate:.1f} img/s  ETA {eta/3600:.1f}h  "
-                  f"[checkpointed {n:,} samples]", flush=True)
+                  f"  {rate:.1f} img/s  ETA {eta/3600:.1f}h", flush=True)
+            # First feedback after one batch, then every 500
+            next_report = done + (500 if done else 1)
+        if done >= next_save or done >= num_samples:
+            n = _save(out_path, grids, caption_ids, list(caption_index),
+                      merge_payload)
+            print(f"  [checkpointed {n:,} samples to {out_path}]",
+                  flush=True)
+            next_save = done + save_every
 
     if not grids:
         print("ERROR: no usable images generated.")

@@ -30,6 +30,10 @@ SYNTH="${SYNTH:-1}"
 SYNTH_SAMPLES="${SYNTH_SAMPLES:-200000}"
 AUTO_CAPTION="${AUTO_CAPTION:-1}"
 
+# Progress lines must reach tee/log files immediately, not sit in
+# python's 4KB pipe buffer
+export PYTHONUNBUFFERED=1
+
 echo "=== GPU ==="
 nvidia-smi --query-gpu=name,memory.total --format=csv,noheader || true
 echo
