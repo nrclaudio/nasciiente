@@ -105,3 +105,20 @@ def test_binarize_finds_natural_threshold():
     # Shaded gradient still collapses to exactly two tones
     gradient = torch.linspace(0, 255, 100 * 80).view(100, 80).to(torch.uint8)
     assert set(torch.unique(_binarize(gradient)).tolist()) <= {0, 255}
+
+
+def test_trim_removes_border_bands():
+    from data.generate_synthetic import images_to_grids, _build_tables
+    from PIL import Image, ImageDraw
+    img = Image.new("RGB", (256, 256), "white")
+    draw = ImageDraw.Draw(img)
+    draw.rectangle([0, 0, 12, 255], fill="black")       # left border band
+    draw.rectangle([100, 100, 160, 160], outline="black", width=6)
+    tables = _build_tables()
+    (grid, _), = images_to_grids([img], tables, binarize=True, trim=0.06)
+    assert grid is not None
+    # The sidebar must be gone: leftmost columns of the IMAGE area blank.
+    # (letterboxing pads ~5% of columns; check just inside that)
+    assert int((grid[:, 4:10] > 2).sum()) == 0
+    # The actual subject (rectangle) survived
+    assert int((grid > 2).sum()) > 20

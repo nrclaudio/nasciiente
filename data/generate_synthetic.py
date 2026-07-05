@@ -93,12 +93,15 @@ def _binarize(gray_u8):
 
 
 def images_to_grids(pil_images, tables, min_ink=MIN_INK_FRAC,
-                    max_ink=MAX_INK_FRAC, binarize=False):
+                    max_ink=MAX_INK_FRAC, binarize=False, trim=0.04):
     """Convert PIL images -> list of (grid_or_None, ink_fraction).
 
     grid is a [GRID_H, GRID_W] uint8 tensor, or None when the conversion
     fell outside the [min_ink, max_ink] band (the ink fraction is still
     reported so callers can diagnose WHY images are being rejected).
+    trim crops that fraction off every image edge first — t2i outputs
+    often carry border bands/vignettes that would otherwise train the
+    model to draw sidebars.
     """
     from data.generate_shading import _pil_to_tensor, _to_gray_u8, \
         image_to_ascii_grid
@@ -107,6 +110,10 @@ def images_to_grids(pil_images, tables, min_ink=MIN_INK_FRAC,
     total = GRID_H * GRID_W
     for img in pil_images:
         gray = _to_gray_u8(_pil_to_tensor(img))
+        if trim > 0:
+            h, w = gray.shape
+            dh, dw = int(h * trim), int(w * trim)
+            gray = gray[dh:h - dh, dw:w - dw]
         if binarize:
             gray = _binarize(gray)
         grid = image_to_ascii_grid(gray, shape_vectors, masks, char_indices,
@@ -144,7 +151,8 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
                      batch_size=8, steps=2, seed=0, merge=None,
                      device=None, save_every=5_000, pipe=None,
                      min_ink=MIN_INK_FRAC, max_ink=MAX_INK_FRAC,
-                     style=STYLE, preview_dir=None, binarize=False):
+                     style=STYLE, preview_dir=None, binarize=False,
+                     trim=0.04):
     """Generate `num_samples` captioned grids and save the payload.
 
     pipe: injectable for tests — any callable matching the diffusers
@@ -196,7 +204,7 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
                       generator=generator)
         converted = images_to_grids(result.images, tables,
                                     min_ink=min_ink, max_ink=max_ink,
-                                    binarize=binarize)
+                                    binarize=binarize, trim=trim)
         for caption, image, (grid, ink_frac) in zip(batch, result.images,
                                                     converted):
             processed += 1
@@ -278,6 +286,9 @@ def main():
     parser.add_argument("--preview-dir", default=None,
                         help="dump every image/grid pair here (use with a "
                              "small --num-samples to tune style/filters)")
+    parser.add_argument("--trim", type=float, default=0.04,
+                        help="fraction cropped off every image edge before "
+                             "conversion (kills t2i border bands)")
     parser.add_argument("--binarize", action="store_true",
                         help="threshold images to pure black/white before "
                              "conversion — strips the shading t2i models "
@@ -288,7 +299,7 @@ def main():
                      seed=args.seed, merge=args.merge,
                      min_ink=args.min_ink, max_ink=args.max_ink,
                      style=args.style, preview_dir=args.preview_dir,
-                     binarize=args.binarize)
+                     binarize=args.binarize, trim=args.trim)
 
 
 if __name__ == "__main__":
