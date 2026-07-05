@@ -129,6 +129,31 @@ def images_to_grids(pil_images, tables, min_ink=MIN_INK_FRAC,
     return out
 
 
+# ---- worker-side conversion (multiprocessing) ---------------------------
+# The ASCII conversion is pure CPU and was serializing the GPU: the
+# pipeline generated a batch, then idled while one core converted it.
+# A pool converts batch N while the GPU generates batch N+1.
+_WORKER = {}
+
+
+def _worker_init(min_ink, max_ink, binarize, trim):
+    import contextlib
+    import io
+
+    import torch as _torch
+    _torch.set_num_threads(1)  # one image per task; don't thrash cores
+    with contextlib.redirect_stdout(io.StringIO()):  # table-build prints
+        _WORKER["tables"] = _build_tables()
+    _WORKER["args"] = (min_ink, max_ink, binarize, trim)
+
+
+def _worker_convert(image):
+    min_ink, max_ink, binarize, trim = _WORKER["args"]
+    return images_to_grids([image], _WORKER["tables"], min_ink=min_ink,
+                           max_ink=max_ink, binarize=binarize,
+                           trim=trim)[0]
+
+
 def _save(out_path, grids, caption_ids, captions, merge_payload=None):
     data = torch.stack(grids)
     ids = torch.tensor(caption_ids, dtype=torch.long)
@@ -155,7 +180,8 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
                      device=None, save_every=5_000, pipe=None,
                      min_ink=MIN_INK_FRAC, max_ink=MAX_INK_FRAC,
                      style=STYLE, preview_dir=None, binarize=False,
-                     trim=0.04, clip_filter=0.0, clip_scorer=None):
+                     trim=0.04, clip_filter=0.0, clip_scorer=None,
+                     workers=None):
     """Generate `num_samples` captioned grids and save the payload.
 
     pipe: injectable for tests — any callable matching the diffusers
@@ -168,6 +194,8 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
     own bare caption falls below the threshold (subject misses, fused
     chimeras scoring low, degenerate outputs). clip_scorer is injectable
     for tests: callable(pil_images, captions) -> scores tensor.
+    workers: conversion worker processes. None = cpu_count-2; <=1 =
+    serial. Preview mode forces serial (it pairs images with grids).
     """
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -200,6 +228,21 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
             return clip_image_scores(images, captions,
                                      device=device.type)
 
+    if workers is None:
+        workers = max(1, (os.cpu_count() or 2) - 2)
+    if preview_dir:
+        workers = 1
+    pool = None
+    max_pending = 3  # batches in flight; bounds RAM and keeps order fresh
+    if workers > 1:
+        import multiprocessing as mp
+        # spawn, not fork: the parent holds a CUDA context
+        ctx = mp.get_context("spawn")
+        pool = ctx.Pool(workers, initializer=_worker_init,
+                        initargs=(min_ink, max_ink, binarize, trim))
+        print(f"Conversion pool: {workers} workers "
+              f"(GPU generates while CPUs convert)")
+
     generator = torch.Generator(device=device.type).manual_seed(seed)
     grids, caption_ids = [], []
     caption_index = {}
@@ -209,26 +252,8 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
     t0 = time.time()
     next_report, next_save = 0, save_every
 
-    while len(grids) < num_samples and cursor < len(prompts):
-        batch = prompts[cursor:cursor + batch_size]
-        cursor += len(batch)
-        result = pipe(prompt=[style.format(p) for p in batch],
-                      negative_prompt=[NEGATIVE] * len(batch),
-                      num_inference_steps=steps, guidance_scale=0.0,
-                      generator=generator)
-        images = list(result.images)
-        captions_batch = list(batch)
-        if clip_filter > 0:
-            sims = clip_scorer(images, captions_batch)
-            keep = [float(s) >= clip_filter for s in sims]
-            off_prompt += keep.count(False)
-            images = [im for im, k in zip(images, keep) if k]
-            captions_batch = [c for c, k in zip(captions_batch, keep) if k]
-            if not images:
-                continue
-        converted = images_to_grids(images, tables,
-                                    min_ink=min_ink, max_ink=max_ink,
-                                    binarize=binarize, trim=trim)
+    def absorb(captions_batch, images, converted):
+        nonlocal processed, too_blank, too_dense, next_report, next_save
         for caption, image, (grid, ink_frac) in zip(captions_batch, images,
                                                     converted):
             processed += 1
@@ -262,12 +287,61 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
                   f"  {rate:.1f} img/s  ETA {eta/3600:.1f}h", flush=True)
             # First feedback after one batch, then every 500
             next_report = done + (500 if done else 1)
-        if done >= next_save or done >= num_samples:
+        if done and done >= next_save:
             n = _save(out_path, grids, caption_ids, list(caption_index),
                       merge_payload)
             print(f"  [checkpointed {n:,} samples to {out_path}]",
                   flush=True)
             next_save = done + save_every
+
+    from collections import deque
+    pending = deque()
+
+    def drain(block=False):
+        while pending and (block or len(pending) > max_pending
+                           or pending[0][0].ready()):
+            res, caps, imgs = pending.popleft()
+            absorb(caps, imgs, res.get())
+
+    while True:
+        # Count in-flight images as kept (conservative) so the pool path
+        # doesn't over-generate past num_samples while conversions drain
+        in_flight = sum(len(im) for _, _, im in pending)
+        if len(grids) + in_flight >= num_samples or cursor >= len(prompts):
+            drain(block=True)
+            if len(grids) >= num_samples or cursor >= len(prompts):
+                break
+            continue
+        batch = prompts[cursor:cursor + batch_size]
+        cursor += len(batch)
+        result = pipe(prompt=[style.format(p) for p in batch],
+                      negative_prompt=[NEGATIVE] * len(batch),
+                      num_inference_steps=steps, guidance_scale=0.0,
+                      generator=generator)
+        images = list(result.images)
+        captions_batch = list(batch)
+        if clip_filter > 0:
+            sims = clip_scorer(images, captions_batch)
+            keep = [float(s) >= clip_filter for s in sims]
+            off_prompt += keep.count(False)
+            images = [im for im, k in zip(images, keep) if k]
+            captions_batch = [c for c, k in zip(captions_batch, keep) if k]
+            if not images:
+                continue
+        if pool is not None:
+            pending.append((pool.map_async(_worker_convert, images),
+                            captions_batch, images))
+            drain()
+        else:
+            absorb(captions_batch, images,
+                   images_to_grids(images, tables, min_ink=min_ink,
+                                   max_ink=max_ink, binarize=binarize,
+                                   trim=trim))
+
+    drain(block=True)
+    if pool is not None:
+        pool.close()
+        pool.join()
 
     if not grids:
         print("ERROR: no usable images generated.")
@@ -311,6 +385,9 @@ def main():
     parser.add_argument("--preview-dir", default=None,
                         help="dump every image/grid pair here (use with a "
                              "small --num-samples to tune style/filters)")
+    parser.add_argument("--workers", type=int, default=None,
+                        help="conversion worker processes (default: "
+                             "cpu_count-2; 1 = serial)")
     parser.add_argument("--clip-filter", type=float, default=0.2,
                         help="reject images whose CLIP similarity to their "
                              "own caption is below this (0 = off)")
@@ -330,7 +407,7 @@ def main():
                      min_ink=args.min_ink, max_ink=args.max_ink,
                      style=args.style, preview_dir=args.preview_dir,
                      binarize=args.binarize, trim=args.trim,
-                     clip_filter=args.clip_filter)
+                     clip_filter=args.clip_filter, workers=args.workers)
 
 
 if __name__ == "__main__":

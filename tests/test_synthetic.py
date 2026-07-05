@@ -152,3 +152,22 @@ def test_clip_filter_drops_off_prompt_images(tmp_path):
                          clip_filter=0.2, clip_scorer=fake_scorer)
     assert n == 4
     assert scored  # the filter actually ran
+
+
+def test_parallel_conversion_matches_serial(tmp_path):
+    # The worker pool must produce the same dataset as the serial path
+    # (same fake images, same converter, same filters)
+    from data.generate_synthetic import generate_dataset
+
+    serial = tmp_path / "serial.pt"
+    parallel = tmp_path / "parallel.pt"
+    generate_dataset(num_samples=6, out_path=str(serial), batch_size=3,
+                     seed=0, device="cpu", pipe=_FakePipe(), workers=1)
+    generate_dataset(num_samples=6, out_path=str(parallel), batch_size=3,
+                     seed=0, device="cpu", pipe=_FakePipe(), workers=2)
+
+    a = torch.load(serial, weights_only=True)
+    b = torch.load(parallel, weights_only=True)
+    assert torch.equal(a["data"], b["data"])
+    assert torch.equal(a["caption_ids"], b["caption_ids"])
+    assert a["captions"] == b["captions"]
