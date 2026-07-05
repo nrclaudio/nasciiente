@@ -171,3 +171,28 @@ def test_batched_cfg_matches_two_forward_passes():
         uncond = model(grid.unsqueeze(0), mask_ratio=0.5).squeeze(0)
     b = uncond + scale * (cond - uncond)
     assert torch.allclose(a, b, atol=1e-5)
+
+
+def test_space_bias_breaks_blank_collapse():
+    # Reproduce the blank attractor: a model whose head is strongly biased
+    # toward space generates an all-blank grid; space_bias must break the
+    # collapse while leaving the default (0) behavior untouched.
+    from model.ascii_bert import ASCIIBert
+    from model.inference import SPACE_TOKEN
+    torch.manual_seed(0)
+    model = ASCIIBert(embed_dim=32, num_layers=2, num_heads=2, ffn_dim=64,
+                      text_dim=16)
+    with torch.no_grad():
+        model.head.bias[SPACE_TOKEN] = 8.0  # "space everywhere" prior
+    model.eval()
+
+    torch.manual_seed(1)
+    _, blank = generate(model, H, W, num_steps=4, revision_steps=0,
+                        gumbel_scale=0.0, device="cpu")
+    assert int((blank != SPACE_TOKEN).sum()) <= 2, "expected blank collapse"
+
+    torch.manual_seed(1)
+    _, inked = generate(model, H, W, num_steps=4, revision_steps=0,
+                        gumbel_scale=0.0, space_bias=20.0, device="cpu")
+    assert int((inked != SPACE_TOKEN).sum()) > H * W // 4, \
+        "space_bias should force early ink placement"

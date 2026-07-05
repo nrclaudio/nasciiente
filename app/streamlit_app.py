@@ -417,6 +417,10 @@ def main():
     revision_steps = st.sidebar.slider(
         "Refinement passes", 0, 5, 2,
         help="Re-mask the least-confident cells and refill.")
+    space_bias = st.sidebar.slider(
+        "Ink boost (anti-blank)", 0.0, 8.0, 0.0, 0.5,
+        help="Pushes the empty canvas to place ink; fades out as the grid "
+             "fills. Raise it (2-6) if generations come out blank.")
     seed = st.sidebar.number_input("Seed", 0, 2**31 - 1, 0)
     randomize = st.sidebar.toggle("New seed every run", value=True)
 
@@ -428,7 +432,7 @@ def main():
         gh, gw = GRID_H, GRID_W
 
     base_kwargs = dict(schedule=schedule, gumbel_scale=gumbel_scale,
-                       revision_steps=revision_steps)
+                       revision_steps=revision_steps, space_bias=space_bias)
 
     tabs = st.tabs(["⚡ Generate", "▦ Inpaint", "◫ Guidance lab",
                     "▁▃▅ Training progress"])

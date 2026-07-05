@@ -3,7 +3,9 @@ import math
 import torch
 import torch.nn.functional as F
 
-from data.charset import MASK_TOKEN
+from data.charset import MASK_TOKEN, char_to_idx
+
+SPACE_TOKEN = char_to_idx(" ")
 
 
 def _sample_all(probs):
@@ -65,7 +67,7 @@ def _model_logits(model, grid, cond, guidance_scale, mask_ratio):
 
 def _iterative_fill(model, grid, num_steps, temperature, schedule,
                     gumbel_scale, steps_out,
-                    cond=None, guidance_scale=1.0):
+                    cond=None, guidance_scale=1.0, space_bias=0.0):
     """Fill every currently-[MASK] cell of `grid` in place (MaskGIT-style).
 
     Cells that are not [MASK] on entry are never touched, so fixed/anchor
@@ -76,6 +78,14 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
     plus Gumbel noise annealed to zero across steps (explore early, commit
     late). k follows the cosine (or linear) schedule. The model is told the
     current mask ratio each step (its denoising noise level).
+
+    space_bias > 0 counteracts the blank-grid attractor: on dense/uncertain
+    targets the per-cell argmax is "space" almost everywhere at high mask
+    ratios, so confidence-ordered commits lay a sea of spaces first and the
+    blank context locks in. The bias is subtracted from the space logit
+    scaled by the CURRENT mask ratio — full strength on an empty canvas,
+    zero once the grid is mostly committed — forcing early ink placement
+    while leaving late-stage space placement free.
     """
     n0 = int((grid == MASK_TOKEN).sum().item())
     if n0 == 0:
@@ -93,6 +103,8 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
                                mask_ratio)                # [H, W, V]
         if temperature != 1.0:
             logits = logits / temperature
+        if space_bias > 0:
+            logits[..., SPACE_TOKEN] -= space_bias * mask_ratio
         probs = F.softmax(logits, dim=-1)
 
         sampled = _sample_all(probs)                     # [H, W]
@@ -133,7 +145,7 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
              initial_grid=None, device="cpu", schedule="cosine",
              gumbel_scale=1.0, revision_steps=2, revision_fraction=0.1,
              prompt=None, cond_tokens=None, cond_mask=None,
-             guidance_scale=1.0):
+             guidance_scale=1.0, space_bias=0.0):
     """
     Generate ASCII art via iterative unmasking (MaskGIT-style).
 
@@ -162,6 +174,11 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
         guidance_scale: classifier-free guidance strength (1.0 = off). Higher
                         sharpens adherence to the prompt at some diversity
                         cost.
+        space_bias: anti-blank pressure (0 = off). Subtracted from the space
+                    logit scaled by the current mask ratio, so an empty
+                    canvas is pushed to place ink but a mostly-filled grid
+                    is not. Useful when free generation collapses to blank
+                    on dense/high-uncertainty checkpoints; try 2-6.
 
     Returns:
         steps: list of [H, W] long tensors (grid at each step)
@@ -195,7 +212,7 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
 
     # --- Main fill ---
     _iterative_fill(model, grid, num_steps, temperature, schedule,
-                    gumbel_scale, steps, cond, guidance_scale)
+                    gumbel_scale, steps, cond, guidance_scale, space_bias)
 
     # --- Revision passes (poor-man's Token-Critic self-correction) ---
     free = ~fixed
@@ -219,7 +236,8 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
 
         refill_steps = max(2, num_steps // 4)
         _iterative_fill(model, grid, refill_steps, temperature, schedule,
-                        gumbel_scale, steps, cond, guidance_scale)
+                        gumbel_scale, steps, cond, guidance_scale,
+                        space_bias)
 
     return steps, grid.cpu()
 
