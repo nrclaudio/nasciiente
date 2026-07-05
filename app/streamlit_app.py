@@ -195,6 +195,12 @@ def tab_generate(model, device, conditioned, gh, gw, num_steps, temperature,
         prompt, guidance = "", 1.0
 
     n_var = st.radio("Variations", [1, 2, 4], horizontal=True)
+    rank = False
+    if conditioned:
+        rank = st.checkbox(
+            "Rank variations by CLIP match", value=True,
+            help="Renders each candidate to pixels and sorts by CLIP "
+                 "similarity to the prompt — judge the art by its looks.")
 
     gen_kwargs = dict(base_kwargs)
     if prompt.strip() and conditioned:
@@ -215,21 +221,33 @@ def tab_generate(model, device, conditioned, gh, gw, num_steps, temperature,
                 steps, final = generate(model, gh, gw, num_steps=num_steps,
                                         temperature=temperature,
                                         device=device, **gen_kwargs)
-                results.append((s, steps, final, time.time() - t0))
+                results.append([s, steps, final, time.time() - t0, None])
+        if rank and prompt.strip() and len(results) > 1:
+            try:
+                from data.clip_rank import clip_scores
+                scores = clip_scores([r[2] for r in results], prompt.strip())
+                for r, sc in zip(results, scores):
+                    r[4] = float(sc)
+                results.sort(key=lambda r: r[4], reverse=True)
+            except Exception as e:
+                st.caption(f"CLIP ranking unavailable: {e}")
         st.session_state["gen_results"] = results
         st.session_state["gen_prompt"] = prompt
         history = st.session_state.setdefault("history", [])
-        for s, _, final, _ in results:
+        for s, _, final, _, _ in results:
             history.append((prompt or "(unconditional)", s, final))
         del history[:-12]  # keep the last 12
 
     results = st.session_state.get("gen_results", [])
     if results:
         cols = st.columns(min(len(results), 2))
-        for i, (s, steps, final, took) in enumerate(results):
+        for i, (s, steps, final, took, score) in enumerate(results):
             with cols[i % len(cols)]:
                 st.code(grid_to_string(final), language=None)
-                st.caption(f"seed {s} · {took:.1f}s · {num_steps} steps")
+                badge = (f" · CLIP {score:.3f}" + (" ★" if i == 0 else "")
+                         if score is not None else "")
+                st.caption(f"seed {s} · {took:.1f}s · {num_steps} steps"
+                           f"{badge}")
                 show_grid_actions(final, f"g{i}", model, device, gen_kwargs,
                                   num_steps, temperature, steps=steps)
 
