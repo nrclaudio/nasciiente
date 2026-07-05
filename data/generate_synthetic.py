@@ -149,9 +149,14 @@ def _worker_init(min_ink, max_ink, binarize, trim):
 
 def _worker_convert(image):
     min_ink, max_ink, binarize, trim = _WORKER["args"]
-    return images_to_grids([image], _WORKER["tables"], min_ink=min_ink,
-                           max_ink=max_ink, binarize=binarize,
-                           trim=trim)[0]
+    grid, ink_frac = images_to_grids([image], _WORKER["tables"],
+                                     min_ink=min_ink, max_ink=max_ink,
+                                     binarize=binarize, trim=trim)[0]
+    # Return numpy, NOT a torch tensor: torch pickles tensors across
+    # processes via fd-sharing, which exhausts descriptors under a steady
+    # stream of results ("received 0 items of ancdata"). A 48x80 uint8
+    # array is 3.8KB of plain bytes.
+    return (None if grid is None else grid.numpy(), ink_frac)
 
 
 def _save(out_path, grids, caption_ids, captions, merge_payload=None):
@@ -301,7 +306,9 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
         while pending and (block or len(pending) > max_pending
                            or pending[0][0].ready()):
             res, caps, imgs = pending.popleft()
-            absorb(caps, imgs, res.get())
+            converted = [(None if g is None else torch.from_numpy(g), ink)
+                         for g, ink in res.get()]
+            absorb(caps, imgs, converted)
 
     while True:
         # Count in-flight images as kept (conservative) so the pool path
