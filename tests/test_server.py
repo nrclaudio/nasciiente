@@ -54,3 +54,80 @@ def test_progress_and_static(client):
     page = client.get("/")
     assert page.status_code == 200
     assert "INTERFACE 2037" in page.text
+
+
+def _png_bytes():
+    import io
+    from PIL import Image, ImageDraw
+    img = Image.new("RGB", (256, 256), "white")
+    draw = ImageDraw.Draw(img)
+    draw.rectangle([60, 60, 200, 200], outline="black", width=8)
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return buf.getvalue()
+
+
+def _gif_bytes(n_frames):
+    import io
+    from PIL import Image, ImageDraw
+    frames = []
+    for i in range(n_frames):
+        img = Image.new("RGB", (128, 128), "white")
+        draw = ImageDraw.Draw(img)
+        draw.rectangle([20 + i * 10, 20, 90 + i * 10, 90],
+                       outline="black", width=6)
+        frames.append(img)
+    buf = io.BytesIO()
+    frames[0].save(buf, format="GIF", save_all=True,
+                   append_images=frames[1:], duration=125, loop=0)
+    return buf.getvalue()
+
+
+def test_convert_single_image(client):
+    resp = client.post("/api/convert",
+                       files={"file": ("box.png", _png_bytes(),
+                                       "image/png")})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["animated"] is False
+    assert len(data["frames"]) == 1
+    lines = data["frames"][0].split("\n")
+    assert len(lines) == 48 and all(len(l) == 80 for l in lines)
+    # The rectangle survived conversion: real ink, not a blank grid
+    assert sum(c not in " " for l in lines for c in l) > 30
+
+
+def test_convert_animated_gif(client):
+    resp = client.post("/api/convert?binarize=false",
+                       files={"file": ("anim.gif", _gif_bytes(3),
+                                       "image/gif")})
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["animated"] is True
+    assert len(data["frames"]) == 3
+    assert data["fps"] == 8                # 125ms frame duration
+    # Frames differ (the box moves)
+    assert data["frames"][0] != data["frames"][1]
+
+
+def test_convert_rejects_non_image(client):
+    resp = client.post("/api/convert",
+                       files={"file": ("junk.bin", b"not an image",
+                                       "application/octet-stream")})
+    assert resp.status_code == 422
+
+
+def test_gif_export(client):
+    frames = ["##  \n  ##", "  ##\n##  "]
+    resp = client.post("/api/gif", json={"frames": frames, "fps": 8})
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "image/gif"
+    assert resp.content[:6] in (b"GIF87a", b"GIF89a")
+
+
+def test_gif_validates(client):
+    assert client.post("/api/gif",
+                       json={"frames": []}).status_code == 422
+    assert client.post("/api/gif",
+                       json={"frames": ["#"],
+                             "fps": 99}).status_code == 422

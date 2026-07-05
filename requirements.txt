@@ -7,4 +7,5 @@ transformers
 streamlit
 fastapi
 uvicorn
+python-multipart
 pytest

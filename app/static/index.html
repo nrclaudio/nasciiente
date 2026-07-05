@@ -153,6 +153,7 @@
 
   <nav>
     <a id="tab-draw" class="on">INQUIRY</a>
+    <a id="tab-intake">IMAGE INTAKE</a>
     <a id="tab-train">FLIGHT RECORDER</a>
   </nav>
 
@@ -182,6 +183,20 @@
     </div>
     <div id="console"></div>
     <div id="out"></div>
+  </section>
+
+  <section id="intake" style="display:none">
+    <div id="tuning">
+      <label>SPECIMEN <input type="file" id="upload"
+             accept="image/*"></label>
+      <label>BINARIZE <input type="checkbox" id="i-binarize"
+             checked></label>
+      <button id="i-convert" class="glow">CONVERT ▸</button>
+    </div>
+    <div id="i-console" style="font-size:12.5px;letter-spacing:.14em;
+         color:var(--ink-mid);text-transform:uppercase;
+         margin-bottom:12px"></div>
+    <div id="i-out"></div>
   </section>
 
   <section id="gallery">
@@ -305,7 +320,10 @@ function addPane(r, i) {
   for (const [name, fn] of [
       ["REPLAY", () => animate(pre, r.steps)],
       ["COPY", () => navigator.clipboard.writeText(r.final)],
-      ["TXT", () => download(r.final)]]) {
+      ["TXT", () => download(r.final)],
+      ["SVG", () => download(gridToSvg(r.final), "synthesis.svg",
+                             "image/svg+xml")],
+      ["GIF", () => downloadGif(r.steps, 8, "materialize.gif")]]) {
     const b = document.createElement("button");
     b.textContent = name; b.onclick = fn; meta.appendChild(b);
   }
@@ -318,22 +336,106 @@ async function animate(pre, steps) {
   for (const s of steps) { pre.textContent = s; await sleep(85); }
 }
 
-function download(text) {
+function download(text, name = "synthesis.txt", type = "text/plain") {
   const a = document.createElement("a");
-  a.href = URL.createObjectURL(new Blob([text], {type: "text/plain"}));
-  a.download = "synthesis.txt"; a.click();
+  a.href = URL.createObjectURL(new Blob([text], {type}));
+  a.download = name; a.click();
 }
 
-// ---- flight recorder ---------------------------------------------------------
-$("tab-draw").onclick = () => switchTab(true);
-$("tab-train").onclick = () => switchTab(false);
-function switchTab(draw) {
-  $("draw").style.display = draw ? "" : "none";
-  $("gallery").style.display = draw ? "none" : "";
-  $("tab-draw").classList.toggle("on", draw);
-  $("tab-train").classList.toggle("on", !draw);
-  if (!draw && !samples.length) loadGallery();
+// ASCII grid -> standalone SVG (crisp at any scale/print)
+function gridToSvg(text) {
+  const lines = text.split("\n");
+  const cw = 8.4, ch = 14;
+  const w = Math.max(...lines.map(l => l.length)) * cw + 40;
+  const h = lines.length * ch + 40;
+  const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;");
+  const rows = lines.map((l, i) =>
+    `<text x="20" y="${34 + i * ch}" xml:space="preserve">${esc(l)}</text>`
+  ).join("\n");
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">
+<rect width="100%" height="100%" fill="#010401"/>
+<g font-family="Menlo,DejaVu Sans Mono,monospace" font-size="13"
+   fill="#cfe8cf">${rows}</g></svg>`;
 }
+
+async function downloadGif(frames, fps = 8, name = "synthesis.gif") {
+  const resp = await fetch("/api/gif", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({frames, fps})});
+  if (!resp.ok) return;
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(await resp.blob());
+  a.download = name; a.click();
+}
+
+// ---- tabs ---------------------------------------------------------------
+const TABS = {"tab-draw": "draw", "tab-intake": "intake",
+              "tab-train": "gallery"};
+for (const tabId of Object.keys(TABS)) {
+  $(tabId).onclick = () => switchTab(tabId);
+}
+function switchTab(active) {
+  for (const [tabId, secId] of Object.entries(TABS)) {
+    $(secId).style.display = tabId === active ? "" : "none";
+    $(tabId).classList.toggle("on", tabId === active);
+  }
+  if (active === "tab-train" && !samples.length) loadGallery();
+}
+
+// ---- image intake ----------------------------------------------------------
+let intakePlayer = null;
+$("i-convert").onclick = async () => {
+  const file = $("upload").files[0];
+  if (!file) { $("i-console").textContent = "NO SPECIMEN PROVIDED"; return; }
+  $("i-console").textContent = "ANALYZING SPECIMEN …";
+  $("i-out").innerHTML = "";
+  if (intakePlayer) { clearInterval(intakePlayer); intakePlayer = null; }
+  const form = new FormData();
+  form.append("file", file);
+  try {
+    const resp = await fetch(
+      `/api/convert?binarize=${$("i-binarize").checked}`,
+      {method: "POST", body: form});
+    if (!resp.ok) throw new Error(await resp.text());
+    const data = await resp.json();
+    $("i-console").textContent = data.animated
+      ? `SPECIMEN CONVERTED — ${data.frames.length} FRAMES @ ${data.fps}FPS`
+      : "SPECIMEN CONVERTED";
+    const pane = document.createElement("div");
+    pane.className = "pane";
+    const pre = document.createElement("pre");
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    const current = () => data.animated
+      ? data.frames[Math.floor(Date.now() / (1000 / data.fps))
+                    % data.frames.length]
+      : data.frames[0];
+    for (const [name, fn] of [
+        ["COPY", () => navigator.clipboard.writeText(current())],
+        ["TXT", () => download(current(), "converted.txt")],
+        ["SVG", () => download(gridToSvg(current()), "converted.svg",
+                               "image/svg+xml")],
+        ...(data.animated ? [["GIF", () =>
+            downloadGif(data.frames, data.fps, "converted.gif")]] : [])]) {
+      const b = document.createElement("button");
+      b.textContent = name; b.onclick = fn; meta.appendChild(b);
+    }
+    pane.append(pre, meta);
+    $("i-out").appendChild(pane);
+    if (data.animated) {
+      let i = 0;
+      pre.textContent = data.frames[0];
+      intakePlayer = setInterval(() => {
+        pre.textContent = data.frames[i++ % data.frames.length];
+      }, 1000 / data.fps);
+    } else {
+      pre.textContent = data.frames[0];
+    }
+  } catch (e) {
+    $("i-console").textContent = "!! INTAKE FAULT: " + e.message.slice(0, 140);
+  }
+};
 async function loadGallery() {
   samples = (await (await fetch("/api/progress")).json()).samples;
   const stages = [...new Set(samples.map(s => s.stage))];
