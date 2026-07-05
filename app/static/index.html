@@ -3,271 +3,313 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ASCII Art Transformer</title>
+<title>INTERFACE 2037</title>
 <style>
   :root {
-    --ink: #4af626; --ink-dim: #2f9e1a; --ink-faint: #1d5c12;
-    --bg: #050905; --panel: #070f07;
+    --ink: #cfe8cf;          /* MU/TH/UR pale phosphor */
+    --ink-mid: #7fb37f;
+    --ink-dim: #3f5f3f;
+    --amber: #e8c46a;
+    --bg: #010401;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { height: 100%; }
+  html, body { min-height: 100%; background: #000; }
   body {
-    background: var(--bg);
     color: var(--ink);
     font-family: "SF Mono", "Menlo", "DejaVu Sans Mono", "Consolas", monospace;
     font-size: 14px;
-    overflow-x: hidden;
+    display: flex; align-items: flex-start; justify-content: center;
   }
-  /* CRT atmosphere */
-  body::before {           /* scanlines */
-    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 9;
+  /* ---- the CRT itself (grows with content; footer rides its bottom) --- */
+  #crt {
+    position: relative; width: 100%; max-width: 1560px; margin: 14px;
+    min-height: calc(100vh - 28px);
+    background:
+      radial-gradient(ellipse 120% 90% at 50% 45%,
+        rgba(120,200,120,.06) 0%, transparent 55%),
+      var(--bg);
+    border-radius: 38px / 30px;
+    border: 2px solid #0c140c;
+    box-shadow:
+      inset 0 0 130px rgba(0,0,0,.92),
+      inset 0 0 24px rgba(90,160,90,.14),
+      0 0 42px rgba(40,90,40,.28);
+    padding: 46px 58px 60px;
+    overflow: hidden;
+  }
+  #crt::before {   /* scanlines */
+    content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 60;
     background: repeating-linear-gradient(0deg,
-      rgba(0,0,0,.22) 0px, rgba(0,0,0,.22) 1px, transparent 1px, transparent 3px);
+      rgba(0,0,0,.28) 0 1px, transparent 1px 3px);
+    border-radius: inherit;
   }
-  body::after {            /* vignette + phosphor bloom */
-    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 8;
-    background: radial-gradient(ellipse at center,
-      rgba(74,246,38,.045) 0%, transparent 60%, rgba(0,0,0,.55) 100%);
-    animation: flicker 4s infinite;
+  #crt::after {    /* rolling interference band */
+    content: ""; position: absolute; left: 0; right: 0; height: 90px;
+    pointer-events: none; z-index: 61;
+    background: linear-gradient(180deg, transparent,
+      rgba(160,255,160,.045), transparent);
+    animation: roll 9s linear infinite;
   }
-  @keyframes flicker {
-    0%,100% { opacity: 1; } 92% { opacity: 1; } 93% { opacity: .86; }
-    94% { opacity: 1; } 97% { opacity: .93; } 98% { opacity: 1; }
-  }
-  ::selection { background: var(--ink); color: var(--bg); }
+  @keyframes roll { 0% { top: -18%; } 100% { top: 118%; } }
+  .glow { text-shadow: 0 0 8px rgba(150,255,150,.45); }
+  ::selection { background: var(--ink); color: #000; }
 
-  main { max-width: 1500px; margin: 0 auto; padding: 22px 28px 80px; }
-  .glow { text-shadow: 0 0 7px rgba(74,246,38,.55); }
-  #banner { color: var(--ink); font-size: 12px; line-height: 1.1;
-            white-space: pre; margin-bottom: 4px; }
-  #bootlog { color: var(--ink-dim); font-size: 12px; min-height: 3.6em;
-             white-space: pre-wrap; margin-bottom: 14px; }
+  /* ---- MU/TH/UR chrome ------------------------------------------------ */
+  header { display: flex; justify-content: space-between; align-items: center;
+           letter-spacing: .28em; font-size: 12.5px; color: var(--ink-mid);
+           border-bottom: 1px solid var(--ink-dim); padding-bottom: 10px; }
+  header .badge { background: var(--ink); color: #000; padding: 2px 10px;
+                  letter-spacing: .28em; font-weight: bold; }
+  #mother { text-align: center; margin: 42px 0 30px; }
+  #mother .title { font-size: 26px; letter-spacing: .55em; text-indent: .55em;
+                   color: var(--ink); }
+  #mother .sub { margin-top: 12px; font-size: 13px; letter-spacing: .3em;
+                 color: var(--ink-mid); min-height: 1.2em; white-space: pre; }
 
-  nav { display: flex; gap: 22px; border-bottom: 1px solid var(--ink-faint);
-        margin-bottom: 18px; }
-  nav a { color: var(--ink-dim); text-decoration: none; padding: 6px 2px;
-          letter-spacing: .12em; cursor: pointer; }
-  nav a.on { color: var(--ink); border-bottom: 2px solid var(--ink); }
+  nav { display: flex; gap: 34px; justify-content: center; margin: 8px 0 26px;
+        font-size: 12.5px; letter-spacing: .3em; }
+  nav a { color: var(--ink-dim); cursor: pointer; padding: 3px 10px; }
+  nav a.on { color: #000; background: var(--ink); }
 
-  /* prompt line */
-  #promptline { display: flex; align-items: baseline; gap: 8px;
-                font-size: 16px; margin: 16px 0 10px; }
-  #promptline .ps1 { color: var(--ink-dim); white-space: nowrap; }
+  /* ---- inquiry line ---------------------------------------------------- */
+  #promptline { display: flex; align-items: baseline; gap: 10px;
+                font-size: 17px; margin: 4px 0 12px; text-transform: uppercase; }
+  #promptline .ps1 { color: var(--ink-mid); letter-spacing: .12em; }
   #prompt { flex: 1; background: transparent; border: none; outline: none;
-            color: var(--ink); font: inherit; caret-color: transparent; }
-  #cursor { display: inline-block; width: .6em; height: 1.05em;
-            background: var(--ink); vertical-align: text-bottom;
-            animation: blink 1.06s steps(1) infinite; margin-left: -6px; }
+            color: var(--ink); font: inherit; text-transform: uppercase;
+            letter-spacing: .12em; caret-color: transparent; }
+  #cursor { width: .62em; height: 1.1em; background: var(--ink);
+            display: inline-block; margin-left: -8px;
+            animation: blink 1.1s steps(1) infinite;
+            box-shadow: 0 0 9px rgba(150,255,150,.6); }
   @keyframes blink { 50% { opacity: 0; } }
 
-  /* controls */
-  #tuning { color: var(--ink-dim); font-size: 12.5px; margin-bottom: 16px;
-            display: flex; flex-wrap: wrap; gap: 18px; align-items: center; }
-  #tuning label { display: flex; gap: 7px; align-items: center; }
-  #tuning input[type=range] { accent-color: var(--ink); width: 110px; }
+  .chips { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+  .chips a { border: 1px solid var(--ink-dim); color: var(--ink-mid);
+             padding: 2px 10px; font-size: 11.5px; letter-spacing: .18em;
+             cursor: pointer; text-transform: uppercase; }
+  .chips a:hover { background: var(--ink); color: #000; }
+
+  #tuning { display: flex; flex-wrap: wrap; gap: 20px; align-items: center;
+            font-size: 11.5px; letter-spacing: .16em; color: var(--ink-mid);
+            text-transform: uppercase; border: 1px solid var(--ink-dim);
+            padding: 10px 16px; margin-bottom: 20px; }
+  #tuning input[type=range] { accent-color: var(--ink); width: 100px; }
   #tuning select, #tuning input[type=number] {
-    background: var(--panel); color: var(--ink); font: inherit;
-    border: 1px solid var(--ink-faint); padding: 1px 5px; }
-  button, .btn {
-    background: var(--panel); color: var(--ink); font: inherit;
-    font-size: 12.5px; border: 1px solid var(--ink-dim); padding: 4px 14px;
-    cursor: pointer; letter-spacing: .08em; }
-  button:hover, .btn:hover { background: var(--ink); color: var(--bg);
-    text-shadow: none; box-shadow: 0 0 14px rgba(74,246,38,.5); }
-  button:disabled { opacity: .4; cursor: wait; }
+    background: #000; color: var(--ink); font: inherit;
+    border: 1px solid var(--ink-dim); padding: 1px 6px; }
+  button { background: #000; color: var(--ink); font: inherit;
+    font-size: 12px; letter-spacing: .22em; border: 1px solid var(--ink-mid);
+    padding: 5px 18px; cursor: pointer; text-transform: uppercase; }
+  button:hover { background: var(--ink); color: #000;
+    box-shadow: 0 0 16px rgba(150,255,150,.5); }
+  button:disabled { opacity: .35; cursor: wait; }
 
-  /* output panes */
-  #out { display: flex; flex-wrap: wrap; gap: 26px; margin-top: 20px; }
-  .pane { flex: 1 1 640px; max-width: 100%; }
-  .pane pre {
-    font-size: 11.5px; line-height: 1.06; white-space: pre;
-    color: var(--ink); border: 1px solid var(--ink-faint);
-    background: rgba(74,246,38,.025); padding: 10px 12px;
-    overflow-x: auto; text-shadow: 0 0 5px rgba(74,246,38,.4);
-  }
-  .pane .meta { display: flex; gap: 14px; align-items: center;
-    color: var(--ink-dim); font-size: 12px; margin-top: 6px; }
-  .star { color: var(--ink); }
+  /* ---- readout panes ---------------------------------------------------- */
+  #console { font-size: 13px; letter-spacing: .12em; color: var(--ink-mid);
+             white-space: pre-wrap; min-height: 1.4em; margin-bottom: 14px;
+             text-transform: uppercase; }
+  #out { display: flex; flex-wrap: wrap; gap: 28px; }
+  .pane { flex: 1 1 660px; max-width: 100%; }
+  .pane .head { display: flex; justify-content: space-between;
+    font-size: 11px; letter-spacing: .22em; color: var(--ink-mid);
+    border: 1px solid var(--ink-dim); border-bottom: none;
+    padding: 4px 10px; text-transform: uppercase; }
+  .pane pre { font-size: 11.5px; line-height: 1.07; white-space: pre;
+    border: 1px solid var(--ink-dim); padding: 12px 14px; color: var(--ink);
+    overflow-x: auto; text-shadow: 0 0 6px rgba(150,255,150,.38);
+    background: rgba(120,220,120,.02); min-height: 60px; }
+  .pane .meta { display: flex; gap: 10px; margin-top: 7px; }
 
-  /* gallery */
+  /* ---- flight recorder --------------------------------------------------- */
   #gallery { display: none; }
-  #gallery .row { display: flex; gap: 16px; align-items: center;
-    margin-bottom: 12px; color: var(--ink-dim); font-size: 13px; }
-  #gallery pre { font-size: 11.5px; line-height: 1.06;
-    border: 1px solid var(--ink-faint); padding: 10px 12px;
-    color: var(--ink); overflow-x: auto;
-    text-shadow: 0 0 5px rgba(74,246,38,.4); }
+  #gallery .row { display: flex; gap: 18px; align-items: center;
+    font-size: 11.5px; letter-spacing: .18em; color: var(--ink-mid);
+    text-transform: uppercase; margin-bottom: 14px; }
+  #gallery pre { font-size: 11.5px; line-height: 1.07;
+    border: 1px solid var(--ink-dim); padding: 12px 14px; color: var(--ink);
+    overflow-x: auto; text-shadow: 0 0 6px rgba(150,255,150,.38); }
 
-  #status { position: fixed; bottom: 0; left: 0; right: 0; z-index: 10;
-    background: var(--panel); border-top: 1px solid var(--ink-faint);
-    color: var(--ink-dim); font-size: 12px; padding: 5px 28px;
-    display: flex; gap: 26px; }
-  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 4px 0 14px; }
-  .chips .btn { font-size: 11.5px; padding: 2px 9px;
-    border-color: var(--ink-faint); color: var(--ink-dim); }
+  footer { position: absolute; left: 58px; right: 58px; bottom: 18px;
+    display: flex; justify-content: space-between; font-size: 10.5px;
+    letter-spacing: .26em; color: var(--ink-dim); text-transform: uppercase; }
+  #bootlog { display: none; }   /* machine-readable boot state for tests */
+  .amber { color: var(--amber); }
 </style>
 </head>
 <body>
-<main>
-<div id="banner" class="glow">
-   _____  _________ .___.___    _____         __
-  /  _  \/   _____/ |   |   |  /  _  \_______/  |_
- /  /_\  \_____  \  |   |   | /  /_\  \_  __ \   __\
-/    |    /        \ |   |   |/    |    \  | \/|  |
-\____|__ /_______  / |___|___|\____|__  /__|   |__|
-        \/       \/                   \/  transformer
+<div id="crt">
+  <header>
+    <span>WEYLAND-YUTANI CORP · SYNTHETIC IMAGERY DIV</span>
+    <span class="badge">MU/TH/UR 6000</span>
+    <span>REF 180924609 · ASCII SYNTHESIS</span>
+  </header>
+
+  <div id="mother">
+    <div class="title glow">INTERFACE 2037</div>
+    <div class="sub" id="sub"> </div>
+  </div>
+  <div id="bootlog"></div>
+
+  <nav>
+    <a id="tab-draw" class="on">INQUIRY</a>
+    <a id="tab-train">FLIGHT RECORDER</a>
+  </nav>
+
+  <section id="draw">
+    <div id="promptline">
+      <span class="ps1 glow">INQUIRY?</span>
+      <input id="prompt" autocomplete="off" spellcheck="false"
+             placeholder="DESCRIBE SUBJECT FOR SYNTHESIS" autofocus>
+      <span id="cursor"></span>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div id="tuning">
+      <label>GUIDANCE <input type="range" id="guidance" min="1" max="6"
+             step="0.25" value="2"><span id="guidance-v">2.0</span></label>
+      <label>STEPS <input type="number" id="steps" min="1" max="20"
+             value="10" style="width:52px"></label>
+      <label>MATRIX <select id="size">
+        <option value="48,80">48×80</option>
+        <option value="24,40">24×40</option>
+        <option value="64,128">64×128</option></select></label>
+      <label>RUNS <select id="vars">
+        <option>1</option><option selected>2</option><option>4</option>
+      </select></label>
+      <label>INK BOOST <input type="range" id="bias" min="0" max="8"
+             step="0.5" value="0"><span id="bias-v">0</span></label>
+      <button id="go" class="glow">PROCESS ▸</button>
+    </div>
+    <div id="console"></div>
+    <div id="out"></div>
+  </section>
+
+  <section id="gallery">
+    <div class="row">
+      <label>STAGE <select id="g-stage"></select></label>
+      <label>EPOCH <input type="range" id="g-epoch" min="1" max="1"
+             value="1"><span id="g-epoch-v"></span></label>
+      <button id="g-play">PLAY ▸</button>
+    </div>
+    <pre id="g-view"></pre>
+  </section>
+
+  <footer>
+    <span id="s-model">MODEL …</span>
+    <span>SPECIAL ORDER 937 · SYNTHESIS PRIORITY ONE</span>
+    <span id="s-device"></span>
+  </footer>
 </div>
-<div id="bootlog"></div>
-
-<nav>
-  <a id="tab-draw" class="on">DRAW</a>
-  <a id="tab-train">TRAINING&nbsp;LOG</a>
-</nav>
-
-<section id="draw">
-  <div id="promptline">
-    <span class="ps1 glow">guest@ascii:~$ draw</span>
-    <input id="prompt" autocomplete="off" spellcheck="false"
-           placeholder="a goat … (empty = dream freely)" autofocus>
-    <span id="cursor"></span>
-  </div>
-  <div class="chips" id="chips"></div>
-  <div id="tuning">
-    <label>guidance <input type="range" id="guidance" min="1" max="6"
-           step="0.25" value="2"><span id="guidance-v">2.0</span></label>
-    <label>steps <input type="number" id="steps" min="1" max="20"
-           value="10" style="width:52px"></label>
-    <label>size <select id="size">
-      <option value="48,80">48×80</option>
-      <option value="24,40">24×40</option>
-      <option value="64,128">64×128</option></select></label>
-    <label>variations <select id="vars">
-      <option>1</option><option selected>2</option><option>4</option>
-    </select></label>
-    <label>ink boost <input type="range" id="bias" min="0" max="8"
-           step="0.5" value="0"><span id="bias-v">0</span></label>
-    <button id="go" class="glow">▷ GENERATE</button>
-  </div>
-  <div id="out"></div>
-</section>
-
-<section id="gallery">
-  <div class="row">
-    <label>stage <select id="g-stage"></select></label>
-    <label>epoch <input type="range" id="g-epoch" min="1" max="1"
-           value="1"><span id="g-epoch-v"></span></label>
-    <button id="g-play">▷ play</button>
-  </div>
-  <pre id="g-view"></pre>
-</section>
-</main>
-
-<div id="status"><span id="s-model">model: …</span>
-  <span id="s-device"></span><span id="s-msg"></span></div>
 
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
 const PRESETS = ["a goat", "a sailboat", "a castle", "a dragon",
                  "a rocket", "a skull", "two fish", "a windmill"];
-const SPIN = ["|","/","-","\\"];
 let busy = false, samples = [];
-
-// ---- boot sequence ---------------------------------------------------
-async function boot() {
-  const lines = [
-    "asciibert v3 — maskgit-style bidirectional transformer",
-    "loading checkpoint …"];
-  for (const l of lines) { $("bootlog").textContent += l + "\n";
-    await sleep(120); }
-  try {
-    const info = await (await fetch("/api/info")).json();
-    $("bootlog").textContent +=
-      `ok: ${info.checkpoint} · ${info.params_m}M params · ` +
-      `${info.conditioned ? "text-conditioned (CLIP cross-attention)"
-                          : "unconditional checkpoint"}\n`;
-    $("s-model").textContent = `model: ${info.checkpoint} ` +
-      `(${info.params_m}M)`;
-    $("s-device").textContent = `device: ${info.device}`;
-    if (!info.conditioned) $("prompt").placeholder =
-      "(checkpoint has no text conditioning — dreams only)";
-  } catch (e) {
-    $("bootlog").textContent += "!! no checkpoint reachable — is the " +
-      "server running next to checkpoints/ ?\n";
-  }
-}
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-// ---- prompt chips ------------------------------------------------------
+async function typeOut(el, text, cps = 28) {
+  el.textContent = "";
+  for (const ch of text) {
+    el.textContent += ch;
+    await sleep(1000 / cps);
+  }
+}
+
+// ---- boot ---------------------------------------------------------------
+async function boot() {
+  await typeOut($("sub"), "INTERFACE 2037 READY FOR INQUIRY");
+  try {
+    const info = await (await fetch("/api/info")).json();
+    $("bootlog").textContent = "ok: " + info.checkpoint;   // test hook
+    $("s-model").textContent =
+      `MODEL ${info.checkpoint.toUpperCase()} · ${info.params_m}M PARAMS` +
+      (info.conditioned ? " · TEXT LINKED" : " · UNCONDITIONED");
+    $("s-device").textContent = `PROCESSOR ${info.device.toUpperCase()}`;
+    if (!info.conditioned)
+      $("prompt").placeholder = "CHECKPOINT NOT TEXT-LINKED — FREE SYNTHESIS ONLY";
+  } catch (e) {
+    $("sub").textContent = "NO RESPONSE FROM SYNTHESIS CORE";
+    $("sub").classList.add("amber");
+  }
+}
+
+// ---- preset chips ---------------------------------------------------------
 for (const p of PRESETS) {
   const b = document.createElement("a");
-  b.className = "btn"; b.textContent = p;
+  b.textContent = p;
   b.onclick = () => { $("prompt").value = p; go(); };
   $("chips").appendChild(b);
 }
 
-// ---- generate ----------------------------------------------------------
+// ---- inquiry ---------------------------------------------------------------
 $("guidance").oninput = () =>
   $("guidance-v").textContent = (+$("guidance").value).toFixed(1);
 $("bias").oninput = () => $("bias-v").textContent = $("bias").value;
 $("go").onclick = go;
-$("prompt").addEventListener("keydown", e => {
-  if (e.key === "Enter") go();
-});
+$("prompt").addEventListener("keydown", e => { if (e.key === "Enter") go(); });
 
 async function go() {
   if (busy) return;
   busy = true; $("go").disabled = true;
   const [rows, cols] = $("size").value.split(",").map(Number);
+  const prompt = $("prompt").value.trim();
   const body = {
-    prompt: $("prompt").value, guidance: +$("guidance").value,
-    steps: +$("steps").value, rows, cols,
-    variations: +$("vars").value, space_bias: +$("bias").value,
+    prompt, guidance: +$("guidance").value, steps: +$("steps").value,
+    rows, cols, variations: +$("vars").value, space_bias: +$("bias").value,
   };
-  const out = $("out"); out.innerHTML = "";
-  const wait = document.createElement("pre");
-  out.appendChild(wait);
-  let tick = 0;
-  const spinner = setInterval(() => {
-    wait.textContent = ` ${SPIN[tick++ % 4]} dreaming in ascii …`;
-  }, 110);
+  $("out").innerHTML = "";
+  const con = $("console");
+  await typeOut(con, prompt
+    ? `PROCESSING INQUIRY: ${prompt.toUpperCase()}`
+    : "PROCESSING UNCONSTRAINED SYNTHESIS", 44);
+  let dots = 0;
+  const ticker = setInterval(() => {
+    con.textContent = con.textContent.replace(/\.*$/, "")
+      + ".".repeat(1 + dots++ % 4);
+  }, 320);
   try {
     const resp = await fetch("/api/generate", {
       method: "POST", headers: {"Content-Type": "application/json"},
       body: JSON.stringify(body)});
     if (!resp.ok) throw new Error(await resp.text());
     const data = await resp.json();
-    clearInterval(spinner); out.innerHTML = "";
-    data.results.forEach((r, i) => addPane(r, i, data));
-    $("s-msg").textContent = data.prompt_used
-      ? `prompt: "${$("prompt").value}"` : "unconditional dream";
+    clearInterval(ticker);
+    con.textContent = data.prompt_used
+      ? `SYNTHESIS COMPLETE — ${data.results.length} RUN(S) — ` +
+        `RANKED BY VISUAL MATCH`
+      : `SYNTHESIS COMPLETE — ${data.results.length} RUN(S)`;
+    data.results.forEach((r, i) => addPane(r, i));
   } catch (e) {
-    clearInterval(spinner);
-    wait.textContent = "!! " + e.message;
+    clearInterval(ticker);
+    con.textContent = "!! SYNTHESIS FAULT: " + e.message.slice(0, 160);
+    con.classList.add("amber");
+    setTimeout(() => con.classList.remove("amber"), 4000);
   }
   busy = false; $("go").disabled = false;
 }
 
-function addPane(r, i, data) {
+function addPane(r, i) {
   const pane = document.createElement("div");
   pane.className = "pane";
+  const head = document.createElement("div");
+  head.className = "head";
+  const score = r.score != null
+    ? `MATCH ${r.score.toFixed(3)}${i === 0 ? " ◈ BEST" : ""}` : "";
+  head.innerHTML = `<span>RUN ${String(i + 1).padStart(2, "0")} · ` +
+    `SEED ${r.seed}</span><span>${score}</span>`;
   const pre = document.createElement("pre");
-  pane.appendChild(pre);
   const meta = document.createElement("div");
   meta.className = "meta";
-  const score = r.score != null
-    ? ` · clip ${r.score.toFixed(3)}${i === 0 ? " ★" : ""}` : "";
-  const label = document.createElement("span");
-  label.textContent = `seed ${r.seed} · ${r.took}s${score}`;
-  meta.appendChild(label);
   for (const [name, fn] of [
-      ["replay", () => animate(pre, r.steps)],
-      ["copy", () => navigator.clipboard.writeText(r.final)],
-      ["txt", () => download(r.final)]]) {
+      ["REPLAY", () => animate(pre, r.steps)],
+      ["COPY", () => navigator.clipboard.writeText(r.final)],
+      ["TXT", () => download(r.final)]]) {
     const b = document.createElement("button");
     b.textContent = name; b.onclick = fn; meta.appendChild(b);
   }
-  pane.appendChild(meta);
+  pane.append(head, pre, meta);
   $("out").appendChild(pane);
   animate(pre, r.steps);
 }
@@ -279,10 +321,10 @@ async function animate(pre, steps) {
 function download(text) {
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([text], {type: "text/plain"}));
-  a.download = "ascii_art.txt"; a.click();
+  a.download = "synthesis.txt"; a.click();
 }
 
-// ---- training gallery ----------------------------------------------------
+// ---- flight recorder ---------------------------------------------------------
 $("tab-draw").onclick = () => switchTab(true);
 $("tab-train").onclick = () => switchTab(false);
 function switchTab(draw) {
@@ -295,19 +337,17 @@ function switchTab(draw) {
 async function loadGallery() {
   samples = (await (await fetch("/api/progress")).json()).samples;
   const stages = [...new Set(samples.map(s => s.stage))];
-  $("g-stage").innerHTML = stages.map(s =>
-    `<option>${s}</option>`).join("");
-  $("g-stage").onchange = () => setStage();
-  $("g-epoch").oninput = () => showEpoch();
+  $("g-stage").innerHTML = stages.map(s => `<option>${s}</option>`).join("");
+  $("g-stage").onchange = setStage;
+  $("g-epoch").oninput = showEpoch;
   $("g-play").onclick = playEpochs;
   if (stages.length) setStage();
   else $("g-view").textContent =
-    "no training samples yet — they appear per epoch during training";
+    "NO RECORDS — TRAINING WRITES ONE SYNTHESIS PER EPOCH";
 }
-function stageSamples() {
-  return samples.filter(s => s.stage === $("g-stage").value)
-                .sort((a, b) => a.epoch - b.epoch);
-}
+const stageSamples = () =>
+  samples.filter(s => s.stage === $("g-stage").value)
+         .sort((a, b) => a.epoch - b.epoch);
 function setStage() {
   const ss = stageSamples();
   $("g-epoch").max = ss.length; $("g-epoch").value = ss.length;
@@ -317,7 +357,7 @@ function showEpoch() {
   const ss = stageSamples();
   const s = ss[+$("g-epoch").value - 1];
   if (!s) return;
-  $("g-epoch-v").textContent = `${s.epoch}/${ss[ss.length-1].epoch}`;
+  $("g-epoch-v").textContent = `${s.epoch}/${ss[ss.length - 1].epoch}`;
   $("g-view").textContent = s.text;
 }
 async function playEpochs() {

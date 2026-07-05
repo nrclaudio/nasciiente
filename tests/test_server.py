@@ -53,4 +53,4 @@ def test_progress_and_static(client):
     assert "samples" in client.get("/api/progress").json()
     page = client.get("/")
     assert page.status_code == 200
-    assert "GENERATE" in page.text
+    assert "INTERFACE 2037" in page.text
