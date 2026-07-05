@@ -100,6 +100,66 @@ def extract_caption(record):
     return None
 
 
+# Boilerplate BLIP prefixes that would drown the actual subject
+_CAPTION_PREFIXES = (
+    "a black and white drawing of ", "a black and white photo of ",
+    "a drawing of ", "a sketch of ", "a picture of ", "an image of ",
+    "a photo of ", "ascii art of ",
+)
+
+
+def _clean_caption(text):
+    text = " ".join(text.strip().split())
+    lowered = text.lower()
+    for prefix in _CAPTION_PREFIXES:
+        if lowered.startswith(prefix):
+            text = text[len(prefix):]
+            lowered = text.lower()
+    return text.strip() or None
+
+
+def auto_caption_grids(grids, batch_size=16, device=None, captioner=None):
+    """Caption rendered grids with a local BLIP model.
+
+    Renders each piece to pixels and asks an image captioner what it
+    depicts — turning the ~60% of human pieces that have no title into
+    captioned training data. `captioner` is injectable for tests: a
+    callable (list of PIL images) -> list of caption strings.
+
+    Requires: pip install transformers (BLIP downloads ~1GB once).
+    """
+    import torch as _torch
+
+    from model.render import render_to_pil
+
+    if captioner is None:
+        from transformers import (BlipForConditionalGeneration,
+                                  BlipProcessor)
+        if device is None:
+            device = "cuda" if _torch.cuda.is_available() else "cpu"
+        model_id = "Salesforce/blip-image-captioning-base"
+        print(f"Loading {model_id} on {device} for auto-captioning...")
+        processor = BlipProcessor.from_pretrained(model_id)
+        blip = (BlipForConditionalGeneration.from_pretrained(model_id)
+                .to(device).eval())
+
+        @_torch.no_grad()
+        def captioner(images):
+            inputs = processor(images=images,
+                               return_tensors="pt").to(device)
+            out = blip.generate(**inputs, max_new_tokens=20)
+            return processor.batch_decode(out, skip_special_tokens=True)
+
+    captions = []
+    for i in range(0, len(grids), batch_size):
+        images = [render_to_pil(g) for g in grids[i:i + batch_size]]
+        captions.extend(_clean_caption(c) for c in captioner(images))
+        if (i // batch_size) % 10 == 0:
+            print(f"  captioned {min(i + batch_size, len(grids)):,}"
+                  f"/{len(grids):,}", flush=True)
+    return captions
+
+
 def load_human_dataset(name, config=None):
     """Load a HF dataset of ASCII art, trying known config names."""
     from datasets import load_dataset
@@ -129,6 +189,10 @@ def main():
                         help="Dataset config/subset name (default: try 'asciiart', then none)")
     parser.add_argument("--min-ink", type=int, default=MIN_INK_CHARS,
                         help="Minimum non-space characters per piece")
+    parser.add_argument("--auto-caption", action="store_true",
+                        help="Caption pieces WITHOUT a title using a local "
+                             "BLIP model on their rendered pixels "
+                             "(needs transformers; ~1GB download)")
     args = parser.parse_args()
 
     ds = load_human_dataset(args.dataset, args.config)
@@ -161,6 +225,19 @@ def main():
     if not grids:
         print("ERROR: No usable ASCII art found.")
         sys.exit(1)
+
+    if args.auto_caption:
+        todo = [i for i, c in enumerate(caption_ids) if c < 0]
+        if todo:
+            print(f"Auto-captioning {len(todo):,} untitled pieces...")
+            generated = auto_caption_grids([grids[i] for i in todo])
+            for i, caption in zip(todo, generated):
+                if caption:
+                    caption_ids[i] = caption_index.setdefault(
+                        caption, len(caption_index))
+            n_captioned = sum(1 for c in caption_ids if c >= 0)
+            print(f"  Now {n_captioned:,}/{len(grids):,} captioned "
+                  f"({len(caption_index):,} unique captions)")
 
     data = torch.stack(grids).to(torch.uint8)  # vocab fits in a byte
     payload = {"data": data}
