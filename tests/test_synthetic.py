@@ -219,6 +219,39 @@ def test_tonal_conversion_keeps_gray_levels():
     assert tonal_glyphs >= 8    # a real density ramp, not a silhouette
 
 
+def test_flatten_bg_rescues_textured_backgrounds():
+    # Reproduces the v2 engine failure: near-white paper texture gets
+    # amplified by CLAHE into faint glyphs across the whole canvas, so
+    # tonal conversions blow past the ink cap. Flattening the background
+    # (estimated from the border) must bring ink back down to the
+    # subject alone.
+    import numpy as np
+    from data.generate_synthetic import images_to_grids, _build_tables
+    from PIL import Image, ImageDraw, ImageFilter
+
+    rng = np.random.default_rng(0)
+    noise = rng.integers(228, 250, (256, 256)).astype(np.float32)  # paper
+    yy, xx = np.mgrid[:256, :256].astype(np.float32)
+    dist = np.sqrt((yy - 128) ** 2 + (xx - 128) ** 2) / 181.0
+    vignette = 1.0 - 0.18 * dist ** 2            # darkened corners
+    img = Image.fromarray((noise * vignette).astype(np.uint8), "L")
+    draw = ImageDraw.Draw(img)
+    for r, tone in [(80, 160), (55, 100), (30, 35)]:            # subject
+        draw.ellipse([128 - r, 128 - r, 128 + r, 128 + r], fill=tone)
+    img = img.filter(ImageFilter.GaussianBlur(4)).convert("RGB")
+
+    tables = _build_tables()
+    (_, raw_ink), = images_to_grids([img], tables, max_ink=1.0,
+                                    min_ink=0.0)
+    (grid, flat_ink), = images_to_grids([img], tables, max_ink=1.0,
+                                        min_ink=0.0, flatten_bg=True)
+    # Flattening must strip a substantial background film...
+    assert raw_ink - flat_ink > 0.15, (raw_ink, flat_ink)
+    assert flat_ink < 0.55, flat_ink   # ...leaving mostly the subject
+    # And the subject survived, with a real density ramp
+    assert len(set(grid[grid > 2].tolist())) >= 6
+
+
 def test_style_mix_tags_captions(tmp_path):
     from data.generate_synthetic import generate_dataset, parse_mix
 

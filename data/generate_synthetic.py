@@ -53,21 +53,28 @@ STYLE_MODES = {
     # v1 dialect: bold solid silhouettes. Tag-free so it matches the v1
     # dataset's plain captions when the two are merged.
     "filled": dict(style=STYLE, negative=NEGATIVE, binarize=True,
-                   outline=False, max_ink=MAX_INK_FRAC, tag=""),
+                   outline=False, max_ink=MAX_INK_FRAC,
+                   flatten_bg=False, tag=""),
     # Boundary strokes. Derived from the SAME reliable icon prompt by
     # morphological edge extraction on the binary mask — prompting the
     # t2i for "line drawing" directly gave conversion soup in v1 tuning.
     "outline": dict(style=STYLE, negative=NEGATIVE, binarize=True,
-                    outline=True, max_ink=0.35, tag=", outline style"),
+                    outline=True, max_ink=0.35,
+                    flatten_bg=False, tag=", outline style"),
     # Full grayscale through the converter's tonal pipeline (adaptive
     # gamma -> CLAHE -> Sobel blend -> 6D matching) — the density-ramp
     # look of classic ASCII art. Binarize OFF is the whole point.
+    # flatten_bg is essential: CLAHE amplifies the near-white paper
+    # texture of t2i outputs into faint glyphs across the whole canvas,
+    # which sent 99% of tonal conversions over the ink cap in the first
+    # v2 run (778 kept of ~78k attempted).
     "tonal": dict(style=("a detailed grayscale pencil drawing of {}, "
                          "soft shading, smooth gradients, centered, "
-                         "plain white background"),
-                  negative="color, photo, text, watermark, frame, border",
-                  binarize=False, outline=False, max_ink=0.70,
-                  tag=", shaded"),
+                         "isolated on a plain white background"),
+                  negative=("color, photo, text, watermark, frame, "
+                            "border, background texture, pattern"),
+                  binarize=False, outline=False, max_ink=0.85,
+                  flatten_bg=True, tag=", shaded"),
 }
 DEFAULT_MIX = "filled=0.20,outline=0.35,tonal=0.45"
 
@@ -138,6 +145,26 @@ def _binarize(gray_u8):
                        torch.full_like(gray_u8, 255)).to(torch.uint8)
 
 
+def _flatten_background(gray_u8, margin=25):
+    """Clamp near-background pixels to pure white.
+
+    The background level is estimated from the image border (the same
+    trick as the converter's auto-polarity). Everything within `margin`
+    gray levels of it becomes exactly 255, so paper texture, vignettes
+    and JPEG shimmer convert to space instead of a canvas-wide film of
+    faint glyphs once CLAHE has amplified them. Dark-background images
+    (not expected from our prompts) pass through untouched.
+    """
+    border = torch.cat([gray_u8[0], gray_u8[-1],
+                        gray_u8[:, 0], gray_u8[:, -1]]).float()
+    bg = border.median()
+    if bg <= 128:
+        return gray_u8
+    out = gray_u8.clone()
+    out[gray_u8.float() >= bg - margin] = 255
+    return out
+
+
 def _mask_outline(bin_u8, thickness=3):
     """Reduce a filled binary shape (0=ink, 255=paper) to its boundary.
 
@@ -156,7 +183,7 @@ def _mask_outline(bin_u8, thickness=3):
 
 def images_to_grids(pil_images, tables, min_ink=MIN_INK_FRAC,
                     max_ink=MAX_INK_FRAC, binarize=False, trim=0.04,
-                    outline=False):
+                    outline=False, flatten_bg=False):
     """Convert PIL images -> list of (grid_or_None, ink_fraction).
 
     grid is a [GRID_H, GRID_W] uint8 tensor, or None when the conversion
@@ -177,6 +204,8 @@ def images_to_grids(pil_images, tables, min_ink=MIN_INK_FRAC,
             h, w = gray.shape
             dh, dw = int(h * trim), int(w * trim)
             gray = gray[dh:h - dh, dw:w - dw]
+        if flatten_bg:
+            gray = _flatten_background(gray)
         if binarize:
             gray = _binarize(gray)
         if outline:
@@ -212,10 +241,11 @@ def _worker_init(trim):
 def _worker_convert(job):
     # Conversion params travel with each image because style modes vary
     # per batch (tonal converts un-binarized, outline post-processes...)
-    image, min_ink, max_ink, binarize, outline = job
+    image, min_ink, max_ink, binarize, outline, flatten_bg = job
     grid, ink_frac = images_to_grids([image], _WORKER["tables"],
                                      min_ink=min_ink, max_ink=max_ink,
                                      binarize=binarize, outline=outline,
+                                     flatten_bg=flatten_bg,
                                      trim=_WORKER["trim"])[0]
     # Return numpy, NOT a torch tensor: torch pickles tensors across
     # processes via fd-sharing, which exhausts descriptors under a steady
@@ -313,7 +343,8 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
     else:
         mix = {None: 1.0}
     legacy_mode = dict(style=style, negative=NEGATIVE, binarize=binarize,
-                       outline=False, max_ink=max_ink, tag="")
+                       outline=False, max_ink=max_ink, flatten_bg=False,
+                       tag="")
     import random as _random
     mode_rng = _random.Random(seed ^ 0x5F17)
 
@@ -427,7 +458,7 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
         stored = [c + m["tag"] for c in captions_batch]
         if pool is not None:
             jobs = [(im, min_ink, m["max_ink"], m["binarize"],
-                     m["outline"]) for im in images]
+                     m["outline"], m["flatten_bg"]) for im in images]
             pending.append((pool.map_async(_worker_convert, jobs),
                             stored, images))
             drain()
@@ -436,7 +467,8 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
                    images_to_grids(images, tables, min_ink=min_ink,
                                    max_ink=m["max_ink"],
                                    binarize=m["binarize"],
-                                   outline=m["outline"], trim=trim))
+                                   outline=m["outline"],
+                                   flatten_bg=m["flatten_bg"], trim=trim))
 
     drain(block=True)
     if pool is not None:
