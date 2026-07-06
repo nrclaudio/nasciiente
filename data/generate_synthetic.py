@@ -56,10 +56,15 @@ STYLE_MODES = {
     # a true silhouette (and "outline" a true contour) even when the
     # t2i draws strokes instead of mass — without it, all dialects of
     # a wiry pencil sketch converge on the same grid.
+    # TAGS: the UNTAGGED caption belongs to tonal — a plain prompt
+    # ("a dragon") should produce the flagship shaded look, with
+    # silhouette/outline as explicit opt-ins. NOTE: v1/v2 datasets used
+    # untagged captions for filled; do not merge them with v3+ data or
+    # the untagged dialect becomes ambiguous.
     "filled": dict(style=STYLE, negative=NEGATIVE, binarize=True,
                    outline=False, max_ink=MAX_INK_FRAC,
                    flatten_bg=True, tone_soften=0.0, solidify=True,
-                   tag=""),
+                   tag=", silhouette"),
     # Boundary strokes. Derived from the SAME reliable icon prompt by
     # morphological edge extraction on the binary mask — prompting the
     # t2i for "line drawing" directly gave conversion soup in v1 tuning.
@@ -85,7 +90,7 @@ STYLE_MODES = {
                   # 0.6 cut wisp density 31% with the trunk untouched
                   binarize=False, outline=False, max_ink=0.85,
                   flatten_bg=True, tone_soften=0.6, solidify=False,
-                  tag=", shaded"),
+                  tag=""),
 }
 DEFAULT_MIX = "filled=0.20,outline=0.35,tonal=0.45"
 
