@@ -304,3 +304,33 @@ def test_engine_runs_on_flux_shaped_pipeline(tmp_path):
     assert n == 4
     caps = torch.load(out, weights_only=True)["captions"]
     assert all(c.endswith(", shaded") for c in caps)
+
+
+def test_all_modes_yields_three_dialects_per_image(tmp_path):
+    # --mix all: one generated image becomes filled + outline + tonal
+    # samples with matching tags — and the pool path must agree with
+    # serial byte for byte
+    from data.generate_synthetic import generate_dataset
+
+    outs = {}
+    for tag, workers in [("serial", 1), ("pool", 2)]:
+        out = tmp_path / f"{tag}.pt"
+        n = generate_dataset(num_samples=6, out_path=str(out),
+                             batch_size=2, seed=0, device="cpu",
+                             pipe=_FakePipe(), workers=workers,
+                             modes="all")
+        assert n == 6
+        outs[tag] = torch.load(out, weights_only=True)
+
+    a, b = outs["serial"], outs["pool"]
+    assert torch.equal(a["data"], b["data"])
+    assert a["captions"] == b["captions"]
+
+    caps = [a["captions"][i] for i in a["caption_ids"].tolist()]
+    plain = [c for c in caps if not c.endswith((", outline style",
+                                                ", shaded"))]
+    outline = [c for c in caps if c.endswith(", outline style")]
+    shaded = [c for c in caps if c.endswith(", shaded")]
+    assert len(plain) == len(outline) == len(shaded) == 2
+    # Same subjects across dialects (derived from the same images)
+    assert {c.split(",")[0] for c in outline} == set(plain)

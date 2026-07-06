@@ -362,8 +362,14 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
             return clip_image_scores(images, captions,
                                      device=device.type)
 
-    # Per-batch style modes: legacy args become a single always-on mode
-    if modes:
+    # Per-batch style modes: legacy args become a single always-on mode.
+    # modes="all" = one shaded generation, three converted dialects.
+    all_modes = isinstance(modes, str) and modes.lower() == "all"
+    if all_modes:
+        mix = {}
+        print("Style mix: ALL — every image converted as filled + "
+              "outline + tonal (3 samples per generation)")
+    elif modes:
         mix = ({k: v for k, v in modes.items()} if isinstance(modes, dict)
                else parse_mix(modes))
         total = sum(mix.values())
@@ -466,12 +472,22 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
             continue
         batch = prompts[cursor:cursor + batch_size]
         cursor += len(batch)
-        mode_name = mode_rng.choices(list(mix),
-                                     weights=list(mix.values()))[0]
-        m = STYLE_MODES[mode_name] if mode_name else legacy_mode
+        if all_modes:
+            # Generate ONE shaded image, harvest all three dialects from
+            # it: tonal as-is, filled via Otsu, outline via mask edge.
+            # Triples samples-per-GPU-second — the expensive part is the
+            # t2i forward, not the conversion.
+            gen = STYLE_MODES["tonal"]
+            variants = [STYLE_MODES[k] for k in ("filled", "outline",
+                                                 "tonal")]
+        else:
+            mode_name = mode_rng.choices(list(mix),
+                                         weights=list(mix.values()))[0]
+            gen = STYLE_MODES[mode_name] if mode_name else legacy_mode
+            variants = [gen]
         result = pipe(**kwarg_filter(dict(
-            prompt=[m["style"].format(p) for p in batch],
-            negative_prompt=[m["negative"]] * len(batch),
+            prompt=[gen["style"].format(p) for p in batch],
+            negative_prompt=[gen["negative"]] * len(batch),
             num_inference_steps=steps, guidance_scale=0.0,
             height=512, width=512, generator=generator)))
         images = list(result.images)
@@ -484,22 +500,26 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
             captions_batch = [c for c, k in zip(captions_batch, keep) if k]
             if not images:
                 continue
-        # Stored captions carry the style tag, so at inference the
-        # prompt selects the dialect ("a goat, shaded")
-        stored = [c + m["tag"] for c in captions_batch]
+        # One (caption, image, conversion-params) job per variant; the
+        # stored caption carries the variant's style tag, so at
+        # inference the prompt selects the dialect ("a goat, shaded")
+        stored, expanded, jobs = [], [], []
+        for im, c in zip(images, captions_batch):
+            for v in variants:
+                stored.append(c + v["tag"])
+                expanded.append(im)
+                jobs.append((im, min_ink, v["max_ink"], v["binarize"],
+                             v["outline"], v["flatten_bg"]))
         if pool is not None:
-            jobs = [(im, min_ink, m["max_ink"], m["binarize"],
-                     m["outline"], m["flatten_bg"]) for im in images]
             pending.append((pool.map_async(_worker_convert, jobs),
-                            stored, images))
+                            stored, expanded))
             drain()
         else:
-            absorb(stored, images,
-                   images_to_grids(images, tables, min_ink=min_ink,
-                                   max_ink=m["max_ink"],
-                                   binarize=m["binarize"],
-                                   outline=m["outline"],
-                                   flatten_bg=m["flatten_bg"], trim=trim))
+            converted = [images_to_grids(
+                [im], tables, min_ink=mi, max_ink=ma, binarize=b,
+                outline=o, flatten_bg=f, trim=trim)[0]
+                for im, mi, ma, b, o, f in jobs]
+            absorb(stored, expanded, converted)
 
     drain(block=True)
     if pool is not None:
@@ -568,8 +588,11 @@ def main():
                         help="style-mode mix, e.g. "
                              f"'{DEFAULT_MIX}' — batches draw a mode "
                              f"from {sorted(STYLE_MODES)} and captions "
-                             "carry the mode's style tag. Omit for the "
-                             "legacy single-style path.")
+                             "carry the mode's style tag. 'all' converts "
+                             "EVERY generated image as all three "
+                             "dialects (3 samples per image — best "
+                             "value on slow models like FLUX). Omit for "
+                             "the legacy single-style path.")
     parser.add_argument("--cpu-offload",
                         action=argparse.BooleanOptionalAction,
                         default=None,
@@ -593,7 +616,8 @@ def main():
                      style=args.style, preview_dir=args.preview_dir,
                      binarize=args.binarize, trim=args.trim,
                      clip_filter=args.clip_filter, workers=args.workers,
-                     modes=parse_mix(args.mix) if args.mix else None,
+                     modes=("all" if args.mix and args.mix.lower() == "all"
+                            else parse_mix(args.mix) if args.mix else None),
                      cpu_offload=args.cpu_offload)
 
 
