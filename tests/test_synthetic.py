@@ -261,7 +261,9 @@ def test_style_mix_tags_captions(tmp_path):
                      modes={"outline": 0.5, "tonal": 0.5})
     caps = torch.load(out, weights_only=True)["captions"]
     assert caps
-    assert all(c.endswith((", outline style", ", shaded")) for c in caps)
+    # outline carries its tag; tonal is the UNTAGGED flagship dialect
+    assert all(c.endswith(", outline style") or "," not in c
+               for c in caps)
 
     mix = parse_mix("filled=1,tonal=3")
     assert abs(mix["filled"] - 0.25) < 1e-9
@@ -303,7 +305,7 @@ def test_engine_runs_on_flux_shaped_pipeline(tmp_path):
                          workers=1, modes={"tonal": 1.0})
     assert n == 4
     caps = torch.load(out, weights_only=True)["captions"]
-    assert all(c.endswith(", shaded") for c in caps)
+    assert all("," not in c for c in caps)   # tonal = untagged flagship
 
 
 def test_all_modes_yields_three_dialects_per_image(tmp_path):
@@ -327,13 +329,12 @@ def test_all_modes_yields_three_dialects_per_image(tmp_path):
     assert a["captions"] == b["captions"]
 
     caps = [a["captions"][i] for i in a["caption_ids"].tolist()]
-    plain = [c for c in caps if not c.endswith((", outline style",
-                                                ", shaded"))]
+    silhouette = [c for c in caps if c.endswith(", silhouette")]
     outline = [c for c in caps if c.endswith(", outline style")]
-    shaded = [c for c in caps if c.endswith(", shaded")]
-    assert len(plain) == len(outline) == len(shaded) == 2
+    tonal = [c for c in caps if "," not in c]   # untagged flagship
+    assert len(silhouette) == len(outline) == len(tonal) == 2
     # Same subjects across dialects (derived from the same images)
-    assert {c.split(",")[0] for c in outline} == set(plain)
+    assert {c.split(",")[0] for c in outline} == set(tonal)
 
 
 def test_tone_soften_lightens_wisps_keeps_trunk():
