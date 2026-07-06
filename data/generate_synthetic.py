@@ -54,13 +54,14 @@ STYLE_MODES = {
     # dataset's plain captions when the two are merged.
     "filled": dict(style=STYLE, negative=NEGATIVE, binarize=True,
                    outline=False, max_ink=MAX_INK_FRAC,
-                   flatten_bg=False, tag=""),
+                   flatten_bg=False, tone_soften=0.0, tag=""),
     # Boundary strokes. Derived from the SAME reliable icon prompt by
     # morphological edge extraction on the binary mask — prompting the
     # t2i for "line drawing" directly gave conversion soup in v1 tuning.
     "outline": dict(style=STYLE, negative=NEGATIVE, binarize=True,
                     outline=True, max_ink=0.35,
-                    flatten_bg=False, tag=", outline style"),
+                    flatten_bg=False, tone_soften=0.0,
+                    tag=", outline style"),
     # Full grayscale through the converter's tonal pipeline (adaptive
     # gamma -> CLAHE -> Sobel blend -> 6D matching) — the density-ramp
     # look of classic ASCII art. Binarize OFF is the whole point.
@@ -73,8 +74,12 @@ STYLE_MODES = {
                          "isolated on a plain white background"),
                   negative=("color, photo, text, watermark, frame, "
                             "border, background texture, pattern"),
+                  # tone_soften keeps faint pencil wisps (foliage, fur,
+                  # texture) on LIGHT glyphs instead of letting the
+                  # CLAHE chain amplify them into mid-density mush —
+                  # 0.6 cut wisp density 31% with the trunk untouched
                   binarize=False, outline=False, max_ink=0.85,
-                  flatten_bg=True, tag=", shaded"),
+                  flatten_bg=True, tone_soften=0.6, tag=", shaded"),
 }
 DEFAULT_MIX = "filled=0.20,outline=0.35,tonal=0.45"
 
@@ -212,7 +217,7 @@ def _mask_outline(bin_u8, thickness=3):
 
 def images_to_grids(pil_images, tables, min_ink=MIN_INK_FRAC,
                     max_ink=MAX_INK_FRAC, binarize=False, trim=0.04,
-                    outline=False, flatten_bg=False):
+                    outline=False, flatten_bg=False, tone_soften=0.0):
     """Convert PIL images -> list of (grid_or_None, ink_fraction).
 
     grid is a [GRID_H, GRID_W] uint8 tensor, or None when the conversion
@@ -240,7 +245,8 @@ def images_to_grids(pil_images, tables, min_ink=MIN_INK_FRAC,
         if outline:
             gray = _mask_outline(gray)
         grid = image_to_ascii_grid(gray, shape_vectors, masks, char_indices,
-                                   mask_sums, sv_sq_sum)
+                                   mask_sums, sv_sq_sum,
+                                   tone_soften=tone_soften)
         ink_frac = float((grid > 2).sum()) / total
         if min_ink <= ink_frac <= max_ink:
             out.append((grid.to(torch.uint8), ink_frac))
@@ -270,11 +276,12 @@ def _worker_init(trim):
 def _worker_convert(job):
     # Conversion params travel with each image because style modes vary
     # per batch (tonal converts un-binarized, outline post-processes...)
-    image, min_ink, max_ink, binarize, outline, flatten_bg = job
+    image, min_ink, max_ink, binarize, outline, flatten_bg, soften = job
     grid, ink_frac = images_to_grids([image], _WORKER["tables"],
                                      min_ink=min_ink, max_ink=max_ink,
                                      binarize=binarize, outline=outline,
                                      flatten_bg=flatten_bg,
+                                     tone_soften=soften,
                                      trim=_WORKER["trim"])[0]
     # Return numpy, NOT a torch tensor: torch pickles tensors across
     # processes via fd-sharing, which exhausts descriptors under a steady
@@ -380,7 +387,7 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
         mix = {None: 1.0}
     legacy_mode = dict(style=style, negative=NEGATIVE, binarize=binarize,
                        outline=False, max_ink=max_ink, flatten_bg=False,
-                       tag="")
+                       tone_soften=0.0, tag="")
     import random as _random
     mode_rng = _random.Random(seed ^ 0x5F17)
 
@@ -509,7 +516,8 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
                 stored.append(c + v["tag"])
                 expanded.append(im)
                 jobs.append((im, min_ink, v["max_ink"], v["binarize"],
-                             v["outline"], v["flatten_bg"]))
+                             v["outline"], v["flatten_bg"],
+                             v["tone_soften"]))
         if pool is not None:
             pending.append((pool.map_async(_worker_convert, jobs),
                             stored, expanded))
@@ -517,8 +525,8 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
         else:
             converted = [images_to_grids(
                 [im], tables, min_ink=mi, max_ink=ma, binarize=b,
-                outline=o, flatten_bg=f, trim=trim)[0]
-                for im, mi, ma, b, o, f in jobs]
+                outline=o, flatten_bg=f, tone_soften=s, trim=trim)[0]
+                for im, mi, ma, b, o, f, s in jobs]
             absorb(stored, expanded, converted)
 
     drain(block=True)
