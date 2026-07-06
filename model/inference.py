@@ -26,6 +26,22 @@ def _gumbel_like(x):
     return -torch.log(-torch.log(u))
 
 
+def _effective_guidance(scale, mask_ratio, schedule):
+    """Per-step CFG scale under a schedule over the decode.
+
+    "constant": classic CFG. "rise": start at 1 on the empty canvas and
+    grow to `scale` as cells commit (Muse's increasing schedule) — the
+    empty-canvas CFG direction is essentially "add ink everywhere", so a
+    full-strength scale floods early commits; details still sharpen
+    under full guidance late. "fall" is the mirror, for A/B probes.
+    """
+    if schedule == "rise":
+        return 1.0 + (scale - 1.0) * (1.0 - mask_ratio)
+    if schedule == "fall":
+        return 1.0 + (scale - 1.0) * mask_ratio
+    return scale
+
+
 def _num_masked_target(total, step, num_steps, schedule):
     """How many cells should REMAIN masked after `step` (1-indexed).
 
@@ -67,7 +83,8 @@ def _model_logits(model, grid, cond, guidance_scale, mask_ratio):
 
 def _iterative_fill(model, grid, num_steps, temperature, schedule,
                     gumbel_scale, steps_out,
-                    cond=None, guidance_scale=1.0, space_bias=0.0):
+                    cond=None, guidance_scale=1.0, space_bias=0.0,
+                    guidance_schedule="constant"):
     """Fill every currently-[MASK] cell of `grid` in place (MaskGIT-style).
 
     Cells that are not [MASK] on entry are never touched, so fixed/anchor
@@ -99,7 +116,9 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
             break
 
         mask_ratio = num_masked / total
-        logits = _model_logits(model, grid, cond, guidance_scale,
+        g = _effective_guidance(guidance_scale, mask_ratio,
+                                guidance_schedule)
+        logits = _model_logits(model, grid, cond, g,
                                mask_ratio)                # [H, W, V]
         if temperature != 1.0:
             logits = logits / temperature
@@ -145,7 +164,8 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
              initial_grid=None, device="cpu", schedule="cosine",
              gumbel_scale=1.0, revision_steps=2, revision_fraction=0.1,
              prompt=None, cond_tokens=None, cond_mask=None,
-             guidance_scale=1.0, space_bias=0.0):
+             guidance_scale=1.0, space_bias=0.0,
+             guidance_schedule="constant"):
     """
     Generate ASCII art via iterative unmasking (MaskGIT-style).
 
@@ -179,6 +199,10 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
                     canvas is pushed to place ink but a mostly-filled grid
                     is not. Useful when free generation collapses to blank
                     on dense/high-uncertainty checkpoints; try 2-6.
+        guidance_schedule: "constant" (classic CFG), "rise" (scale grows
+                    from 1 to guidance_scale as the grid commits —
+                    prevents the early-decode ink flood seen at scales
+                    >= 2), or "fall" (the mirror, for A/B probing).
 
     Returns:
         steps: list of [H, W] long tensors (grid at each step)
@@ -212,7 +236,8 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
 
     # --- Main fill ---
     _iterative_fill(model, grid, num_steps, temperature, schedule,
-                    gumbel_scale, steps, cond, guidance_scale, space_bias)
+                    gumbel_scale, steps, cond, guidance_scale, space_bias,
+                    guidance_schedule)
 
     # --- Revision passes (poor-man's Token-Critic self-correction) ---
     free = ~fixed
@@ -237,7 +262,7 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
         refill_steps = max(2, num_steps // 4)
         _iterative_fill(model, grid, refill_steps, temperature, schedule,
                         gumbel_scale, steps, cond, guidance_scale,
-                        space_bias)
+                        space_bias, guidance_schedule)
 
     return steps, grid.cpu()
 

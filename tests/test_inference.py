@@ -196,3 +196,30 @@ def test_space_bias_breaks_blank_collapse():
                         gumbel_scale=0.0, space_bias=20.0, device="cpu")
     assert int((inked != SPACE_TOKEN).sum()) > H * W // 4, \
         "space_bias should force early ink placement"
+
+
+def test_guidance_schedule_math():
+    from model.inference import _effective_guidance as eg
+    # rise: no guidance on the empty canvas, full guidance when committed
+    assert eg(3.0, 1.0, "rise") == 1.0
+    assert eg(3.0, 0.0, "rise") == 3.0
+    assert abs(eg(3.0, 0.5, "rise") - 2.0) < 1e-9
+    # fall is the mirror; constant ignores the ratio
+    assert eg(3.0, 1.0, "fall") == 3.0
+    assert eg(3.0, 0.0, "fall") == 1.0
+    assert eg(3.0, 0.42, "constant") == 3.0
+
+
+def test_guidance_schedule_generation_runs():
+    from model.ascii_bert import ASCIIBert
+    torch.manual_seed(0)
+    model = ASCIIBert(embed_dim=32, num_layers=2, num_heads=2, ffn_dim=64,
+                      text_dim=16)
+    model.eval()
+    for schedule in ("rise", "fall"):
+        _, final = generate(model, H, W, num_steps=4,
+                            cond_tokens=torch.randn(5, 16),
+                            guidance_scale=3.0, revision_steps=1,
+                            guidance_schedule=schedule, device="cpu")
+        assert final.shape == (H, W)
+        assert (final != MASK_TOKEN).all()

@@ -177,3 +177,41 @@ def test_train_args_parsing(monkeypatch):
     args = T.parse_args()  # unknown --stage (from main.py) must not crash
     assert args.init_from == "ck.pt"
     assert args.stages == "shading,human"
+
+
+def test_chained_replay_from_two_sources(tmp_path):
+    # Stage 3 replays BOTH shading and geometry; chaining _mix_replay
+    # must accumulate samples and keep caption ids pointing at the right
+    # captions across both merges
+    from training.train import _mix_replay
+
+    def payload(n, caps):
+        return {"data": torch.randint(2, 98, (n, 48, 80),
+                                      dtype=torch.uint8),
+                "caption_ids": torch.arange(n) % len(caps),
+                "captions": caps}
+
+    a = tmp_path / "a.pt"
+    b = tmp_path / "b.pt"
+    torch.save(payload(30, ["shade1", "shade2"]), a)
+    torch.save(payload(40, ["geom1", "geom2", "geom3"]), b)
+
+    data = torch.randint(2, 98, (10, 48, 80), dtype=torch.uint8)
+    ids = torch.zeros(10, dtype=torch.long)
+    caps = ["base"]
+
+    data, ids, caps = _mix_replay(data, ids, caps, str(a), 20)
+    data, ids, caps = _mix_replay(data, ids, caps, str(b), 15)
+
+    assert len(data) == 10 + 20 + 15
+    assert len(ids) == len(data)
+    assert caps[:1] == ["base"]
+    assert set(caps) == {"base", "shade1", "shade2",
+                         "geom1", "geom2", "geom3"}
+    # Every id points at a caption consistent with its source segment
+    for i in ids[:10].tolist():
+        assert caps[i] == "base"
+    for i in ids[10:30].tolist():
+        assert caps[i].startswith("shade")
+    for i in ids[30:].tolist():
+        assert caps[i].startswith("geom")

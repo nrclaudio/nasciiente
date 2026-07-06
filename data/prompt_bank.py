@@ -20,6 +20,17 @@ ANIMALS = [
     "butterfly", "bee", "ant", "spider", "snail", "dragonfly", "ladybug",
     "bat", "hedgehog", "squirrel", "raccoon", "skunk", "flamingo", "peacock",
     "parrot", "rooster", "hen", "chick", "rat", "hamster",
+    "toucan", "pelican", "stork", "crow", "raven", "dove", "hummingbird",
+    "woodpecker", "ostrich", "turkey", "goose", "seagull", "puffin",
+    "walrus", "seal", "otter", "beaver", "badger", "mole", "porcupine",
+    "armadillo", "sloth", "chameleon", "gecko", "iguana", "salamander",
+    "toad", "starfish", "stingray", "swordfish", "eel", "squid", "clam",
+    "scorpion", "grasshopper", "cricket", "mosquito", "moth", "wasp",
+    "caterpillar", "worm", "centipede", "buffalo", "bull", "donkey",
+    "llama", "alpaca", "zebra", "rhinoceros", "hippopotamus", "cheetah",
+    "leopard", "jaguar", "panther", "hyena", "meerkat", "lemur",
+    "chimpanzee", "orangutan", "reindeer", "antelope", "boar", "ferret",
+    "chipmunk", "opossum", "platypus", "narwhal", "orca", "manatee",
 ]
 
 OBJECTS = [
@@ -34,12 +45,58 @@ OBJECTS = [
     "trumpet", "chess piece", "dice", "playing card", "trophy", "medal",
     "envelope", "scroll", "map", "compass", "coin", "ring", "diamond",
     "heart", "star", "arrow", "question mark",
+    "lantern", "torch", "quill", "typewriter", "wheelbarrow", "shovel",
+    "rake", "broom", "wrench", "screwdriver", "pliers", "saw", "drill",
+    "paintbrush", "palette", "easel", "harp", "saxophone", "flute",
+    "banjo", "accordion", "harmonica", "microphone", "headphones",
+    "joystick", "robot arm", "satellite dish", "light bulb", "battery",
+    "plug", "switch", "thermometer", "syringe", "stethoscope", "bandage",
+    "pill", "toothbrush", "comb", "mirror", "perfume bottle", "watch",
+    "necklace", "bracelet", "backpack", "suitcase", "wallet", "purse",
+    "glove", "mitten", "scarf", "bow tie", "necktie", "belt", "zipper",
+    "button", "needle and thread", "safety pin", "paperclip", "stapler",
+    "ruler", "protractor", "abacus", "calculator", "magnifying glass",
+    "binoculars", "megaphone", "whistle", "yo-yo", "spinning top",
+    "teddy bear", "rocking horse", "pinwheel", "slingshot", "boomerang",
+    "dartboard", "bowling pin", "baseball bat", "tennis racket",
+    "dumbbell", "barbell", "skis", "sled", "surfboard", "fishing rod",
+    "picture frame", "birdcage", "birdhouse", "mailbox", "trash can",
+    "watering can", "flower pot", "swing", "seesaw", "slide",
+]
+
+FOOD = [
+    "apple", "banana", "cherry", "pear", "orange", "lemon", "grapes",
+    "strawberry", "watermelon", "pineapple", "coconut", "peach", "plum",
+    "carrot", "pumpkin", "corn", "pepper", "onion", "tomato", "broccoli",
+    "eggplant", "pea pod", "bread loaf", "croissant", "pretzel",
+    "baguette", "cheese wedge", "fried egg", "pancakes", "waffle",
+    "cake", "cupcake", "donut", "cookie", "pie", "ice cream cone",
+    "lollipop", "candy cane", "chocolate bar", "pizza slice",
+    "hamburger", "hot dog", "taco", "sushi roll", "noodle bowl",
+    "coffee cup", "milk bottle", "milkshake", "popcorn bucket",
+    "honey pot", "salt shaker", "chef hat",
+]
+
+PEOPLE = [
+    "face", "smiley face", "eye", "hand", "footprint", "baby", "king",
+    "queen", "jester", "pirate", "ninja", "astronaut", "chef", "farmer",
+    "samurai", "viking", "cowboy", "ballerina", "juggler", "acrobat",
+    "guitarist", "drummer", "fisherman", "archer", "boxer", "runner",
+    "swimmer", "skier", "surfer", "snowman", "scarecrow", "mummy",
+    "vampire", "clown", "detective", "graduate", "firefighter",
+    "police officer", "sailor", "diver", "climber", "skater",
 ]
 
 VEHICLES = [
     "car", "truck", "bus", "bicycle", "motorcycle", "train", "tram", "boat",
     "sailboat", "ship", "canoe", "submarine", "airplane", "helicopter",
     "hot air balloon", "rocket", "tractor", "tank", "skateboard", "scooter",
+    "fire truck", "ambulance", "police car", "taxi", "van", "jeep",
+    "race car", "limousine", "bulldozer", "crane truck", "forklift",
+    "steam locomotive", "cable car", "rickshaw", "carriage", "chariot",
+    "gondola", "ferry", "yacht", "raft", "kayak", "jet ski", "glider",
+    "biplane", "fighter jet", "zeppelin", "space shuttle", "lunar rover",
+    "snowmobile", "unicycle", "wheelchair", "stroller", "shopping cart",
 ]
 
 NATURE = [
@@ -48,6 +105,12 @@ NATURE = [
     "wave", "cloud", "sun", "moon", "crescent moon", "planet", "comet",
     "snowflake", "raindrop", "lightning bolt", "rainbow", "island",
     "feather", "seashell", "bone", "skull",
+    "oak tree", "willow tree", "bonsai tree", "daisy", "orchid", "lily",
+    "dandelion", "clover", "fern", "bamboo", "maple leaf", "pinecone",
+    "tornado", "iceberg", "glacier", "waterfall", "river", "geyser",
+    "sand dune", "coral", "spider web", "bird nest", "beehive", "cave",
+    "crystal", "gemstone", "meteor", "constellation", "galaxy",
+    "saturn", "eclipse", "sunrise", "campfire", "flame",
 ]
 
 BUILDINGS = [
@@ -55,6 +118,14 @@ BUILDINGS = [
     "water mill", "barn", "church", "temple", "pagoda", "pyramid", "bridge",
     "arch", "fountain", "well", "tent", "igloo", "skyscraper", "fence",
     "gate", "staircase",
+    "cabin", "hut", "palace", "fort", "watchtower", "clock tower",
+    "bell tower", "mosque", "cathedral", "monastery", "obelisk",
+    "colosseum", "amphitheater", "aqueduct", "dam", "silo", "greenhouse",
+    "gazebo", "pavilion", "bandstand", "pier", "dock", "harbor",
+    "ferris wheel", "carousel", "roller coaster", "circus tent",
+    "phone booth", "bus stop", "street lamp", "traffic light",
+    "fire hydrant", "manhole cover", "signpost", "sundial", "totem pole",
+    "wind turbine", "oil rig", "space station", "observatory", "ruins",
 ]
 
 FANTASY = [
@@ -62,9 +133,15 @@ FANTASY = [
     "alien", "ghost", "monster", "angel", "devil", "phoenix", "griffin",
     "sea serpent", "troll", "fairy", "genie lamp", "treasure chest",
     "magic wand", "crystal ball", "ufo",
+    "pegasus", "centaur", "minotaur", "cyclops", "goblin", "gnome",
+    "elf", "dwarf", "golem", "kraken", "hydra", "cerberus", "sphinx",
+    "gargoyle", "werewolf", "zombie", "skeleton warrior", "grim reaper",
+    "witch hat", "cauldron", "potion bottle", "spellbook", "rune stone",
+    "excalibur", "holy grail", "flying carpet", "time machine",
 ]
 
-SUBJECTS = ANIMALS + OBJECTS + VEHICLES + NATURE + BUILDINGS + FANTASY
+SUBJECTS = (ANIMALS + OBJECTS + VEHICLES + NATURE + BUILDINGS + FANTASY
+            + FOOD + PEOPLE)
 
 # Attribute templates for a single subject. {a} is the article-ed subject.
 SINGLE_TEMPLATES = [
