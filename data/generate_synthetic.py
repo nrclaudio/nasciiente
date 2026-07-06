@@ -210,6 +210,57 @@ def _flatten_background(gray_u8, margin=25):
     return out
 
 
+def _compose_count(image, n, rng):
+    """Tile one subject n times side by side: a count sample whose label
+    is correct BY CONSTRUCTION (t2i models flub counts; compositing
+    doesn't). Slight scale/flip/offset jitter so the copies read as a
+    group, not a pattern."""
+    from PIL import Image
+    w, h = image.size
+    canvas = Image.new("RGB", (w, h), "white")
+    slot = w / n
+    sw = max(1, int(slot * 0.92))
+    sh = max(1, int(h * sw / w))
+    for i in range(n):
+        tile = image.resize((sw, sh))
+        if rng.random() < 0.5:
+            tile = tile.transpose(Image.FLIP_LEFT_RIGHT)
+        x = int(i * slot + (slot - sw) / 2) + rng.randint(-w // 40, w // 40)
+        y = (h - sh) // 2 + rng.randint(-h // 12, h // 12)
+        canvas.paste(tile, (max(0, min(w - sw, x)),
+                            max(0, min(h - sh, y))))
+    return canvas
+
+
+def _compose_pair(image_a, image_b, rng):
+    """Two different subjects side by side: a two-subject sample with no
+    chimera risk — each half really is its labeled subject."""
+    from PIL import Image
+    w, h = image_a.size
+    canvas = Image.new("RGB", (w, h), "white")
+    sw = max(1, int(w * 0.46))
+    sh = max(1, int(h * sw / w))
+    y = (h - sh) // 2
+    for i, im in enumerate((image_a, image_b)):
+        tile = im.resize((sw, sh))
+        x = int(i * w / 2 + (w / 2 - sw) / 2)
+        canvas.paste(tile, (x, max(0, min(h - sh,
+                                          y + rng.randint(-h // 14,
+                                                          h // 14)))))
+    return canvas
+
+
+def _bare_noun(caption):
+    """'a goat' -> 'goat'; None for captions composites can't use."""
+    if " and " in caption or " facing " in caption:
+        return None
+    if caption.startswith("an "):
+        return caption[3:]
+    if caption.startswith("a "):
+        return caption[2:]
+    return None
+
+
 def _solidify(bin_u8, seal=5, scale=4):
     """Fill the interior of a line drawing: strokes become a silhouette.
 
@@ -372,7 +423,8 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
                      min_ink=MIN_INK_FRAC, max_ink=MAX_INK_FRAC,
                      style=STYLE, preview_dir=None, binarize=False,
                      trim=0.04, clip_filter=0.0, clip_scorer=None,
-                     workers=None, modes=None, cpu_offload=None):
+                     workers=None, modes=None, cpu_offload=None,
+                     composites=0.0):
     """Generate `num_samples` captioned grids and save the payload.
 
     pipe: injectable for tests — any callable matching the diffusers
@@ -391,6 +443,11 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
     {mode_name: weight} dict over STYLE_MODES — each batch draws a mode,
     renders with that mode's t2i style, converts with its settings, and
     stores captions with its style tag ("a goat, shaded").
+    composites: extra composite images per generated image (0 = off).
+    Composites reuse already-generated singles to manufacture count
+    ("two goats") and pair ("a goat and an owl") samples whose labels
+    are correct by construction — no reliance on the t2i model counting
+    or separating subjects. Converted in the same dialect variants.
     """
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -463,6 +520,7 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
 
     generator = torch.Generator(device=device.type).manual_seed(seed)
     grids, caption_ids = [], []
+    reservoir = []   # recent single-subject (caption, image) pairs
     caption_index = {}
     too_blank = too_dense = off_prompt = 0
     processed = 0
@@ -562,11 +620,38 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
             captions_batch = [c for c, k in zip(captions_batch, keep) if k]
             if not images:
                 continue
+        # Manufacture count/pair composites from the reservoir of recent
+        # singles — labels correct by construction (no t2i counting)
+        composed = []
+        if composites > 0:
+            from data.prompt_bank import _article, _plural
+            usable = [(c, im) for c, im in zip(captions_batch, images)
+                      if _bare_noun(c)]
+            reservoir.extend(usable)
+            del reservoir[:max(0, len(reservoir) - 48)]
+            n_comp = round(composites * len(images))
+            for _ in range(n_comp):
+                if len(reservoir) < 4:
+                    break
+                if mode_rng.random() < 0.6:      # count composite
+                    c, im = reservoir[mode_rng.randrange(len(reservoir))]
+                    n = mode_rng.choice((2, 2, 3))
+                    composed.append((f"{'two' if n == 2 else 'three'} "
+                                     f"{_plural(_bare_noun(c))}",
+                                     _compose_count(im, n, mode_rng)))
+                else:                            # pair composite
+                    i, j = mode_rng.sample(range(len(reservoir)), 2)
+                    (ca, ia), (cb, ib) = reservoir[i], reservoir[j]
+                    composed.append((f"{_article(_bare_noun(ca))} and "
+                                     f"{_article(_bare_noun(cb))}",
+                                     _compose_pair(ia, ib, mode_rng)))
+
         # One (caption, image, conversion-params) job per variant; the
         # stored caption carries the variant's style tag, so at
         # inference the prompt selects the dialect ("a goat, shaded")
         stored, expanded, jobs = [], [], []
-        for im, c in zip(images, captions_batch):
+        for im, c in (list(zip(images, captions_batch))
+                      + [(im, c) for c, im in composed]):
             for v in variants:
                 stored.append(c + v["tag"])
                 expanded.append(im)
@@ -663,6 +748,12 @@ def main():
                         help="offload pipeline components to CPU RAM "
                              "(default: auto — on for FLUX-size models, "
                              "off otherwise)")
+    parser.add_argument("--composites", type=float, default=0.0,
+                        help="extra composite images per generated image "
+                             "(0 = off). Composites tile recent singles "
+                             "into count ('two goats') and pair "
+                             "('a goat and an owl') samples whose "
+                             "labels are correct by construction.")
     parser.add_argument("--overwrite", action="store_true",
                         help="allow writing over an existing --out file")
     args = parser.parse_args()
@@ -682,7 +773,8 @@ def main():
                      clip_filter=args.clip_filter, workers=args.workers,
                      modes=("all" if args.mix and args.mix.lower() == "all"
                             else parse_mix(args.mix) if args.mix else None),
-                     cpu_offload=args.cpu_offload)
+                     cpu_offload=args.cpu_offload,
+                     composites=args.composites)
 
 
 if __name__ == "__main__":

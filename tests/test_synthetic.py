@@ -405,3 +405,33 @@ def test_solidify_separates_dialects_on_line_art():
     assert int((outl[20:26, 33:47] > 2).sum()) == 0
     # And outline still has its ring
     assert int((outl > 2).sum()) > 30
+
+
+def test_composites_manufacture_counts_and_pairs(tmp_path):
+    # Composites reuse generated singles: count/pair captions must
+    # appear, labels grammatical, and pool == serial
+    from data.generate_synthetic import generate_dataset
+
+    outs = {}
+    for tag, workers in [("serial", 1), ("pool", 2)]:
+        out = tmp_path / f"{tag}.pt"
+        generate_dataset(num_samples=30, out_path=str(out), batch_size=6,
+                         seed=0, device="cpu", pipe=_FakePipe(),
+                         workers=workers, modes="all", composites=0.5)
+        outs[tag] = torch.load(out, weights_only=True)
+
+    a, b = outs["serial"], outs["pool"]
+    assert torch.equal(a["data"], b["data"])
+    assert a["captions"] == b["captions"]
+
+    caps = [a["captions"][i] for i in a["caption_ids"].tolist()]
+    counts = [c for c in caps if c.startswith(("two ", "three "))]
+    pairs = [c for c in caps if " and " in c]
+    assert counts or pairs, "no composites were produced"
+    for c in counts:
+        assert not c.startswith(("two a ", "three a "))   # plural noun
+    # A count composite really contains more ink than nothing
+    if counts:
+        idx = next(i for i, c in enumerate(caps)
+                   if c.startswith(("two ", "three ")))
+        assert int((a["data"][idx] > 2).sum()) > 20
