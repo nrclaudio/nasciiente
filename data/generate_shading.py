@@ -238,7 +238,8 @@ def _border_ink_mean(ink):
 
 def image_to_ascii_grid(img_tensor, shape_vectors, masks, char_indices,
                         mask_sums, sv_sq_sum, letterbox=True,
-                        auto_polarity=True, whitespace_floor=WHITESPACE_FLOOR):
+                        auto_polarity=True, whitespace_floor=WHITESPACE_FLOOR,
+                        tone_soften=0.0):
     """Convert a [3, H, W] image tensor to [GRID_H, GRID_W] char indices.
 
     Pipeline: grayscale -> invert -> upscale -> adaptive gamma -> CLAHE ->
@@ -255,6 +256,12 @@ def image_to_ascii_grid(img_tensor, shape_vectors, masks, char_indices,
         letterbox: preserve aspect ratio, padding with whitespace
         auto_polarity: flip ink so the (border-estimated) background is sparse
         whitespace_floor: ink below this renders as space (0 disables)
+        tone_soften: 0..1 blend back toward the RAW (pre-enhancement)
+            tone after the gamma/CLAHE/edge chain. The chain exists to
+            rescue murky photos, but on already-clean drawings it
+            amplifies faint pencil wisps into mid-density glyphs; 0.5+
+            lets light grays land on light glyphs while true darks stay
+            dense. 0 keeps the classic behavior.
 
     Also accepts the compact loader format: [H, W] (or [1, H, W]) uint8
     grayscale, as produced by _to_gray_u8.
@@ -317,6 +324,11 @@ def image_to_ascii_grid(img_tensor, shape_vectors, masks, char_indices,
     if edge_max > 0:
         edge_map = edge_map / edge_max
     upscaled = torch.clamp(up_t + EDGE_BLEND * edge_map, 0, 1).numpy()
+
+    # --- Tone soften: partially undo the enhancement chain ---
+    if tone_soften > 0:
+        upscaled = ((1.0 - tone_soften) * upscaled
+                    + tone_soften * raw_ink)
 
     # --- Whitespace floor ---
     if whitespace_floor > 0:

@@ -334,3 +334,45 @@ def test_all_modes_yields_three_dialects_per_image(tmp_path):
     assert len(plain) == len(outline) == len(shaded) == 2
     # Same subjects across dialects (derived from the same images)
     assert {c.split(",")[0] for c in outline} == set(plain)
+
+
+def test_tone_soften_lightens_wisps_keeps_trunk():
+    # Faint pencil wisps must land on LIGHT glyphs under tone_soften
+    # while genuinely dark strokes keep their density (the bonsai case:
+    # foliage was converting as mid-density mush)
+    import numpy as np
+    from data.generate_synthetic import images_to_grids, _build_tables
+    from model.render import glyph_atlas
+    from PIL import Image, ImageDraw, ImageFilter
+
+    img = Image.new("L", (512, 512), 250)
+    d = ImageDraw.Draw(img)
+    rng = np.random.default_rng(3)
+    for cx, cy in [(180, 140), (300, 120), (250, 90)]:   # faint wisps
+        for _ in range(40):
+            a = rng.uniform(0, 2 * np.pi)
+            ln = rng.uniform(8, 30)
+            d.line([cx, cy, cx + ln * np.cos(a), cy + ln * np.sin(a)],
+                   fill=int(rng.uniform(195, 225)), width=2)
+    d.line([(250, 120), (240, 300)], fill=70, width=14)  # dark trunk
+    img = img.filter(ImageFilter.GaussianBlur(2)).convert("RGB")
+
+    tables = _build_tables()
+    atlas = glyph_atlas()
+    if atlas.sum() == 0:
+        import pytest
+        pytest.skip("no font available")
+
+    def density(grid, r0, r1, c0, c1):
+        sub = grid[r0:r1, c0:c1].long()
+        inked = sub[sub > 2]
+        return float(atlas[inked].mean()) if inked.numel() else 0.0
+
+    (hard, _), = images_to_grids([img], tables, max_ink=1.0, min_ink=0.0)
+    (soft, _), = images_to_grids([img], tables, max_ink=1.0, min_ink=0.0,
+                                 tone_soften=0.6)
+    wisp_hard = density(hard, 6, 16, 15, 65)
+    wisp_soft = density(soft, 6, 16, 15, 65)
+    trunk_soft = density(soft, 20, 34, 32, 44)
+    assert wisp_soft < wisp_hard * 0.85    # wisps clearly lighter
+    assert trunk_soft > wisp_soft * 1.5    # trunk still dominates
