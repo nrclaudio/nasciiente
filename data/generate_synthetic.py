@@ -576,7 +576,16 @@ def main():
                         help="offload pipeline components to CPU RAM "
                              "(default: auto — on for FLUX-size models, "
                              "off otherwise)")
+    parser.add_argument("--overwrite", action="store_true",
+                        help="allow writing over an existing --out file")
     args = parser.parse_args()
+    # A preview run once clobbered a full dataset because --out defaults
+    # to the real dataset path. Existing files are now protected.
+    if os.path.exists(args.out) and not args.overwrite:
+        raise SystemExit(
+            f"{args.out} already exists ({os.path.getsize(args.out)/1e6:.0f}"
+            f" MB). Pass --overwrite to replace it, or choose another"
+            f" --out.")
     generate_dataset(args.num_samples, args.out, model_id=args.model,
                      batch_size=args.batch, steps=args.steps,
                      seed=args.seed, merge=args.merge,
