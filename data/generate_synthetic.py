@@ -31,11 +31,11 @@ from config import GRID_H, GRID_W
 from data.charset import grid_to_string
 from data.prompt_bank import build_prompts
 
-# Style wrapper for the t2i model. The BARE caption is what gets stored —
-# the model should learn "a dragon", not the rendering instructions.
-# Icon phrasing won the preview tuning: bold isolated silhouettes survive
-# 48x80 conversion; "line drawing" styles produced shading and thin
-# strokes that converted to soup.
+# Style wrapper for the t2i model. The BARE caption (plus a short style
+# tag) is what gets stored — the model should learn "a dragon", not the
+# rendering instructions. Icon phrasing won the preview tuning: bold
+# isolated silhouettes survive 48x80 conversion; "line drawing" styles
+# produced shading and thin strokes that converted to soup.
 STYLE = ("simple flat black and white icon of {}, bold shapes, centered, "
          "isolated on plain white background")
 NEGATIVE = "photo, color, shading, background clutter, text, watermark"
@@ -44,7 +44,50 @@ NEGATIVE = "photo, color, shading, background clutter, text, watermark"
 MIN_INK_FRAC = 0.02
 MAX_INK_FRAC = 0.55
 
+# Three visual dialects, chosen per batch (--mix). v1 trained only on
+# "filled": Otsu binarization reduced every image to a solid silhouette,
+# so solid silhouettes are all the model could draw. The caption carries
+# a style tag, so at inference the PROMPT selects the dialect ("a goat"
+# / "a goat, outline style" / "a goat, shaded").
+STYLE_MODES = {
+    # v1 dialect: bold solid silhouettes. Tag-free so it matches the v1
+    # dataset's plain captions when the two are merged.
+    "filled": dict(style=STYLE, negative=NEGATIVE, binarize=True,
+                   outline=False, max_ink=MAX_INK_FRAC, tag=""),
+    # Boundary strokes. Derived from the SAME reliable icon prompt by
+    # morphological edge extraction on the binary mask — prompting the
+    # t2i for "line drawing" directly gave conversion soup in v1 tuning.
+    "outline": dict(style=STYLE, negative=NEGATIVE, binarize=True,
+                    outline=True, max_ink=0.35, tag=", outline style"),
+    # Full grayscale through the converter's tonal pipeline (adaptive
+    # gamma -> CLAHE -> Sobel blend -> 6D matching) — the density-ramp
+    # look of classic ASCII art. Binarize OFF is the whole point.
+    "tonal": dict(style=("a detailed grayscale pencil drawing of {}, "
+                         "soft shading, smooth gradients, centered, "
+                         "plain white background"),
+                  negative="color, photo, text, watermark, frame, border",
+                  binarize=False, outline=False, max_ink=0.70,
+                  tag=", shaded"),
+}
+DEFAULT_MIX = "filled=0.20,outline=0.35,tonal=0.45"
+
 DEFAULT_MODEL = "stabilityai/sd-turbo"
+
+
+def parse_mix(spec):
+    """'filled=0.2,tonal=0.8' -> normalized {mode: weight} dict."""
+    mix = {}
+    for part in spec.split(","):
+        name, _, w = part.partition("=")
+        name = name.strip()
+        if name not in STYLE_MODES:
+            raise ValueError(f"Unknown style mode {name!r} "
+                             f"(choose from {sorted(STYLE_MODES)})")
+        mix[name] = float(w)
+    total = sum(mix.values())
+    if total <= 0:
+        raise ValueError("Style mix weights must sum to > 0")
+    return {k: v / total for k, v in mix.items()}
 
 
 def _build_tables():
@@ -95,8 +138,25 @@ def _binarize(gray_u8):
                        torch.full_like(gray_u8, 255)).to(torch.uint8)
 
 
+def _mask_outline(bin_u8, thickness=3):
+    """Reduce a filled binary shape (0=ink, 255=paper) to its boundary.
+
+    Morphological edge: ink minus its erosion leaves a ring `thickness`
+    pixels wide. Turns the engine's solid silhouettes into stroke art —
+    a second visual dialect from the same generated images.
+    """
+    ink = (bin_u8 == 0).float()[None, None]
+    k = 2 * thickness + 1
+    eroded = 1.0 - torch.nn.functional.max_pool2d(1.0 - ink, k, stride=1,
+                                                  padding=thickness)
+    ring = (ink - eroded).squeeze() > 0.5
+    return torch.where(ring, torch.zeros_like(bin_u8),
+                       torch.full_like(bin_u8, 255))
+
+
 def images_to_grids(pil_images, tables, min_ink=MIN_INK_FRAC,
-                    max_ink=MAX_INK_FRAC, binarize=False, trim=0.04):
+                    max_ink=MAX_INK_FRAC, binarize=False, trim=0.04,
+                    outline=False):
     """Convert PIL images -> list of (grid_or_None, ink_fraction).
 
     grid is a [GRID_H, GRID_W] uint8 tensor, or None when the conversion
@@ -119,6 +179,8 @@ def images_to_grids(pil_images, tables, min_ink=MIN_INK_FRAC,
             gray = gray[dh:h - dh, dw:w - dw]
         if binarize:
             gray = _binarize(gray)
+        if outline:
+            gray = _mask_outline(gray)
         grid = image_to_ascii_grid(gray, shape_vectors, masks, char_indices,
                                    mask_sums, sv_sq_sum)
         ink_frac = float((grid > 2).sum()) / total
@@ -136,7 +198,7 @@ def images_to_grids(pil_images, tables, min_ink=MIN_INK_FRAC,
 _WORKER = {}
 
 
-def _worker_init(min_ink, max_ink, binarize, trim):
+def _worker_init(trim):
     import contextlib
     import io
 
@@ -144,14 +206,17 @@ def _worker_init(min_ink, max_ink, binarize, trim):
     _torch.set_num_threads(1)  # one image per task; don't thrash cores
     with contextlib.redirect_stdout(io.StringIO()):  # table-build prints
         _WORKER["tables"] = _build_tables()
-    _WORKER["args"] = (min_ink, max_ink, binarize, trim)
+    _WORKER["trim"] = trim
 
 
-def _worker_convert(image):
-    min_ink, max_ink, binarize, trim = _WORKER["args"]
+def _worker_convert(job):
+    # Conversion params travel with each image because style modes vary
+    # per batch (tonal converts un-binarized, outline post-processes...)
+    image, min_ink, max_ink, binarize, outline = job
     grid, ink_frac = images_to_grids([image], _WORKER["tables"],
                                      min_ink=min_ink, max_ink=max_ink,
-                                     binarize=binarize, trim=trim)[0]
+                                     binarize=binarize, outline=outline,
+                                     trim=_WORKER["trim"])[0]
     # Return numpy, NOT a torch tensor: torch pickles tensors across
     # processes via fd-sharing, which exhausts descriptors under a steady
     # stream of results ("received 0 items of ancdata"). A 48x80 uint8
@@ -186,7 +251,7 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
                      min_ink=MIN_INK_FRAC, max_ink=MAX_INK_FRAC,
                      style=STYLE, preview_dir=None, binarize=False,
                      trim=0.04, clip_filter=0.0, clip_scorer=None,
-                     workers=None):
+                     workers=None, modes=None):
     """Generate `num_samples` captioned grids and save the payload.
 
     pipe: injectable for tests — any callable matching the diffusers
@@ -201,6 +266,10 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
     for tests: callable(pil_images, captions) -> scores tensor.
     workers: conversion worker processes. None = cpu_count-2; <=1 =
     serial. Preview mode forces serial (it pairs images with grids).
+    modes: None (legacy single-style path using `style`/`binarize`) or a
+    {mode_name: weight} dict over STYLE_MODES — each batch draws a mode,
+    renders with that mode's t2i style, converts with its settings, and
+    stores captions with its style tag ("a goat, shaded").
     """
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -233,6 +302,21 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
             return clip_image_scores(images, captions,
                                      device=device.type)
 
+    # Per-batch style modes: legacy args become a single always-on mode
+    if modes:
+        mix = ({k: v for k, v in modes.items()} if isinstance(modes, dict)
+               else parse_mix(modes))
+        total = sum(mix.values())
+        mix = {k: v / total for k, v in mix.items()}
+        print("Style mix: " + ", ".join(f"{k}={v:.0%}"
+                                        for k, v in mix.items()))
+    else:
+        mix = {None: 1.0}
+    legacy_mode = dict(style=style, negative=NEGATIVE, binarize=binarize,
+                       outline=False, max_ink=max_ink, tag="")
+    import random as _random
+    mode_rng = _random.Random(seed ^ 0x5F17)
+
     if workers is None:
         workers = max(1, (os.cpu_count() or 2) - 2)
     if preview_dir:
@@ -244,7 +328,7 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
         # spawn, not fork: the parent holds a CUDA context
         ctx = mp.get_context("spawn")
         pool = ctx.Pool(workers, initializer=_worker_init,
-                        initargs=(min_ink, max_ink, binarize, trim))
+                        initargs=(trim,))
         print(f"Conversion pool: {workers} workers "
               f"(GPU generates while CPUs convert)")
 
@@ -321,12 +405,15 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
             continue
         batch = prompts[cursor:cursor + batch_size]
         cursor += len(batch)
-        result = pipe(prompt=[style.format(p) for p in batch],
-                      negative_prompt=[NEGATIVE] * len(batch),
+        mode_name = mode_rng.choices(list(mix),
+                                     weights=list(mix.values()))[0]
+        m = STYLE_MODES[mode_name] if mode_name else legacy_mode
+        result = pipe(prompt=[m["style"].format(p) for p in batch],
+                      negative_prompt=[m["negative"]] * len(batch),
                       num_inference_steps=steps, guidance_scale=0.0,
                       generator=generator)
         images = list(result.images)
-        captions_batch = list(batch)
+        captions_batch = list(batch)   # bare captions: what CLIP scores
         if clip_filter > 0:
             sims = clip_scorer(images, captions_batch)
             keep = [float(s) >= clip_filter for s in sims]
@@ -335,15 +422,21 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
             captions_batch = [c for c, k in zip(captions_batch, keep) if k]
             if not images:
                 continue
+        # Stored captions carry the style tag, so at inference the
+        # prompt selects the dialect ("a goat, shaded")
+        stored = [c + m["tag"] for c in captions_batch]
         if pool is not None:
-            pending.append((pool.map_async(_worker_convert, images),
-                            captions_batch, images))
+            jobs = [(im, min_ink, m["max_ink"], m["binarize"],
+                     m["outline"]) for im in images]
+            pending.append((pool.map_async(_worker_convert, jobs),
+                            stored, images))
             drain()
         else:
-            absorb(captions_batch, images,
+            absorb(stored, images,
                    images_to_grids(images, tables, min_ink=min_ink,
-                                   max_ink=max_ink, binarize=binarize,
-                                   trim=trim))
+                                   max_ink=m["max_ink"],
+                                   binarize=m["binarize"],
+                                   outline=m["outline"], trim=trim))
 
     drain(block=True)
     if pool is not None:
@@ -406,7 +499,14 @@ def main():
                         help="threshold images to pure black/white before "
                              "conversion — strips the shading t2i models "
                              "sneak in despite line-drawing prompts "
-                             "(--no-binarize to disable)")
+                             "(--no-binarize to disable; ignored when "
+                             "--mix is given)")
+    parser.add_argument("--mix", default=None,
+                        help="style-mode mix, e.g. "
+                             f"'{DEFAULT_MIX}' — batches draw a mode "
+                             f"from {sorted(STYLE_MODES)} and captions "
+                             "carry the mode's style tag. Omit for the "
+                             "legacy single-style path.")
     args = parser.parse_args()
     generate_dataset(args.num_samples, args.out, model_id=args.model,
                      batch_size=args.batch, steps=args.steps,
@@ -414,7 +514,8 @@ def main():
                      min_ink=args.min_ink, max_ink=args.max_ink,
                      style=args.style, preview_dir=args.preview_dir,
                      binarize=args.binarize, trim=args.trim,
-                     clip_filter=args.clip_filter, workers=args.workers)
+                     clip_filter=args.clip_filter, workers=args.workers,
+                     modes=parse_mix(args.mix) if args.mix else None)
 
 
 if __name__ == "__main__":

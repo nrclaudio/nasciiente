@@ -78,6 +78,12 @@ def main():
     parser.add_argument("--space-bias", type=float, default=0.0,
                         help="anti-blank pressure (try 2-6 when everything "
                              "generates empty); annealed with mask ratio")
+    parser.add_argument("--schedule", default="constant",
+                        choices=["constant", "rise", "fall"],
+                        help="CFG schedule over the decode: 'rise' grows "
+                             "guidance from 1 to the full scale as cells "
+                             "commit (counters the early ink flood at "
+                             "scale >= 2); A/B against 'constant'")
     parser.add_argument("--rows", type=int, default=GRID_H)
     parser.add_argument("--cols", type=int, default=GRID_W)
     parser.add_argument("--seed", type=int, default=0,
@@ -125,6 +131,7 @@ def main():
                            num_steps=args.steps,
                            temperature=args.temperature,
                            space_bias=args.space_bias,
+                           guidance_schedule=args.schedule,
                            device=device, **kwargs)
         ink = int((grid > 2).sum())  # non-space printable cells
         chars = int(torch.unique(grid).numel())

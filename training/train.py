@@ -38,6 +38,7 @@ from config import (
     MASK_RATIO_MIN, MASK_RATIO_MAX,
     COND_DROPOUT, GLYPH_LABEL_SMOOTH, EMA_DECAY, USE_BF16, TEXT_ENCODER,
     CFG_SCALE, HUMAN_REPLAY_SAMPLES, SHADING_REPLAY_SAMPLES,
+    HUMAN_GEOMETRY_REPLAY_SAMPLES,
 )
 from model.ascii_bert import ASCIIBert
 from model.inference import generate
@@ -401,12 +402,21 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
         data = data[:max_samples]
         if caption_ids is not None:
             caption_ids = caption_ids[:max_samples]
-    if replay_path and replay_samples > 0 and os.path.exists(replay_path):
-        n_before = len(data)
-        data, caption_ids, captions = _mix_replay(
-            data, caption_ids, captions, replay_path, replay_samples)
-        log(f"  Replay: +{len(data) - n_before:,} samples from "
-            f"{os.path.basename(replay_path)} (guards against forgetting)")
+    # Replay accepts one source or several [(path, n), ...] — skills must
+    # be replayed in EVERY later stage, not just the next one (geometry
+    # was gone by shading_last in v1 with single-hop replay)
+    if replay_path:
+        pairs = (list(zip(replay_path, replay_samples))
+                 if isinstance(replay_path, (list, tuple))
+                 else [(replay_path, replay_samples)])
+        for r_path, r_n in pairs:
+            if r_n > 0 and os.path.exists(r_path):
+                n_before = len(data)
+                data, caption_ids, captions = _mix_replay(
+                    data, caption_ids, captions, r_path, r_n)
+                log(f"  Replay: +{len(data) - n_before:,} samples from "
+                    f"{os.path.basename(r_path)} "
+                    f"(guards against forgetting)")
     caption_tokens = caption_masks = None
     if captions is not None:
         # Embed the unique-caption vocabulary once up front; the training
@@ -630,15 +640,17 @@ def main():
                     replay_path=geometry_path,
                     replay_samples=SHADING_REPLAY_SAMPLES)
 
-    # Stage 3 (optional): fine-tune on human-made ASCII art, with a slice
-    # of replayed shading data so prompt conditioning doesn't erode
+    # Stage 3 (optional): fine-tune on human-made ASCII art, with slices
+    # of replayed shading AND geometry so neither prompt conditioning
+    # nor primitives erode
     human_path = os.path.join(data_dir, "human_data.pt")
     if "human" in stages and os.path.exists(human_path):
         train_stage(model, human_path, HUMAN_EPOCHS, HUMAN_LR,
                     "human", device, ckpt_dir, ema=ema,
                     soft_target=soft_target,
-                    replay_path=shading_path,
-                    replay_samples=HUMAN_REPLAY_SAMPLES)
+                    replay_path=[shading_path, geometry_path],
+                    replay_samples=[HUMAN_REPLAY_SAMPLES,
+                                    HUMAN_GEOMETRY_REPLAY_SAMPLES])
     elif "human" in stages:
         log("\nNo human_data.pt found — skipping stage 3 "
             "(run data/prepare_human_ascii.py to enable it)")

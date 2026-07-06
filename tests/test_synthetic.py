@@ -156,18 +156,85 @@ def test_clip_filter_drops_off_prompt_images(tmp_path):
 
 def test_parallel_conversion_matches_serial(tmp_path):
     # The worker pool must produce the same dataset as the serial path
-    # (same fake images, same converter, same filters)
+    # (same fake images, same converter, same filters) — including under
+    # the v2 style-mode mix, where conversion params vary per batch
     from data.generate_synthetic import generate_dataset
 
-    serial = tmp_path / "serial.pt"
-    parallel = tmp_path / "parallel.pt"
-    generate_dataset(num_samples=6, out_path=str(serial), batch_size=3,
-                     seed=0, device="cpu", pipe=_FakePipe(), workers=1)
-    generate_dataset(num_samples=6, out_path=str(parallel), batch_size=3,
-                     seed=0, device="cpu", pipe=_FakePipe(), workers=2)
+    for tag, modes in [("legacy", None),
+                       ("mix", {"filled": 0.4, "outline": 0.3,
+                                "tonal": 0.3})]:
+        serial = tmp_path / f"serial_{tag}.pt"
+        parallel = tmp_path / f"parallel_{tag}.pt"
+        generate_dataset(num_samples=6, out_path=str(serial), batch_size=3,
+                         seed=0, device="cpu", pipe=_FakePipe(), workers=1,
+                         modes=modes)
+        generate_dataset(num_samples=6, out_path=str(parallel),
+                         batch_size=3, seed=0, device="cpu",
+                         pipe=_FakePipe(), workers=2, modes=modes)
 
-    a = torch.load(serial, weights_only=True)
-    b = torch.load(parallel, weights_only=True)
-    assert torch.equal(a["data"], b["data"])
-    assert torch.equal(a["caption_ids"], b["caption_ids"])
-    assert a["captions"] == b["captions"]
+        a = torch.load(serial, weights_only=True)
+        b = torch.load(parallel, weights_only=True)
+        assert torch.equal(a["data"], b["data"]), tag
+        assert torch.equal(a["caption_ids"], b["caption_ids"]), tag
+        assert a["captions"] == b["captions"], tag
+
+
+def test_outline_mode_hollows_filled_shapes():
+    # A solid black square must convert to a boundary ring: ink on the
+    # edges, blank interior — the second visual dialect
+    from data.generate_synthetic import images_to_grids, _build_tables
+    from PIL import Image, ImageDraw
+    img = Image.new("RGB", (256, 256), "white")
+    ImageDraw.Draw(img).rectangle([48, 48, 208, 208], fill="black")
+    tables = _build_tables()
+    (filled, _), = images_to_grids([img], tables, binarize=True,
+                                   max_ink=1.0)
+    (outlined, _), = images_to_grids([img], tables, binarize=True,
+                                     outline=True, max_ink=1.0)
+    # The filled square's interior is inked; the outline's interior isn't
+    assert int((filled[20:28, 35:45] > 2).sum()) > 60
+    assert int((outlined[20:28, 35:45] > 2).sum()) == 0
+    # But the outline still has substantial boundary ink
+    assert int((outlined > 2).sum()) > 40
+
+
+def test_tonal_conversion_keeps_gray_levels():
+    # Without binarize, a soft-shaded blob must convert through the tonal
+    # pipeline into a range of glyph densities, not two tones
+    from data.generate_synthetic import images_to_grids, _build_tables
+    from PIL import Image, ImageDraw, ImageFilter
+    img = Image.new("L", (256, 256), 255)
+    draw = ImageDraw.Draw(img)
+    for r, tone in [(100, 200), (80, 150), (60, 100), (40, 50), (20, 10)]:
+        draw.ellipse([128 - r, 128 - r, 128 + r, 128 + r], fill=tone)
+    img = img.filter(ImageFilter.GaussianBlur(8)).convert("RGB")
+    tables = _build_tables()
+    (tonal, _), = images_to_grids([img], tables, binarize=False,
+                                  max_ink=1.0)
+    (binary, _), = images_to_grids([img], tables, binarize=True,
+                                   max_ink=1.0)
+    tonal_glyphs = len(set(tonal[tonal > 2].tolist()))
+    binary_glyphs = len(set(binary[binary > 2].tolist()))
+    assert tonal_glyphs > binary_glyphs
+    assert tonal_glyphs >= 8    # a real density ramp, not a silhouette
+
+
+def test_style_mix_tags_captions(tmp_path):
+    from data.generate_synthetic import generate_dataset, parse_mix
+
+    out = tmp_path / "mix.pt"
+    generate_dataset(num_samples=12, out_path=str(out), batch_size=3,
+                     seed=0, device="cpu", pipe=_FakePipe(), workers=1,
+                     modes={"outline": 0.5, "tonal": 0.5})
+    caps = torch.load(out, weights_only=True)["captions"]
+    assert caps
+    assert all(c.endswith((", outline style", ", shaded")) for c in caps)
+
+    mix = parse_mix("filled=1,tonal=3")
+    assert abs(mix["filled"] - 0.25) < 1e-9
+    assert abs(mix["tonal"] - 0.75) < 1e-9
+    try:
+        parse_mix("bogus=1")
+        assert False, "unknown mode must raise"
+    except ValueError:
+        pass

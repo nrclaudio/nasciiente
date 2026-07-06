@@ -23,7 +23,7 @@ import torch
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from config import (GRID_H, GRID_W, UNMASK_STEPS, TEMPERATURE, CFG_SCALE,
-                    MAX_ROWS, MAX_COLS)
+                    MAX_ROWS, MAX_COLS, CFG_SCHEDULE)
 from data.charset import grid_to_string
 from model.ascii_bert import ASCIIBert, load_compatible_state
 from model.inference import generate
@@ -101,6 +101,7 @@ class GenRequest(BaseModel):
     variations: int = Field(1, ge=1, le=4)
     space_bias: float = Field(0.0, ge=0.0, le=8.0)
     revision_steps: int = Field(2, ge=0, le=5)
+    schedule: str = Field(CFG_SCHEDULE, pattern="^(constant|rise|fall)$")
 
 
 @app.get("/api/info")
@@ -120,7 +121,8 @@ def api_generate(req: GenRequest):
     model, device, conditioned = s["model"], s["device"], s["conditioned"]
 
     kwargs = dict(space_bias=req.space_bias,
-                  revision_steps=req.revision_steps)
+                  revision_steps=req.revision_steps,
+                  guidance_schedule=req.schedule)
     prompt = req.prompt.strip()
     if prompt and conditioned:
         from data.text_embed import embed_captions

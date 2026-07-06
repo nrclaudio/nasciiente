@@ -267,3 +267,44 @@ def test_pre_conditioning_checkpoint_loads():
     del broken["head.weight"]
     with pytest.raises(ValueError):
         load_compatible_state(fresh, broken)
+
+
+def test_perceptual_loss_prefers_lookalike_glyphs():
+    # Two equally-confident WRONG predictions have identical CE; the
+    # perceptual term must charge less for the one that LOOKS closer to
+    # the target ('@' vs '#' are both dense; '.' is nearly blank)
+    import pytest
+    from model.render import glyph_atlas
+    from data.charset import char_to_idx
+    if glyph_atlas().sum() == 0:
+        pytest.skip("no font available on this machine")
+    model = ASCIIBert(embed_dim=32, num_layers=1, num_heads=2, ffn_dim=64,
+                      text_dim=16)
+    target = torch.full((1, H, W), char_to_idx("#"), dtype=torch.long)
+    mask = torch.ones(1, H, W, dtype=torch.bool)
+
+    def loss_when_predicting(ch):
+        logits = torch.zeros(1, H, W, VOCAB_SIZE)
+        logits[..., char_to_idx(ch)] = 30.0   # effectively one-hot
+        return model.compute_loss(logits, target, mask,
+                                  perceptual_weight=1.0)
+
+    assert loss_when_predicting("@") < loss_when_predicting(".")
+
+
+def test_perceptual_loss_gradients_flow():
+    import pytest
+    from model.render import glyph_atlas
+    if glyph_atlas().sum() == 0:
+        pytest.skip("no font available on this machine")
+    model = ASCIIBert(embed_dim=32, num_layers=1, num_heads=2, ffn_dim=64,
+                      text_dim=16)
+    logits = torch.randn(1, H, W, VOCAB_SIZE, requires_grad=True)
+    target = torch.randint(2, VOCAB_SIZE, (1, H, W))
+    mask = torch.ones(1, H, W, dtype=torch.bool)
+    base = model.compute_loss(logits, target, mask, perceptual_weight=0.0)
+    full = model.compute_loss(logits, target, mask, perceptual_weight=1.0)
+    assert full > base            # the term actually contributes
+    full.backward()
+    assert logits.grad is not None
+    assert torch.isfinite(logits.grad).all()

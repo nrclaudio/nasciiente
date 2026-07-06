@@ -44,6 +44,21 @@ GLYPH_LABEL_SMOOTH = 0.1
 # behind blank-collapse in free generation. 1.0 disables.
 SPACE_LOSS_WEIGHT = 0.4
 
+# Auxiliary perceptual loss through the differentiable glyph renderer:
+# MSE between the rendered expectation over predicted glyphs and the
+# rendered target, on masked cells. CE treats every wrong glyph as
+# equally wrong; this term scores predictions by what they LOOK like,
+# which is the actual quality criterion for ASCII art. 0 disables.
+PERCEPTUAL_LOSS_WEIGHT = 0.1
+
+# Classifier-free guidance schedule over the decode. "rise" starts at
+# scale 1 on the empty canvas and grows to the full scale as cells
+# commit (Muse used a linearly increasing schedule): layout forms
+# without guidance amplifying the ink direction globally — the failure
+# mode observed at scale >= 2 on v1 — while details still sharpen under
+# full guidance. "constant" is classic CFG.
+CFG_SCHEDULE = "rise"
+
 # EMA of weights for evaluation/final checkpoint (0 disables)
 EMA_DECAY = 0.999
 
@@ -76,28 +91,34 @@ GEOMETRY_NUM_SAMPLES = 200_000
 GEOMETRY_TRAIN_SAMPLES = 200_000
 
 # Stage 2: Shading
-# 6 epochs: the shading stage now trains on ~310k samples (synthetic +
-# sketch + geometry replay) — 6 epochs of that sees more unique content
-# than 15 epochs of the old 100k set, at 40% of the cost
+# 6 epochs over EVERYTHING the shading file holds. v1 set a 100k
+# truncation here that silently dropped every sample past the first
+# 100k rows of the merged synthetic+sketch payload — None uses it all.
 SHADING_EPOCHS = 6
 SHADING_NUM_SAMPLES = 100_000
-SHADING_TRAIN_SAMPLES = 100_000
+SHADING_TRAIN_SAMPLES = None
 SHADING_LR = 1e-4
 
 # Stage 3: Human ASCII art fine-tune (optional — runs only if
 # data/human_data.pt exists; see data/prepare_human_ascii.py)
-HUMAN_EPOCHS = 10
+# v1 ran 10 epochs and the human texture statistics bled into every
+# prompt the model didn't understand; 3 epochs of style exposure keeps
+# the benefit without the takeover.
+HUMAN_EPOCHS = 3
 HUMAN_LR = 5e-5
 # Mix replayed shading samples into the human stage so fine-tuning on ~5k
 # pieces doesn't erode the prompt conditioning learned on 100k captioned
 # shading samples (0 disables)
 HUMAN_REPLAY_SAMPLES = 20_000
+# ... and replayed geometry too: v1 protected geometry only through the
+# shading stage, and rectangles were gone by shading_last. Skills must be
+# replayed in EVERY later stage, not just the next one.
+HUMAN_GEOMETRY_REPLAY_SAMPLES = 10_000
 
-# Likewise mix replayed geometry samples into the shading stage: keeps
-# geometry-prompt skills alive and — when resuming from a stage-1
-# checkpoint trained under an older objective — re-trains those samples
-# under the current loss (0 disables)
-SHADING_REPLAY_SAMPLES = 10_000
+# Replayed geometry mixed into the shading stage. v1 used 10k against a
+# ~300k stage (3%) and geometry prompts came out BLANK at shading_last —
+# diluted below survival. 60k (~20%) keeps primitives trainable.
+SHADING_REPLAY_SAMPLES = 60_000
 
 # Inference
 UNMASK_STEPS = 10

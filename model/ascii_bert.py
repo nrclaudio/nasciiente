@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from config import (
     VOCAB_SIZE, EMBED_DIM, GRID_H, GRID_W,
     NUM_LAYERS, NUM_HEADS, FFN_DIM, DROPOUT, TEXT_EMB_DIM,
-    SPACE_LOSS_WEIGHT,
+    SPACE_LOSS_WEIGHT, PERCEPTUAL_LOSS_WEIGHT,
 )
 from data.charset import char_to_idx
 
@@ -89,9 +89,12 @@ class ASCIIBert(nn.Module):
         return logits
 
     def compute_loss(self, logits, targets, mask, soft_target_matrix=None,
-                     space_weight=SPACE_LOSS_WEIGHT):
+                     space_weight=SPACE_LOSS_WEIGHT,
+                     perceptual_weight=PERCEPTUAL_LOSS_WEIGHT):
         """
-        Cross-entropy loss computed only on masked positions.
+        Cross-entropy loss computed only on masked positions, plus an
+        optional perceptual term through the differentiable glyph
+        renderer.
 
         Args:
             logits:  [B, H, W, VOCAB_SIZE]
@@ -103,6 +106,11 @@ class ASCIIBert(nn.Module):
             space_weight: weight applied to cells whose TRUE token is space
                 (<1 counteracts the space-majority prior that drives
                 blank-collapse in free generation; 1.0 = plain mean)
+            perceptual_weight: weight of the rendered-pixel MSE between
+                the expected glyph bitmap under the predicted distribution
+                and the true glyph's bitmap. CE charges every wrong glyph
+                full price; this term charges by visual distance — the
+                criterion ASCII art is actually judged by. 0 disables.
         Returns:
             scalar loss
         """
@@ -121,9 +129,39 @@ class ASCIIBert(nn.Module):
             per_cell = -(soft * log_probs).sum(dim=-1)
 
         if space_weight == 1.0:
-            return per_cell.mean()
-        weights = torch.where(masked_targets == SPACE_IDX,
-                              torch.full_like(per_cell, space_weight),
-                              torch.ones_like(per_cell))
-        # Weighted mean keeps the loss scale comparable across batches
-        return (per_cell * weights).sum() / weights.sum().clamp_min(1e-8)
+            loss = per_cell.mean()
+        else:
+            weights = torch.where(masked_targets == SPACE_IDX,
+                                  torch.full_like(per_cell, space_weight),
+                                  torch.ones_like(per_cell))
+            # Weighted mean keeps the loss scale comparable across batches
+            loss = ((per_cell * weights).sum()
+                    / weights.sum().clamp_min(1e-8))
+
+        if perceptual_weight > 0:
+            atlas = self._glyph_atlas(masked_logits.device,
+                                      masked_logits.dtype)
+            if atlas is not None:
+                probs = masked_logits.softmax(-1)          # [N, V]
+                v = atlas.shape[0]
+                flat = atlas.reshape(v, -1)                # [V, ch*cw]
+                pred_px = probs @ flat                     # [N, ch*cw]
+                target_px = flat[masked_targets]           # [N, ch*cw]
+                loss = loss + perceptual_weight * F.mse_loss(pred_px,
+                                                             target_px)
+        return loss
+
+    def _glyph_atlas(self, device, dtype):
+        """Cached glyph atlas for the perceptual loss (None if no font
+        is available — the term silently disables rather than training
+        against blank bitmaps)."""
+        cached = getattr(self, "_atlas_cache", None)
+        if cached is None:
+            from model.render import glyph_atlas
+            cached = glyph_atlas()
+            if cached.sum() == 0:
+                cached = False        # sentinel: no font on this machine
+            self._atlas_cache = cached
+        if cached is False:
+            return None
+        return cached.to(device=device, dtype=dtype)

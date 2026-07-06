@@ -18,6 +18,8 @@
 #   SYNTH=0                skip the synthetic data engine (train on
 #                          sketch data only)
 #   SYNTH_SAMPLES=200000   synthetic samples to generate
+#   MIX=filled=..,tonal=.. style-mode mix for the v2 engine (default
+#                          filled=0.20,outline=0.35,tonal=0.45)
 #   AUTO_CAPTION=0         skip BLIP auto-captioning of human pieces
 set -uo pipefail
 
@@ -104,13 +106,24 @@ fi
 
 TRAIN_DATA_ARGS=""
 if [ "$SYNTH" = "1" ]; then
-    if [ ! -f data/synthetic_data.pt ]; then
-        echo "=== Synthetic data engine: ${SYNTH_SAMPLES} samples ==="
+    # v2 engine: mixed visual dialects (filled / outline / tonal), style
+    # tags in captions. Existing datasets are folded in, not regenerated
+    # — drop your saved v1 synthetic_data.pt into data/ to reuse it.
+    MIX="${MIX:-filled=0.20,outline=0.35,tonal=0.45}"
+    SYNTH_OUT="data/synthetic_v2.pt"
+    if [ ! -f "$SYNTH_OUT" ]; then
+        MERGE=""
+        if [ -f data/synthetic_data.pt ]; then
+            MERGE="--merge data/synthetic_data.pt"   # v1 (has sketches)
+        elif [ -f data/shading_data.pt ]; then
+            MERGE="--merge data/shading_data.pt"
+        fi
+        echo "=== Synthetic data engine v2: ${SYNTH_SAMPLES} samples (mix: $MIX) ==="
         "$PY" data/generate_synthetic.py --num-samples "$SYNTH_SAMPLES" \
-            --merge data/shading_data.pt || {
+            --mix "$MIX" --out "$SYNTH_OUT" $MERGE || {
             echo "!!! Data engine failed"; exit 1; }
     fi
-    TRAIN_DATA_ARGS="--shading-data data/synthetic_data.pt"
+    TRAIN_DATA_ARGS="--shading-data $SYNTH_OUT"
 fi
 
 # --- Training (all stages; resume variants: --init-from / --stages) ---
