@@ -108,19 +108,48 @@ def _build_tables():
     return shape_vectors, masks, char_indices, mask_sums, sv_sq_sum
 
 
-def _load_pipeline(model_id, device):
+def _load_pipeline(model_id, device, cpu_offload=None):
     try:
         from diffusers import AutoPipelineForText2Image
     except ImportError as e:
         raise ImportError(
             "The data engine needs a text-to-image model: "
             "pip install diffusers accelerate") from e
-    dtype = torch.float16 if device.type == "cuda" else torch.float32
+    is_flux = "flux" in model_id.lower()
+    if device.type == "cuda":
+        # FLUX overflows in fp16; bf16 is its native training dtype
+        dtype = torch.bfloat16 if is_flux else torch.float16
+    else:
+        dtype = torch.float32
     pipe = AutoPipelineForText2Image.from_pretrained(model_id,
                                                      torch_dtype=dtype)
-    pipe = pipe.to(device)
+    if cpu_offload is None:
+        # FLUX.1-schnell (12B) + its T5 encoder need ~34GB — more than
+        # most single consumer GPUs. Offload keeps only the active
+        # component on the GPU at some throughput cost.
+        cpu_offload = is_flux and device.type == "cuda"
+    if cpu_offload:
+        pipe.enable_model_cpu_offload()
+        print("Pipeline: CPU offload enabled (large model)")
+    else:
+        pipe = pipe.to(device)
     pipe.set_progress_bar_config(disable=True)
     return pipe
+
+
+def _pipe_kwarg_filter(pipe):
+    """Not every pipeline takes every argument (FLUX has no
+    negative_prompt — it is CFG-free by construction). Filter the call
+    kwargs down to what this pipeline's signature actually accepts."""
+    import inspect
+    try:
+        params = inspect.signature(pipe.__call__).parameters
+    except (TypeError, ValueError):
+        return lambda kw: kw
+    if any(p.kind == inspect.Parameter.VAR_KEYWORD
+           for p in params.values()):
+        return lambda kw: kw
+    return lambda kw: {k: v for k, v in kw.items() if k in params}
 
 
 def _binarize(gray_u8):
@@ -281,7 +310,7 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
                      min_ink=MIN_INK_FRAC, max_ink=MAX_INK_FRAC,
                      style=STYLE, preview_dir=None, binarize=False,
                      trim=0.04, clip_filter=0.0, clip_scorer=None,
-                     workers=None, modes=None):
+                     workers=None, modes=None, cpu_offload=None):
     """Generate `num_samples` captioned grids and save the payload.
 
     pipe: injectable for tests — any callable matching the diffusers
@@ -307,7 +336,8 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
         device = torch.device(device)
     if pipe is None:
         print(f"Loading {model_id} on {device} ...")
-        pipe = _load_pipeline(model_id, device)
+        pipe = _load_pipeline(model_id, device, cpu_offload=cpu_offload)
+    kwarg_filter = _pipe_kwarg_filter(pipe)
 
     tables = _build_tables()
     # Over-provision prompts: some images fail the ink filter
@@ -439,10 +469,11 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
         mode_name = mode_rng.choices(list(mix),
                                      weights=list(mix.values()))[0]
         m = STYLE_MODES[mode_name] if mode_name else legacy_mode
-        result = pipe(prompt=[m["style"].format(p) for p in batch],
-                      negative_prompt=[m["negative"]] * len(batch),
-                      num_inference_steps=steps, guidance_scale=0.0,
-                      generator=generator)
+        result = pipe(**kwarg_filter(dict(
+            prompt=[m["style"].format(p) for p in batch],
+            negative_prompt=[m["negative"]] * len(batch),
+            num_inference_steps=steps, guidance_scale=0.0,
+            height=512, width=512, generator=generator)))
         images = list(result.images)
         captions_batch = list(batch)   # bare captions: what CLIP scores
         if clip_filter > 0:
@@ -539,6 +570,12 @@ def main():
                              f"from {sorted(STYLE_MODES)} and captions "
                              "carry the mode's style tag. Omit for the "
                              "legacy single-style path.")
+    parser.add_argument("--cpu-offload",
+                        action=argparse.BooleanOptionalAction,
+                        default=None,
+                        help="offload pipeline components to CPU RAM "
+                             "(default: auto — on for FLUX-size models, "
+                             "off otherwise)")
     args = parser.parse_args()
     generate_dataset(args.num_samples, args.out, model_id=args.model,
                      batch_size=args.batch, steps=args.steps,
@@ -547,7 +584,8 @@ def main():
                      style=args.style, preview_dir=args.preview_dir,
                      binarize=args.binarize, trim=args.trim,
                      clip_filter=args.clip_filter, workers=args.workers,
-                     modes=parse_mix(args.mix) if args.mix else None)
+                     modes=parse_mix(args.mix) if args.mix else None,
+                     cpu_offload=args.cpu_offload)
 
 
 if __name__ == "__main__":
