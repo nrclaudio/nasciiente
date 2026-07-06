@@ -59,7 +59,8 @@ echo "=== Installing dependencies ==="
 "$PY" -m pip install -q -r requirements.txt || {
     echo "!!! pip install failed"; exit 1; }
 if [ "$SYNTH" = "1" ]; then
-    "$PY" -m pip install -q diffusers accelerate || {
+    # sentencepiece + protobuf: FLUX's T5 tokenizer needs them
+    "$PY" -m pip install -q diffusers accelerate sentencepiece protobuf || {
         echo "!!! pip install diffusers failed"; exit 1; }
 fi
 echo

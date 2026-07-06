@@ -271,3 +271,36 @@ def test_style_mix_tags_captions(tmp_path):
         assert False, "unknown mode must raise"
     except ValueError:
         pass
+
+
+class _FakeFluxPipe:
+    """FLUX-shaped interface: NO negative_prompt parameter (CFG-free
+    model), takes height/width. The engine must filter its kwargs."""
+
+    def __call__(self, prompt=None, num_inference_steps=None,
+                 guidance_scale=None, height=None, width=None,
+                 generator=None):
+        from PIL import Image, ImageDraw
+        images = []
+        for i, _ in enumerate(prompt):
+            img = Image.new("RGB", (width or 256, height or 256), "white")
+            draw = ImageDraw.Draw(img)
+            draw.rectangle([40 + i * 3, 40, 200, 200], outline="black",
+                           width=6)
+            draw.line([40, 40, 200, 200], fill="black", width=6)
+            images.append(img)
+        return _FakeResult(images)
+
+
+def test_engine_runs_on_flux_shaped_pipeline(tmp_path):
+    # A pipeline without negative_prompt (FLUX) must not crash the
+    # engine — kwargs are filtered to the pipeline's real signature
+    from data.generate_synthetic import generate_dataset
+
+    out = tmp_path / "flux.pt"
+    n = generate_dataset(num_samples=4, out_path=str(out), batch_size=2,
+                         seed=0, device="cpu", pipe=_FakeFluxPipe(),
+                         workers=1, modes={"tonal": 1.0})
+    assert n == 4
+    caps = torch.load(out, weights_only=True)["captions"]
+    assert all(c.endswith(", shaded") for c in caps)
