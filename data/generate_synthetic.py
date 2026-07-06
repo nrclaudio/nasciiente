@@ -52,15 +52,20 @@ MAX_INK_FRAC = 0.55
 STYLE_MODES = {
     # v1 dialect: bold solid silhouettes. Tag-free so it matches the v1
     # dataset's plain captions when the two are merged.
+    # solidify fills the interior of line-drawn sources so "filled" is
+    # a true silhouette (and "outline" a true contour) even when the
+    # t2i draws strokes instead of mass — without it, all dialects of
+    # a wiry pencil sketch converge on the same grid.
     "filled": dict(style=STYLE, negative=NEGATIVE, binarize=True,
                    outline=False, max_ink=MAX_INK_FRAC,
-                   flatten_bg=False, tone_soften=0.0, tag=""),
+                   flatten_bg=True, tone_soften=0.0, solidify=True,
+                   tag=""),
     # Boundary strokes. Derived from the SAME reliable icon prompt by
     # morphological edge extraction on the binary mask — prompting the
     # t2i for "line drawing" directly gave conversion soup in v1 tuning.
     "outline": dict(style=STYLE, negative=NEGATIVE, binarize=True,
                     outline=True, max_ink=0.35,
-                    flatten_bg=False, tone_soften=0.0,
+                    flatten_bg=True, tone_soften=0.0, solidify=True,
                     tag=", outline style"),
     # Full grayscale through the converter's tonal pipeline (adaptive
     # gamma -> CLAHE -> Sobel blend -> 6D matching) — the density-ramp
@@ -79,7 +84,8 @@ STYLE_MODES = {
                   # CLAHE chain amplify them into mid-density mush —
                   # 0.6 cut wisp density 31% with the trunk untouched
                   binarize=False, outline=False, max_ink=0.85,
-                  flatten_bg=True, tone_soften=0.6, tag=", shaded"),
+                  flatten_bg=True, tone_soften=0.6, solidify=False,
+                  tag=", shaded"),
 }
 DEFAULT_MIX = "filled=0.20,outline=0.35,tonal=0.45"
 
@@ -199,6 +205,45 @@ def _flatten_background(gray_u8, margin=25):
     return out
 
 
+def _solidify(bin_u8, seal=5, scale=4):
+    """Fill the interior of a line drawing: strokes become a silhouette.
+
+    FLUX-style pencil sources are mostly STROKES; Otsu keeps strokes as
+    strokes, so 'filled' converts to line art and 'outline' (edge of a
+    line = the line) degenerates into the same grid. This closes small
+    contour gaps (dilate by `seal`), flood-fills the background from
+    the border at 1/`scale` resolution, and calls everything the flood
+    can't reach "inside". Solid inputs pass through unchanged (nothing
+    to fill), so it is safe on icon sources too. Open shapes that leak
+    stay strokes — the ink-band filter downstream judges the result.
+    """
+    import torch.nn.functional as F
+    ink = (bin_u8 == 0).float()[None, None]
+    k = 2 * seal + 1
+    sealed = torch.nn.functional.max_pool2d(ink, k, stride=1,
+                                            padding=seal)
+    small = F.max_pool2d(sealed, scale, stride=scale)  # any-ink downsample
+    free = 1.0 - small
+    bg = torch.zeros_like(free)
+    bg[..., 0, :] = free[..., 0, :]
+    bg[..., -1, :] = free[..., -1, :]
+    bg[..., :, 0] = free[..., :, 0]
+    bg[..., :, -1] = free[..., :, -1]
+    for _ in range(max(small.shape[-2:])):        # flood: 1 px per step
+        new = torch.min(F.max_pool2d(bg, 3, stride=1, padding=1), free)
+        if torch.equal(new, bg):
+            break
+        bg = new
+    inside = 1.0 - F.interpolate(bg, size=bin_u8.shape, mode="nearest")
+    # undo the seal dilation so the silhouette hugs the true contour
+    solid = 1.0 - F.max_pool2d(1.0 - torch.max(inside, ink), k,
+                               stride=1, padding=seal)
+    solid = torch.max(solid, ink)  # strokes always stay ink
+    return torch.where(solid.squeeze() > 0.5,
+                       torch.zeros_like(bin_u8),
+                       torch.full_like(bin_u8, 255))
+
+
 def _mask_outline(bin_u8, thickness=3):
     """Reduce a filled binary shape (0=ink, 255=paper) to its boundary.
 
@@ -217,7 +262,8 @@ def _mask_outline(bin_u8, thickness=3):
 
 def images_to_grids(pil_images, tables, min_ink=MIN_INK_FRAC,
                     max_ink=MAX_INK_FRAC, binarize=False, trim=0.04,
-                    outline=False, flatten_bg=False, tone_soften=0.0):
+                    outline=False, flatten_bg=False, tone_soften=0.0,
+                    solidify=False):
     """Convert PIL images -> list of (grid_or_None, ink_fraction).
 
     grid is a [GRID_H, GRID_W] uint8 tensor, or None when the conversion
@@ -242,6 +288,8 @@ def images_to_grids(pil_images, tables, min_ink=MIN_INK_FRAC,
             gray = _flatten_background(gray)
         if binarize:
             gray = _binarize(gray)
+        if solidify:
+            gray = _solidify(gray)
         if outline:
             gray = _mask_outline(gray)
         grid = image_to_ascii_grid(gray, shape_vectors, masks, char_indices,
@@ -276,12 +324,14 @@ def _worker_init(trim):
 def _worker_convert(job):
     # Conversion params travel with each image because style modes vary
     # per batch (tonal converts un-binarized, outline post-processes...)
-    image, min_ink, max_ink, binarize, outline, flatten_bg, soften = job
+    (image, min_ink, max_ink, binarize, outline, flatten_bg, soften,
+     solidify) = job
     grid, ink_frac = images_to_grids([image], _WORKER["tables"],
                                      min_ink=min_ink, max_ink=max_ink,
                                      binarize=binarize, outline=outline,
                                      flatten_bg=flatten_bg,
                                      tone_soften=soften,
+                                     solidify=solidify,
                                      trim=_WORKER["trim"])[0]
     # Return numpy, NOT a torch tensor: torch pickles tensors across
     # processes via fd-sharing, which exhausts descriptors under a steady
@@ -387,7 +437,7 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
         mix = {None: 1.0}
     legacy_mode = dict(style=style, negative=NEGATIVE, binarize=binarize,
                        outline=False, max_ink=max_ink, flatten_bg=False,
-                       tone_soften=0.0, tag="")
+                       tone_soften=0.0, solidify=False, tag="")
     import random as _random
     mode_rng = _random.Random(seed ^ 0x5F17)
 
@@ -517,7 +567,7 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
                 expanded.append(im)
                 jobs.append((im, min_ink, v["max_ink"], v["binarize"],
                              v["outline"], v["flatten_bg"],
-                             v["tone_soften"]))
+                             v["tone_soften"], v["solidify"]))
         if pool is not None:
             pending.append((pool.map_async(_worker_convert, jobs),
                             stored, expanded))
@@ -525,8 +575,9 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
         else:
             converted = [images_to_grids(
                 [im], tables, min_ink=mi, max_ink=ma, binarize=b,
-                outline=o, flatten_bg=f, tone_soften=s, trim=trim)[0]
-                for im, mi, ma, b, o, f, s in jobs]
+                outline=o, flatten_bg=f, tone_soften=s, solidify=so,
+                trim=trim)[0]
+                for im, mi, ma, b, o, f, s, so in jobs]
             absorb(stored, expanded, converted)
 
     drain(block=True)

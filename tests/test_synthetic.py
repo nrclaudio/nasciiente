@@ -376,3 +376,31 @@ def test_tone_soften_lightens_wisps_keeps_trunk():
     trunk_soft = density(soft, 20, 34, 32, 44)
     assert wisp_soft < wisp_hard * 0.85    # wisps clearly lighter
     assert trunk_soft > wisp_soft * 1.5    # trunk still dominates
+
+
+def test_solidify_separates_dialects_on_line_art():
+    # FLUX-style sources are often STROKES; without solidify, filled ==
+    # outline == the strokes. Solidify must fill the enclosed interior
+    # so the dialects genuinely differ (the identical-birdhouse bug)
+    from data.generate_synthetic import images_to_grids, _build_tables
+    from PIL import Image, ImageDraw, ImageFilter
+
+    img = Image.new("L", (512, 512), 250)
+    d = ImageDraw.Draw(img)
+    d.rectangle([160, 160, 350, 350], outline=70, width=6)  # hollow box
+    img = img.filter(ImageFilter.GaussianBlur(1.5)).convert("RGB")
+    tables = _build_tables()
+
+    kw = dict(binarize=True, flatten_bg=True, max_ink=1.0, min_ink=0.0)
+    (strokes, _), = images_to_grids([img], tables, **kw)
+    (filled, _), = images_to_grids([img], tables, solidify=True, **kw)
+    (outl, _), = images_to_grids([img], tables, solidify=True,
+                                 outline=True, **kw)
+
+    # Interior of the box (grid center) — strokes/outline blank,
+    # solidified filled
+    assert int((strokes[20:26, 33:47] > 2).sum()) == 0
+    assert int((filled[20:26, 33:47] > 2).sum()) > 60
+    assert int((outl[20:26, 33:47] > 2).sum()) == 0
+    # And outline still has its ring
+    assert int((outl > 2).sum()) > 30
