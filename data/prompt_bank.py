@@ -31,6 +31,18 @@ ANIMALS = [
     "leopard", "jaguar", "panther", "hyena", "meerkat", "lemur",
     "chimpanzee", "orangutan", "reindeer", "antelope", "boar", "ferret",
     "chipmunk", "opossum", "platypus", "narwhal", "orca", "manatee",
+    "falcon", "hawk", "vulture", "condor", "kingfisher", "sparrow",
+    "robin", "bluejay", "cardinal", "magpie", "heron", "crane bird",
+    "albatross", "kiwi bird", "roadrunner", "quail", "pheasant",
+    "salmon", "trout", "tuna", "catfish", "pufferfish", "anglerfish",
+    "piranha", "flying fish", "manta ray", "hammerhead shark",
+    "sea urchin", "sea turtle", "hermit crab", "barnacle", "krill",
+    "tarantula", "praying mantis", "firefly", "cicada", "beetle",
+    "stag beetle", "weevil", "tick", "flea", "silkworm", "earwig",
+    "gazelle", "ibex", "yak", "bison", "warthog", "mongoose",
+    "wolverine", "lynx", "bobcat", "ocelot", "serval", "capybara",
+    "tapir", "okapi", "gnu", "dingo", "coyote", "jackal", "polar bear",
+    "grizzly bear", "sun bear", "red panda", "snow leopard", "puma",
 ]
 
 OBJECTS = [
@@ -62,6 +74,25 @@ OBJECTS = [
     "dumbbell", "barbell", "skis", "sled", "surfboard", "fishing rod",
     "picture frame", "birdcage", "birdhouse", "mailbox", "trash can",
     "watering can", "flower pot", "swing", "seesaw", "slide",
+    "kettle", "frying pan", "saucepan", "ladle", "whisk", "grater",
+    "rolling pin", "cutting board", "corkscrew", "can opener",
+    "toaster", "blender", "mixer", "fork", "spoon", "knife",
+    "chopsticks", "plate", "bowl", "pitcher", "goblet", "flask",
+    "thermos", "lunchbox", "picnic basket", "cauldron pot",
+    "soccer ball", "basketball", "football", "volleyball", "golf club",
+    "hockey stick", "cricket bat", "ping pong paddle", "badminton racket",
+    "boxing glove", "ice skate", "roller skate", "helmet", "trampoline",
+    "pogo stick", "hula hoop", "frisbee", "kite string", "chessboard",
+    "domino", "jigsaw puzzle piece", "rubik's cube", "marble",
+    "jack-in-the-box", "kaleidoscope", "music box", "wind chime",
+    "hammock", "parasol", "deck chair", "campfire grill", "compass rose",
+    "hourglass timer", "pocket watch", "grandfather clock", "gramophone",
+    "cassette tape", "vinyl record", "film reel", "clapperboard",
+    "paint roller", "chisel", "anvil blacksmith", "bellows", "loom",
+    "spinning wheel", "candlestick", "oil lamp", "chandelier",
+    "feather quill", "wax seal", "treasure map", "spyglass", "sextant",
+    "ship wheel", "life preserver", "diving helmet", "oxygen tank",
+    "parachute", "jetpack", "telescope on tripod", "weather vane",
 ]
 
 FOOD = [
@@ -75,6 +106,18 @@ FOOD = [
     "hamburger", "hot dog", "taco", "sushi roll", "noodle bowl",
     "coffee cup", "milk bottle", "milkshake", "popcorn bucket",
     "honey pot", "salt shaker", "chef hat",
+    "avocado", "mango", "kiwi fruit", "fig", "pomegranate", "apricot",
+    "blueberry", "raspberry", "melon", "grapefruit", "lime", "papaya",
+    "radish", "turnip", "beet", "cabbage", "cauliflower", "lettuce",
+    "cucumber", "zucchini", "artichoke", "asparagus", "leek", "garlic",
+    "ginger root", "chili pepper", "olive", "peanut", "walnut", "almond",
+    "chestnut", "cashew", "sunflower seed", "rice bowl", "dumpling",
+    "spring roll", "burrito", "quesadilla", "falafel", "kebab",
+    "meatball", "drumstick", "fried chicken", "bacon strip", "omelette",
+    "sandwich", "bagel", "muffin", "brownie", "macaron", "gingerbread man",
+    "pudding", "jelly", "cheesecake", "tiramisu", "croquette", "paella",
+    "teacup", "teapot with steam", "wine bottle", "beer mug", "cocktail",
+    "juice box", "soda can", "water glass", "espresso cup",
 ]
 
 PEOPLE = [
@@ -111,6 +154,16 @@ NATURE = [
     "sand dune", "coral", "spider web", "bird nest", "beehive", "cave",
     "crystal", "gemstone", "meteor", "constellation", "galaxy",
     "saturn", "eclipse", "sunrise", "campfire", "flame",
+    "birch tree", "sequoia", "mangrove", "olive tree", "cherry blossom",
+    "wheat stalk", "corn stalk", "vine", "ivy", "thistle", "reed",
+    "lotus", "water lily", "poppy", "lavender", "hibiscus", "iris flower",
+    "carnation", "peony", "marigold", "snowdrop", "crocus", "moss",
+    "lichen", "toadstool", "truffle", "seaweed", "kelp", "driftwood",
+    "boulder", "cliff", "canyon", "fjord", "atoll", "oasis", "marsh",
+    "lagoon", "tide pool", "hot spring", "stalactite", "quicksand",
+    "avalanche", "sandstorm", "monsoon cloud", "aurora", "milky way",
+    "shooting star", "supernova", "black hole", "full moon", "half moon",
+    "mars", "jupiter", "mercury planet", "venus planet", "neptune",
 ]
 
 BUILDINGS = [
@@ -157,6 +210,10 @@ SINGLE_TEMPLATES = [
     "a dancing {x}",
     "a simple {x}",
     "a cartoon {x}",
+    "a tiny {x}",
+    "a giant {x}",
+    "an old {x}",
+    "a geometric {x}",
 ]
 
 # Counts teach the composition/count control the class-name data never had
