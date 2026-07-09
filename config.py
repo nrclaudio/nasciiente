@@ -43,6 +43,12 @@ GLYPH_LABEL_SMOOTH = 0.1
 # plain CE makes "space" the low-risk answer everywhere — the exact prior
 # behind blank-collapse in free generation. 1.0 disables.
 SPACE_LOSS_WEIGHT = 0.4
+# Auto-calibrate the space weight per training stage to the dataset's
+# actual space fraction f, as w = (1-f)/f (equal total gradient share
+# for space and ink). 0.4 was hand-tuned on v1's ~75% space data and
+# under-corrects badly on spacier data: at v3's ~90% space it left the
+# space class with ~78% of the gradient — the attractor reborn.
+SPACE_WEIGHT_AUTO = True
 
 # Auxiliary perceptual loss through the differentiable glyph renderer:
 # MSE between the rendered expectation over predicted glyphs and the
