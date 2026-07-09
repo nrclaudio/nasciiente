@@ -215,3 +215,28 @@ def test_chained_replay_from_two_sources(tmp_path):
         assert caps[i].startswith("shade")
     for i in ids[30:].tolist():
         assert caps[i].startswith("geom")
+
+
+def test_retrieval_eval_scores_and_confusions():
+    # Injectable scorer/generator: a "model" whose grid i is most
+    # similar to prompt i except one deliberate swap — accuracy and the
+    # confusion report must reflect exactly that
+    from training.eval_retrieval import evaluate
+
+    prompts = ["a", "b", "c", "d"]
+
+    def generator(model, prompt, toks, msk):
+        return prompts.index(prompt)      # "grid" = its own index
+
+    def scorer(grids, prompt):
+        p = prompts.index(prompt)
+        # grid g matches prompt g, except grid 2 prefers prompt 3
+        return torch.tensor([1.0 if (g == p and g != 2) or
+                             (g == 2 and p == 3) else 0.1
+                             for g in grids])
+
+    acc, confusions, scores = evaluate(None, prompts, scorer,
+                                       generator=generator)
+    assert abs(acc - 0.75) < 1e-9
+    assert confusions == [("c", "d")]
+    assert scores.shape == (4, 4)
