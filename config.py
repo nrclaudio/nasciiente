@@ -14,7 +14,15 @@ EMBED_DIM = 512
 NUM_HEADS = 8
 NUM_LAYERS = 8
 FFN_DIM = 2048
-DROPOUT = 0.1
+# Dropout OFF. At 0.1 the model could not memorize even 64 grids at high
+# mask ratios (weighted CE stuck ~1.0) yet crushed the same task at 0.0
+# (0.03): corrupting 10% of activations makes the high-precision
+# caption->content route unreliable, so training settles for the robust
+# caption-agnostic texture solution in exactly the regime generation
+# runs in (decode starts 100% masked). Overfitting is guarded by the
+# masking itself — every sample is seen through a fresh random mask
+# each epoch.
+DROPOUT = 0.0
 MAX_ROWS = 96   # max supported grid height (for RoPE precomputation)
 MAX_COLS = 160  # max supported grid width (allows 2x upscale of 48x80)
 
