@@ -96,6 +96,19 @@ MASK_RATIO_MIN = 0.15
 # out-of-distribution (which shows up as blank-grid collapse)
 MASK_RATIO_MAX = 1.0
 
+# Self-context training (unrolled denoising / scheduled sampling for
+# masked models). With this probability per batch, a slice of the
+# visible context is the model's OWN sampled predictions instead of
+# ground truth, and the loss trains the remaining masked cells against
+# truth. Inference conditions every step on cells the model committed,
+# but vanilla training only ever shows ground-truth context — so decode
+# errors compound: several offset copies of a shape edge commit in
+# parallel, each locally valid, and later steps extend them instead of
+# suppressing them (nested-rectangle / interior-thatch "edge echo",
+# observed at geometry_last even with gumbel 0 and 8 revision steps).
+# Costs one extra no-grad forward on affected batches. 0 disables.
+SELF_CONTEXT_PROB = 0.5
+
 # Stage 1: Geometry
 # Geometry converges fast: observed train loss flat (0.034) from epoch 2
 # on 200k samples. 6 epochs with a full cosine anneal beats paying for 15

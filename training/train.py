@@ -39,11 +39,12 @@ from config import (
     COND_DROPOUT, GLYPH_LABEL_SMOOTH, EMA_DECAY, USE_BF16, TEXT_ENCODER,
     CFG_SCALE, HUMAN_REPLAY_SAMPLES, SHADING_REPLAY_SAMPLES,
     HUMAN_GEOMETRY_REPLAY_SAMPLES, SPACE_LOSS_WEIGHT, SPACE_WEIGHT_AUTO,
+    SELF_CONTEXT_PROB,
 )
 from model.ascii_bert import ASCIIBert
 from model.inference import generate
 from training.dataset import ASCIIDataset
-from data.charset import grid_to_string
+from data.charset import grid_to_string, MASK_TOKEN, PAD_TOKEN
 from data.glyph_sim import build_soft_target_matrix
 
 
@@ -207,6 +208,51 @@ def _autocast(device):
                           enabled=enabled)
 
 
+def self_context_corrupt(model, masked_grid, mask, ratio,
+                         cond_tokens, cond_mask, drop, device):
+    """Rebuild a batch so part of the visible context is the model's OWN
+    sampled predictions (unrolled denoising / scheduled sampling).
+
+    A no-grad pass predicts the batch; a random fraction of each
+    sample's masked cells is "committed" with the model's samples; the
+    loss then trains the remaining masked cells against ground truth.
+    The model learns to complete coherently from — and repair — its own
+    imperfect commits instead of blindly extending them, which is what
+    it faces at every decode step but never sees under ground-truth-only
+    context (the cause of the nested-edge "echo" artifact).
+
+    Returns (masked_grid, mask, ratio) rebuilt; targets are unchanged —
+    truth stays the objective no matter how the context was built.
+    """
+    with torch.no_grad(), _autocast(device):
+        logits = unwrap(model)(masked_grid, cond_tokens=cond_tokens,
+                               cond_mask=cond_mask, cond_drop=drop,
+                               mask_ratio=ratio)
+    # Never commit specials: a revealed MASK_TOKEN would still look
+    # masked to the model while the loss bookkeeping says it is not
+    logits = logits.float()
+    logits[..., PAD_TOKEN] = float("-inf")
+    logits[..., MASK_TOKEN] = float("-inf")
+    probs = torch.softmax(logits, dim=-1)
+    sampled = torch.multinomial(probs.reshape(-1, probs.shape[-1]),
+                                1).view(mask.shape)
+
+    # Per-sample commit fraction ~ U(0.25, 0.75) of the masked cells —
+    # covers early decode (little self-context) through late (mostly
+    # self-context) without ever leaving a sample lossless
+    frac = torch.rand(mask.shape[0], 1, 1, device=mask.device) * 0.5 + 0.25
+    reveal = mask & (torch.rand(mask.shape, device=mask.device) < frac)
+    still = mask & ~reveal
+    lossless = ~still.flatten(1).any(dim=1)
+    if lossless.any():
+        reveal[lossless] = False
+        still = mask & ~reveal
+
+    new_grid = torch.where(reveal, sampled, masked_grid)
+    new_ratio = still.flatten(1).float().mean(dim=1)
+    return new_grid, still, new_ratio
+
+
 def train_epoch(model, loader, optimizer, scheduler, device, epoch, stage_name,
                 total_epochs, sampler=None, soft_target=None, ema=None,
                 space_weight=SPACE_LOSS_WEIGHT):
@@ -240,6 +286,14 @@ def train_epoch(model, loader, optimizer, scheduler, device, epoch, stage_name,
         if COND_DROPOUT > 0:
             drop = drop | (torch.rand(has_cond.shape, device=device)
                            < COND_DROPOUT)
+
+        # Unrolled denoising: sometimes swap part of the ground-truth
+        # context for the model's own predictions (see
+        # self_context_corrupt) so decode-time context is in-distribution
+        if SELF_CONTEXT_PROB > 0 and random.random() < SELF_CONTEXT_PROB:
+            masked_grid, mask, ratio = self_context_corrupt(
+                model, masked_grid, mask, ratio,
+                cond_tokens, cond_mask, drop, device)
 
         # Forward through the wrapper (DDP hooks gradient sync into
         # backward); compute_loss lives on the raw module
@@ -656,7 +710,8 @@ def main():
             f"{'identity (no font — plain CE)' if is_identity else f'alpha={GLYPH_LABEL_SMOOTH}'}")
     log(f"EMA: {'decay ' + str(EMA_DECAY) if ema else 'off'} | "
         f"bf16: {USE_BF16 and device.type == 'cuda'} | "
-        f"caption dropout: {COND_DROPOUT}")
+        f"caption dropout: {COND_DROPOUT} | "
+        f"self-context: p={SELF_CONTEXT_PROB}")
 
     # Stage 1: Geometry
     geometry_path = os.path.join(data_dir, "geometry_data.pt")
