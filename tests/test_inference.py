@@ -223,3 +223,95 @@ def test_guidance_schedule_generation_runs():
                             guidance_schedule=schedule, device="cpu")
         assert final.shape == (H, W)
         assert (final != MASK_TOKEN).all()
+
+
+def test_glyph_clusters_group_lookalikes_not_strokes():
+    import pytest
+    from data.glyph_sim import glyph_clusters, _glyph_bitmaps
+    from data.charset import char_to_idx as ci
+    if _glyph_bitmaps() is None:
+        pytest.skip("no font available")
+    c = glyph_clusters()
+    assert int(c[ci("o")]) == int(c[ci("e")])       # lookalikes merge
+    assert int(c[ci(".")]) == int(c[ci(",")])
+    assert int(c[ci("/")]) != int(c[ci("\\")])      # strokes stay apart
+    assert int(c[ci("/")]) != int(c[ci("|")])
+    # space is a singleton: nothing shares its cluster
+    space_cluster = int(c[ci(" ")])
+    assert int((c == space_cluster).sum()) == 1
+
+
+def test_cluster_confidence_rescues_smeared_tone():
+    # Wisp-collapse in miniature: a model whose ink belief is SMEARED
+    # across visual lookalikes (o/e/q/c...) while space is unambiguous.
+    # Classic per-glyph confidence lets space dominate the commit race;
+    # cluster confidence must recover substantially more ink.
+    import pytest
+    from data.glyph_sim import glyph_clusters, _glyph_bitmaps
+    from data.charset import char_to_idx as ci
+    from model.ascii_bert import ASCIIBert
+    from model.inference import SPACE_TOKEN
+    if _glyph_bitmaps() is None:
+        pytest.skip("no font available")
+
+    clusters = glyph_clusters()
+    target = ci("o")
+    smear = [v for v in range(98)
+             if int(clusters[v]) == int(clusters[target])]
+    assert len(smear) >= 3, "test needs a real lookalike cluster"
+
+    torch.manual_seed(0)
+    model = ASCIIBert(embed_dim=32, num_layers=2, num_heads=2, ffn_dim=64,
+                      text_dim=16)
+    with torch.no_grad():
+        model.head.bias.fill_(-4.0)
+        model.head.bias[SPACE_TOKEN] = 2.2    # one confident option
+        for v in smear:                        # many diluted options
+            model.head.bias[v] = 1.0
+    model.eval()
+
+    torch.manual_seed(3)
+    _, classic = generate(model, H, W, num_steps=6, revision_steps=0,
+                          gumbel_scale=0.0, device="cpu")
+    torch.manual_seed(3)
+    _, clustered = generate(model, H, W, num_steps=6, revision_steps=0,
+                            gumbel_scale=0.0, device="cpu",
+                            cluster_confidence=True)
+    ink_classic = int((classic != SPACE_TOKEN).sum())
+    ink_clustered = int((clustered != SPACE_TOKEN).sum())
+    assert ink_clustered > ink_classic * 1.3, (ink_classic, ink_clustered)
+    # And the recovered ink is drawn from the smeared cluster
+    inked = clustered[clustered != SPACE_TOKEN]
+    if inked.numel():
+        frac = float(sum(int(clusters[v]) == int(clusters[target])
+                         for v in inked.tolist())) / inked.numel()
+        assert frac > 0.9
+
+
+def test_cluster_confidence_flips_commit_ordering():
+    # The exact semantics, no model: a smeared-but-collectively-certain
+    # cell must outrank a moderately-sharp cell under cluster
+    # confidence, and the reverse under classic confidence
+    import pytest
+    from data.glyph_sim import glyph_clusters, _glyph_bitmaps
+    from data.charset import char_to_idx as ci
+    from model.inference import _confidence
+    if _glyph_bitmaps() is None:
+        pytest.skip("no font available")
+
+    clusters = glyph_clusters()
+    smear = [v for v in range(98) if int(clusters[v]) == int(clusters[ci("o")])]
+    sharp = ci("#")
+    assert int(clusters[sharp]) != int(clusters[ci("o")])
+
+    probs = torch.full((1, 2, 98), 1e-6)
+    for v in smear[:4]:
+        probs[0, 0, v] = 0.14        # smeared: 4 x 0.14 = 0.56 as a cluster
+    probs[0, 1, sharp] = 0.29        # sharp single glyph
+    probs /= probs.sum(-1, keepdim=True)
+    sampled = torch.tensor([[ci("o"), sharp]])
+
+    classic = _confidence(probs, sampled, cluster_confidence=False)
+    clustered = _confidence(probs, sampled, cluster_confidence=True)
+    assert classic[0, 0] < classic[0, 1]        # smear loses classically
+    assert clustered[0, 0] > clustered[0, 1]    # smear wins as a cluster

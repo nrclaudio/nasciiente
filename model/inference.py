@@ -26,6 +26,45 @@ def _gumbel_like(x):
     return -torch.log(-torch.log(u))
 
 
+_CLUSTERS = {}
+
+
+def _cluster_ids(device, threshold=0.80):
+    """Cached [V] visual-cluster ids for cluster-confidence decoding."""
+    key = (str(device), threshold)
+    if key not in _CLUSTERS:
+        from data.glyph_sim import glyph_clusters
+        _CLUSTERS[key] = glyph_clusters(threshold).to(device)
+    return _CLUSTERS[key]
+
+
+def _confidence(probs, sampled, cluster_confidence, threshold=0.80):
+    """Per-cell commitment confidence for the sampled glyphs.
+
+    Classic MaskGIT uses P(sampled glyph). But when training labels are
+    ambiguous between visual lookalikes (o/e/q for the same tone), a
+    well-trained model's probability is a SMEAR across the cluster —
+    individually low, collectively high — so tone cells always lose the
+    confidence race to unambiguous cells and never commit (wisp
+    collapse). Cluster confidence ranks by the total mass of the
+    sampled glyph's visual cluster: "how sure am I that something LIKE
+    this goes here", which is the question commitment actually needs
+    answered. The sampled glyph itself is unchanged — full vocabulary
+    expressiveness is preserved.
+    """
+    p_sampled = probs.gather(-1, sampled.unsqueeze(-1)).squeeze(-1)
+    if not cluster_confidence:
+        return torch.log(p_sampled.clamp_min(1e-9))
+    cid = _cluster_ids(probs.device, threshold)          # [V]
+    n_clusters = int(cid.max()) + 1
+    mass = torch.zeros(*probs.shape[:-1], n_clusters,
+                       device=probs.device, dtype=probs.dtype)
+    mass.scatter_add_(-1, cid.expand_as(probs), probs)
+    sampled_cluster = cid[sampled]
+    conf = mass.gather(-1, sampled_cluster.unsqueeze(-1)).squeeze(-1)
+    return torch.log(conf.clamp_min(1e-9))
+
+
 def _effective_guidance(scale, mask_ratio, schedule):
     """Per-step CFG scale under a schedule over the decode.
 
@@ -84,7 +123,8 @@ def _model_logits(model, grid, cond, guidance_scale, mask_ratio):
 def _iterative_fill(model, grid, num_steps, temperature, schedule,
                     gumbel_scale, steps_out,
                     cond=None, guidance_scale=1.0, space_bias=0.0,
-                    guidance_schedule="constant"):
+                    guidance_schedule="constant",
+                    cluster_confidence=False):
     """Fill every currently-[MASK] cell of `grid` in place (MaskGIT-style).
 
     Cells that are not [MASK] on entry are never touched, so fixed/anchor
@@ -127,10 +167,9 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
         probs = F.softmax(logits, dim=-1)
 
         sampled = _sample_all(probs)                     # [H, W]
-        sampled_prob = probs.gather(-1, sampled.unsqueeze(-1)).squeeze(-1)
 
         # Confidence with annealed Gumbel noise (0 on the last step)
-        conf = torch.log(sampled_prob.clamp_min(1e-9))
+        conf = _confidence(probs, sampled, cluster_confidence)
         anneal = gumbel_scale * (1.0 - step / max(1, num_steps))
         if anneal > 0:
             conf = conf + anneal * _gumbel_like(conf)
@@ -165,7 +204,7 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
              gumbel_scale=1.0, revision_steps=2, revision_fraction=0.1,
              prompt=None, cond_tokens=None, cond_mask=None,
              guidance_scale=1.0, space_bias=0.0,
-             guidance_schedule="constant"):
+             guidance_schedule="constant", cluster_confidence=False):
     """
     Generate ASCII art via iterative unmasking (MaskGIT-style).
 
@@ -203,6 +242,12 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
                     from 1 to guidance_scale as the grid commits —
                     prevents the early-decode ink flood seen at scales
                     >= 2), or "fall" (the mirror, for A/B probing).
+        cluster_confidence: rank commitment by the probability mass of
+                    the sampled glyph's VISUAL cluster instead of the
+                    single glyph. Counters wisp-collapse on tonal
+                    checkpoints (ambiguous lookalike labels smear the
+                    per-glyph probabilities) while keeping the full
+                    glyph vocabulary in the output.
 
     Returns:
         steps: list of [H, W] long tensors (grid at each step)
@@ -237,7 +282,7 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
     # --- Main fill ---
     _iterative_fill(model, grid, num_steps, temperature, schedule,
                     gumbel_scale, steps, cond, guidance_scale, space_bias,
-                    guidance_schedule)
+                    guidance_schedule, cluster_confidence)
 
     # --- Revision passes (poor-man's Token-Critic self-correction) ---
     free = ~fixed
@@ -251,7 +296,7 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
         if temperature != 1.0:
             logits = logits / temperature
         probs = F.softmax(logits, dim=-1)
-        cur_conf = probs.gather(-1, grid.unsqueeze(-1)).squeeze(-1)  # [H, W]
+        cur_conf = _confidence(probs, grid, cluster_confidence)  # [H, W]
         cur_conf[fixed] = float("inf")  # fixed cells are never re-masked
 
         # Re-mask the k least-confident free cells, then refill them
@@ -262,7 +307,7 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
         refill_steps = max(2, num_steps // 4)
         _iterative_fill(model, grid, refill_steps, temperature, schedule,
                         gumbel_scale, steps, cond, guidance_scale,
-                        space_bias, guidance_schedule)
+                        space_bias, guidance_schedule, cluster_confidence)
 
     return steps, grid.cpu()
 

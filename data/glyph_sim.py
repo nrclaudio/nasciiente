@@ -58,6 +58,48 @@ def _glyph_bitmaps():
         return None
 
 
+def glyph_clusters(threshold=0.80, vocab_size=VOCAB_SIZE):
+    """[vocab_size] long tensor: visual-equivalence cluster per glyph.
+
+    Greedy clustering on rendered-bitmap cosine similarity: a glyph
+    joins the first cluster whose representative it matches above
+    `threshold`, else founds its own. Lookalikes the converter uses
+    interchangeably (o/e/q, dense blocks) share a cluster; structurally
+    distinct strokes (/ vs \\ vs |) stay apart. PAD/MASK/space are
+    always singleton clusters. Falls back to every-glyph-its-own-
+    cluster if no font is available (cluster confidence then degrades
+    to classic per-glyph confidence).
+    """
+    ids = torch.arange(vocab_size)
+    bmps = _glyph_bitmaps()
+    if bmps is None:
+        return ids
+    x = torch.from_numpy(bmps)
+    x = x / (x.norm(dim=1, keepdim=True) + 1e-8)
+    sim = x @ x.t()
+
+    idx = [char_to_idx(c) for c in _PRINTABLE]
+    space = char_to_idx(" ")
+    reps = []                       # (printable_row, cluster_id)
+    next_id = vocab_size            # cluster ids disjoint from specials
+    for i, vi in enumerate(idx):
+        if vi == space:
+            continue                # singleton, keeps its own id
+        assigned = None
+        for r, cid in reps:
+            if float(sim[i, r]) >= threshold:
+                assigned = cid
+                break
+        if assigned is None:
+            assigned = next_id
+            next_id += 1
+            reps.append((i, assigned))
+        ids[vi] = assigned
+    # Compact ids to 0..C-1
+    remap = {int(c): k for k, c in enumerate(torch.unique(ids))}
+    return torch.tensor([remap[int(c)] for c in ids])
+
+
 def build_soft_target_matrix(alpha, temperature=0.15, vocab_size=VOCAB_SIZE):
     """Return a [vocab_size, vocab_size] row-stochastic target matrix.
 
