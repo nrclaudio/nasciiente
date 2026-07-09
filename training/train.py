@@ -403,7 +403,12 @@ def auto_space_weight(data):
 
 def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
                 max_samples=None, ema=None, soft_target=None,
-                replay_path=None, replay_samples=0):
+                replay_path=None, replay_samples=0,
+                save_checkpoints=True, epoch_samples=True):
+    """save_checkpoints=False skips all checkpoint writes;
+    epoch_samples=False prints/archives a generation sample only after
+    the final epoch. Both exist for diagnostic runs (capacity probes,
+    overfit tests) where per-epoch I/O is pure overhead."""
     base_lr, lr = lr, scale_lr(lr)
     log(f"\n{'='*60}")
     log(f"  Stage: {stage_name.upper()}")
@@ -522,11 +527,12 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
         # can show how samples evolve over the curriculum. For captioned
         # stages, probe with the stage's first caption so the prompted
         # mode (the one 90% of training optimizes) is visible too.
-        sample_path = os.path.join(ckpt_dir, "samples",
-                                   f"{stage_name}_epoch{epoch+1:03d}.txt")
-        probe = ((captions[0], caption_tokens[0], caption_masks[0])
-                 if caption_tokens is not None else None)
-        print_sample(model, device, save_path=sample_path, probe=probe)
+        if epoch_samples or epoch == epochs - 1:
+            sample_path = os.path.join(ckpt_dir, "samples",
+                                       f"{stage_name}_epoch{epoch+1:03d}.txt")
+            probe = ((captions[0], caption_tokens[0], caption_masks[0])
+                     if caption_tokens is not None else None)
+            print_sample(model, device, save_path=sample_path, probe=probe)
 
         if ema is not None:
             ema.restore(unwrap(model))
@@ -534,15 +540,17 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
         # Rolling checkpoints: 'last' every epoch (crash recovery) and
         # 'best' on val improvement. Per-epoch files would pile up to
         # ~12 GB over a full curriculum for no benefit.
-        last_path = os.path.join(ckpt_dir, f"{stage_name}_last.pt")
-        save_checkpoint(model, optimizer, epoch, stage_name, last_path,
-                        ema=ema)
-        if improved:
-            save_checkpoint(model, optimizer, epoch, stage_name,
-                            os.path.join(ckpt_dir, f"{stage_name}_best.pt"),
+        if save_checkpoints:
+            last_path = os.path.join(ckpt_dir, f"{stage_name}_last.pt")
+            save_checkpoint(model, optimizer, epoch, stage_name, last_path,
                             ema=ema)
-        log(f"  Checkpoint saved: {last_path}"
-            + (" (+ best)" if improved else ""))
+            if improved:
+                save_checkpoint(model, optimizer, epoch, stage_name,
+                                os.path.join(ckpt_dir,
+                                             f"{stage_name}_best.pt"),
+                                ema=ema)
+            log(f"  Checkpoint saved: {last_path}"
+                + (" (+ best)" if improved else ""))
 
     total_stage = time.time() - t_stage
     log(f"\n{'='*60}")
