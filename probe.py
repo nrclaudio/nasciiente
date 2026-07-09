@@ -82,6 +82,13 @@ def main():
     parser.add_argument("--space-bias", type=float, default=0.0,
                         help="anti-blank pressure (try 2-6 when everything "
                              "generates empty); annealed with mask ratio")
+    parser.add_argument("--gumbel", type=float, default=1.0,
+                        help="exploration noise on commit ORDER (0 = "
+                             "strictly most-confident-first; the "
+                             "default 1.0 randomizes early commits for "
+                             "diversity, which hurts precise structure)")
+    parser.add_argument("--revision-steps", type=int, default=2)
+    parser.add_argument("--revision-fraction", type=float, default=0.1)
     parser.add_argument("--cluster-conf", action="store_true",
                         help="rank decode commitment by visual-cluster "
                              "probability mass instead of single-glyph "
@@ -142,6 +149,9 @@ def main():
                            space_bias=args.space_bias,
                            guidance_schedule=args.schedule,
                            cluster_confidence=args.cluster_conf,
+                           gumbel_scale=args.gumbel,
+                           revision_steps=args.revision_steps,
+                           revision_fraction=args.revision_fraction,
                            device=device, **kwargs)
         ink = int((grid > 2).sum())  # non-space printable cells
         chars = int(torch.unique(grid).numel())
