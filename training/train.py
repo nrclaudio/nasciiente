@@ -38,7 +38,7 @@ from config import (
     MASK_RATIO_MIN, MASK_RATIO_MAX,
     COND_DROPOUT, GLYPH_LABEL_SMOOTH, EMA_DECAY, USE_BF16, TEXT_ENCODER,
     CFG_SCALE, HUMAN_REPLAY_SAMPLES, SHADING_REPLAY_SAMPLES,
-    HUMAN_GEOMETRY_REPLAY_SAMPLES,
+    HUMAN_GEOMETRY_REPLAY_SAMPLES, SPACE_LOSS_WEIGHT, SPACE_WEIGHT_AUTO,
 )
 from model.ascii_bert import ASCIIBert
 from model.inference import generate
@@ -208,7 +208,8 @@ def _autocast(device):
 
 
 def train_epoch(model, loader, optimizer, scheduler, device, epoch, stage_name,
-                total_epochs, sampler=None, soft_target=None, ema=None):
+                total_epochs, sampler=None, soft_target=None, ema=None,
+                space_weight=SPACE_LOSS_WEIGHT):
     if sampler is not None:
         # Reshuffle the shard assignment each epoch, or every rank would
         # see the same samples in the same order all run long
@@ -247,7 +248,8 @@ def train_epoch(model, loader, optimizer, scheduler, device, epoch, stage_name,
                            cond_mask=cond_mask, cond_drop=drop,
                            mask_ratio=ratio)
             loss = unwrap(model).compute_loss(logits, target_grid, mask,
-                                              soft_target_matrix=soft_target)
+                                              soft_target_matrix=soft_target,
+                                              space_weight=space_weight)
         (loss / GRAD_ACCUM_STEPS).backward()
 
         running_loss += loss.detach()
@@ -288,7 +290,8 @@ def train_epoch(model, loader, optimizer, scheduler, device, epoch, stage_name,
 
 
 @torch.no_grad()
-def validate(model, loader, device, soft_target=None):
+def validate(model, loader, device, soft_target=None,
+             space_weight=SPACE_LOSS_WEIGHT):
     # Use the raw module: DDP's forward broadcasts buffers (a collective
     # op), which would deadlock if ranks ever ran different batch counts.
     # Every rank validates the identical full val split instead — the 5%
@@ -314,7 +317,8 @@ def validate(model, loader, device, soft_target=None):
                            cond_mask=cond_mask, cond_drop=~has_cond,
                            mask_ratio=ratio)
             loss = model.compute_loss(logits, target_grid, mask,
-                                      soft_target_matrix=soft_target)
+                                      soft_target_matrix=soft_target,
+                                      space_weight=space_weight)
         total_loss += loss.item()
 
         preds = logits.argmax(dim=-1)  # [B, H, W]
@@ -384,6 +388,19 @@ def save_checkpoint(model, optimizer, epoch, stage, path, ema=None):
     torch.save(ckpt, path)
 
 
+def auto_space_weight(data):
+    """Loss weight for space cells giving space and ink equal total
+    gradient share: w = (1-f)/f for space fraction f. Reproduces the
+    hand-tuned 0.4 on v1-era data (~75% space) and correctly shrinks on
+    spacier corpora, where a fixed 0.4 leaves the blank-collapse prior
+    in charge."""
+    from model.ascii_bert import SPACE_IDX
+    f = float((data == SPACE_IDX).float().mean())
+    if f <= 0 or f >= 1:
+        return 1.0
+    return min(1.0, max(0.05, (1 - f) / f))
+
+
 def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
                 max_samples=None, ema=None, soft_target=None,
                 replay_path=None, replay_samples=0):
@@ -417,6 +434,10 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
                 log(f"  Replay: +{len(data) - n_before:,} samples from "
                     f"{os.path.basename(r_path)} "
                     f"(guards against forgetting)")
+    space_weight = (auto_space_weight(data) if SPACE_WEIGHT_AUTO
+                    else SPACE_LOSS_WEIGHT)
+    log(f"  Space weight: {space_weight:.3f} "
+        f"({'auto — equal gradient share' if SPACE_WEIGHT_AUTO else 'fixed'})")
     caption_tokens = caption_masks = None
     if captions is not None:
         # Embed the unique-caption vocabulary once up front; the training
@@ -470,14 +491,15 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
         train_loss = train_epoch(model, train_loader, optimizer, scheduler,
                                  device, epoch, stage_name, epochs,
                                  sampler=train_sampler, soft_target=soft_target,
-                                 ema=ema)
+                                 ema=ema, space_weight=space_weight)
 
         # Evaluate and sample under EMA weights (swap in, then restore the
         # live training weights before checkpointing so the saved weights
         # match the saved optimizer state)
         if ema is not None:
             ema.store_and_copy(unwrap(model))
-        val_loss, val_acc = validate(model, val_loader, device, soft_target)
+        val_loss, val_acc = validate(model, val_loader, device, soft_target,
+                                     space_weight=space_weight)
 
         elapsed = time.time() - t0
         stage_elapsed = time.time() - t_stage

@@ -240,3 +240,22 @@ def test_retrieval_eval_scores_and_confusions():
     assert abs(acc - 0.75) < 1e-9
     assert confusions == [("c", "d")]
     assert scores.shape == (4, 4)
+
+
+def test_auto_space_weight_calibration():
+    from training.train import auto_space_weight
+    from model.ascii_bert import SPACE_IDX
+
+    def grid_with_space_frac(f, n=10_000):
+        t = torch.full((n,), SPACE_IDX + 5, dtype=torch.uint8)
+        t[: int(n * f)] = SPACE_IDX
+        return t
+
+    # v1-era data (~75% space) reproduces the hand-tuned ~0.4 regime
+    assert abs(auto_space_weight(grid_with_space_frac(0.75)) - 1 / 3) < 0.01
+    # v3-era data (~90% space) shrinks the weight accordingly
+    assert abs(auto_space_weight(grid_with_space_frac(0.90)) - 1 / 9) < 0.01
+    # caps: never zero, never above plain CE
+    assert auto_space_weight(grid_with_space_frac(0.999)) >= 0.05
+    assert auto_space_weight(grid_with_space_frac(0.10)) == 1.0
+    assert auto_space_weight(grid_with_space_frac(0.0)) == 1.0
