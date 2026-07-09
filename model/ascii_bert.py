@@ -24,6 +24,36 @@ def _is_conditioning_key(key):
     return any(m in key for m in _COND_KEY_MARKERS)
 
 
+# Named model sizes. "base" is the original 34.5M configuration;
+# "large" (~113M) exists for the tonal dialect, whose per-cell entropy
+# is far higher than geometry/silhouette work.
+MODEL_SIZES = {
+    "base":  dict(embed_dim=512, num_layers=8, num_heads=8, ffn_dim=2048),
+    "large": dict(embed_dim=768, num_layers=12, num_heads=12,
+                  ffn_dim=3072),
+}
+
+
+def arch_from_state(state):
+    """Infer constructor kwargs from a checkpoint's tensor shapes, so
+    tools (probe, server) can load any model size without being told.
+    num_heads follows the head_dim=64 convention both sizes use."""
+    embed_dim = state["embedding.token_embed.embedding.weight"].shape[1]
+    return dict(
+        embed_dim=embed_dim,
+        num_layers=1 + max(int(k.split(".")[2]) for k in state
+                           if k.startswith("transformer.layers.")),
+        num_heads=max(1, embed_dim // 64),
+        ffn_dim=state["transformer.layers.0.ffn.0.weight"].shape[0],
+        text_dim=state["conditioning.null_token"].shape[0],
+    )
+
+
+def model_matching_state(state):
+    """Construct an ASCIIBert shaped like the checkpoint."""
+    return ASCIIBert(**arch_from_state(state))
+
+
 def load_compatible_state(model, state):
     """Load a checkpoint state dict, tolerating only conditioning-pathway
     mismatches (older checkpoints predate text conditioning; those modules
