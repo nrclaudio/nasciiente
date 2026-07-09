@@ -43,8 +43,11 @@ DEFAULT_PROMPTS = [
 ]
 
 
-def load_checkpoint(model, path, use_ema=False):
-    from model.ascii_bert import load_compatible_state
+def load_checkpoint(path, use_ema=False, device="cpu"):
+    """Build a model shaped like the checkpoint (any --model-size) and
+    load it. Returns (model, conditioned)."""
+    from model.ascii_bert import load_compatible_state, \
+        model_matching_state
     ckpt = torch.load(path, map_location="cpu", weights_only=True)
     if isinstance(ckpt, dict) and use_ema:
         if "ema_state_dict" not in ckpt:
@@ -55,8 +58,9 @@ def load_checkpoint(model, path, use_ema=False):
         state = ckpt["model_state_dict"]
     else:
         state = ckpt
+    model = model_matching_state(state).to(device)
     try:
-        return load_compatible_state(model, state)
+        return model, load_compatible_state(model, state)
     except ValueError as e:
         raise SystemExit(f"{path}: {e}")
 
@@ -102,8 +106,8 @@ def main():
     args = parser.parse_args()
 
     device = torch.device(args.device)
-    model = ASCIIBert().to(device)
-    conditioned = load_checkpoint(model, args.checkpoint, use_ema=args.ema)
+    model, conditioned = load_checkpoint(args.checkpoint,
+                                         use_ema=args.ema, device=device)
     model.eval()
     cond_note = ("conditioned" if conditioned
                  else "UNCONDITIONED — prompts will have no effect")

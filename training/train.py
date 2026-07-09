@@ -547,6 +547,12 @@ def parse_args():
                         help="alternative dataset file for the shading "
                              "stage (e.g. data/synthetic_data.pt from the "
                              "data engine)")
+    parser.add_argument("--model-size", default="base",
+                        choices=["base", "large"],
+                        help="base = 34.5M (original), large = ~113M "
+                             "(768x12 — for the high-entropy tonal "
+                             "dialect). probe/server auto-detect the "
+                             "size from checkpoint shapes.")
     args, _ = parser.parse_known_args()
     return args
 
@@ -583,8 +589,11 @@ def main():
 
     data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
 
-    model = ASCIIBert().to(device)
+    from model.ascii_bert import MODEL_SIZES
+    model = ASCIIBert(**MODEL_SIZES[args.model_size]).to(device)
     total_params = sum(p.numel() for p in model.parameters())
+    log(f"Model size: {args.model_size} "
+        f"({MODEL_SIZES[args.model_size]})")
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     log(f"\nModel: {total_params:,} params ({trainable:,} trainable)")
     log(f"Gradient checkpointing: {model.transformer.gradient_checkpointing}")

@@ -25,7 +25,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 from config import (GRID_H, GRID_W, UNMASK_STEPS, TEMPERATURE, CFG_SCALE,
                     MAX_ROWS, MAX_COLS, CFG_SCHEDULE)
 from data.charset import grid_to_string
-from model.ascii_bert import ASCIIBert, load_compatible_state
+from model.ascii_bert import (ASCIIBert, load_compatible_state,
+                              model_matching_state)
 from model.inference import generate
 
 try:
@@ -75,11 +76,11 @@ def get_model():
         if path is None:
             raise HTTPException(503, "No checkpoint found in checkpoints/")
         device = _pick_device()
-        model = ASCIIBert().to(device)
         ckpt = torch.load(path, map_location=device, weights_only=True)
         state = (ckpt["model_state_dict"]
                  if isinstance(ckpt, dict) and "model_state_dict" in ckpt
                  else ckpt)
+        model = model_matching_state(state).to(device)
         conditioned = load_compatible_state(model, state)
         model.eval()
         _STATE.update(model=model, device=device, conditioned=conditioned,
