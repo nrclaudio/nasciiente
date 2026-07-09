@@ -259,3 +259,44 @@ def test_auto_space_weight_calibration():
     assert auto_space_weight(grid_with_space_frac(0.999)) >= 0.05
     assert auto_space_weight(grid_with_space_frac(0.10)) == 1.0
     assert auto_space_weight(grid_with_space_frac(0.0)) == 1.0
+
+
+def test_self_context_corrupt():
+    from training.train import self_context_corrupt
+    from model.ascii_bert import ASCIIBert
+    from data.charset import MASK_TOKEN, PAD_TOKEN
+
+    torch.manual_seed(0)
+    model = ASCIIBert(embed_dim=32, num_layers=2, num_heads=2, ffn_dim=64,
+                      text_dim=16)
+    model.eval()
+
+    B, H, W = 4, 8, 10
+    device = torch.device("cpu")
+    target = torch.randint(2, 98, (B, H, W))
+    mask = torch.rand(B, H, W) < 0.6
+    mask[0] = True                       # one fully-masked sample
+    masked = target.clone()
+    masked[mask] = MASK_TOKEN
+    ratio = mask.flatten(1).float().mean(dim=1)
+    cond_tokens = torch.zeros(B, 3, 16)
+    cond_mask = torch.zeros(B, 3, dtype=torch.bool)
+    drop = torch.ones(B, dtype=torch.bool)
+
+    new_grid, new_mask, new_ratio = self_context_corrupt(
+        model, masked.clone(), mask, ratio,
+        cond_tokens, cond_mask, drop, device)
+
+    # Loss mask only shrinks, and never leaves a sample lossless
+    assert (new_mask & ~mask).sum() == 0
+    assert new_mask.flatten(1).any(dim=1).all()
+    # Ground-truth visible cells are untouched
+    assert torch.equal(new_grid[~mask], masked[~mask])
+    # Still-masked cells stay [MASK]; revealed cells are real glyphs
+    assert (new_grid[new_mask] == MASK_TOKEN).all()
+    revealed = mask & ~new_mask
+    assert revealed.any()               # something actually got committed
+    assert (new_grid[revealed] != MASK_TOKEN).all()
+    assert (new_grid[revealed] != PAD_TOKEN).all()
+    # Ratio conditioning tracks the rebuilt mask
+    assert torch.allclose(new_ratio, new_mask.flatten(1).float().mean(dim=1))
