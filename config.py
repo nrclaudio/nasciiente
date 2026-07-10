@@ -155,6 +155,16 @@ SHADING_REPLAY_SAMPLES = 60_000
 # Inference
 UNMASK_STEPS = 10
 TEMPERATURE = 1.0
+# Cap on cells committed per unmasking step (None disables). The cosine
+# schedule mass-commits the low-confidence tail in its final steps —
+# precisely the ambiguous cells (e.g. every column an unseen shape edge
+# could fall on) — sampling incompatible hypotheses in parallel: the
+# edge-echo artifact. Capping resolves the tail sequentially, each
+# commit becoming context for the next. Probe A/B on geometry_last:
+# "a cross" went from 155-ink multi-stroke chaos to a perfect 28-ink
+# cross; rectangle 300 -> 97 ink with one clean border. Costs extra
+# forward passes (~masked_cells / cap total).
+DECODE_MAX_COMMIT = 8
 
 # Device
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
