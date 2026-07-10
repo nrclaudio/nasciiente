@@ -89,23 +89,35 @@ def draw_rectangle(grid):
 
 
 def draw_triangle(grid):
-    """Right triangle growing down-right."""
+    """Right triangle: vertical left edge, bottom edge, closing hypotenuse.
+
+        |
+        |\
+        | \
+        +---
+
+    The original version drew the hypotenuse with '/' STARTING at the
+    bottom-left corner — three rays fanning from one vertex, never a
+    closed shape — and 200k samples captioned "a triangle" taught the
+    model exactly that. The hypotenuse must run '\' from the top of the
+    vertical edge down to the right end of the bottom edge.
+    """
     r0 = random.randint(0, GRID_H - 8)
     c0 = random.randint(0, GRID_W - 15)
     size = random.randint(4, min(12, GRID_H - r0, GRID_W - c0))
-    slash = char_to_idx("/")
+    bslash = char_to_idx("\\")
     dash = char_to_idx("-")
     pipe = char_to_idx("|")
     plus = char_to_idx("+")
+    # diagonal hypotenuse first, so the edges win the corner cells
+    for i in range(size):
+        _set(grid, r0 + i, c0 + i, bslash)
     # vertical left edge
     for r in range(r0, r0 + size):
         _set(grid, r, c0, pipe)
     # horizontal bottom edge
     for c in range(c0, c0 + size):
         _set(grid, r0 + size - 1, c, dash)
-    # diagonal hypotenuse
-    for i in range(size):
-        _set(grid, r0 + size - 1 - i, c0 + i, slash)
     # corner
     _set(grid, r0 + size - 1, c0, plus)
     return "a triangle"
