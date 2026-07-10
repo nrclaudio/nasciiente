@@ -45,18 +45,33 @@ SHAPES = {
 }
 
 
-def make_mask(mode, H, W, rng):
-    """Boolean [H, W] mask of cells to HIDE."""
+def make_mask(mode, truth, rng):
+    """Boolean [H, W] mask of cells to HIDE.
+
+    Split lines are computed from the SHAPE's bounding box, not the
+    canvas center, so part of the shape is always visible. (The first
+    version split the canvas; with an unlucky seed the whole shape fell
+    in the hidden half and the probe degenerated to free generation on
+    a half-blank canvas.)
+    """
+    H, W = truth.shape
+    ink = truth > 2
+    rows = ink.any(dim=1).nonzero().flatten()
+    cols = ink.any(dim=0).nonzero().flatten()
+    r_lo, r_hi = int(rows[0]), int(rows[-1])
+    c_lo, c_hi = int(cols[0]), int(cols[-1])
+    r_mid = (r_lo + r_hi + 1) // 2
+    c_mid = (c_lo + c_hi + 1) // 2
+
     m = torch.zeros(H, W, dtype=torch.bool)
     if mode == "right":
-        m[:, W // 2:] = True
+        m[:, c_mid:] = True
     elif mode == "bottom":
-        m[H // 2:, :] = True
+        m[r_mid:, :] = True
     elif mode == "block":
-        bh, bw = H // 2, W // 2
-        r0 = rng.randint(H // 4, H - bh)
-        c0 = rng.randint(W // 4, W - bw)
-        m[r0:r0 + bh, c0:c0 + bw] = True
+        # hide the shape's lower-right quadrant plus a 3-cell halo
+        m[max(0, r_mid - 3):min(H, r_hi + 4),
+          max(0, c_mid - 3):min(W, c_hi + 4)] = True
     elif mode == "random":
         m = torch.rand(H, W) < 0.5
     else:
@@ -123,9 +138,15 @@ def main():
         truth = _blank_grid()
         SHAPES[name](truth)
 
-        hide = make_mask(args.mask, GRID_H, GRID_W, rng)
+        hide = make_mask(args.mask, truth, rng)
         masked = truth.clone()
         masked[hide] = MASK_TOKEN
+        ink_hidden = int(((truth > 2) & hide).sum())
+        ink_visible = int(((truth > 2) & ~hide).sum())
+        if ink_visible == 0 or ink_hidden == 0:
+            print(f"WARNING: {name} does not straddle the mask "
+                  f"(visible ink {ink_visible}, hidden ink {ink_hidden}) "
+                  f"— not a valid inpainting test")
 
         kwargs = {}
         if args.cond:
@@ -147,6 +168,7 @@ def main():
 
         acc, prec, rec = score(result, truth, hide)
         header = (f"=== {name} · mask={args.mask} · "
+                  f"ink visible/hidden {ink_visible}/{ink_hidden} · "
                   f"masked-cell acc {acc:.1%} · "
                   f"ink precision {prec:.1%} / recall {rec:.1%} ===")
         block = "\n".join([
