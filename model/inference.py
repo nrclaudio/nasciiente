@@ -124,7 +124,7 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
                     gumbel_scale, steps_out,
                     cond=None, guidance_scale=1.0, space_bias=0.0,
                     guidance_schedule="constant",
-                    cluster_confidence=False):
+                    cluster_confidence=False, max_commit=None):
     """Fill every currently-[MASK] cell of `grid` in place (MaskGIT-style).
 
     Cells that are not [MASK] on entry are never touched, so fixed/anchor
@@ -143,13 +143,24 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
     scaled by the CURRENT mask ratio — full strength on an empty canvas,
     zero once the grid is mostly committed — forcing early ink placement
     while leaving late-stage space placement free.
+
+    max_commit caps how many cells may commit per step. Without it the
+    cosine schedule commits the MOST cells in the LAST steps — and the
+    low-confidence cells left at the end are precisely the ambiguous
+    ones (e.g. every column where a shape's unseen edge could fall), so
+    they mass-commit in one parallel step, each independently sampling
+    a different answer: several offset edges — the "edge echo". The cap
+    resolves that tail incrementally, each commit becoming context for
+    the next decision, at the price of extra forward passes (the loop
+    keeps running past num_steps until the grid is full).
     """
     n0 = int((grid == MASK_TOKEN).sum().item())
     if n0 == 0:
         return
 
     total = grid.numel()
-    for step in range(num_steps):
+    step = 0
+    while True:
         is_masked = (grid == MASK_TOKEN)
         num_masked = int(is_masked.sum().item())
         if num_masked == 0:
@@ -168,34 +179,27 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
 
         sampled = _sample_all(probs)                     # [H, W]
 
-        # Confidence with annealed Gumbel noise (0 on the last step)
+        # Confidence with annealed Gumbel noise (0 from the last
+        # scheduled step onward)
         conf = _confidence(probs, sampled, cluster_confidence)
-        anneal = gumbel_scale * (1.0 - step / max(1, num_steps))
+        anneal = gumbel_scale * max(0.0, 1.0 - step / max(1, num_steps))
         if anneal > 0:
             conf = conf + anneal * _gumbel_like(conf)
         conf[~is_masked] = float("-inf")
 
-        # Commit enough to reach the schedule's masked target for this step
-        target = _num_masked_target(n0, step + 1, num_steps, schedule)
+        # Commit enough to reach the schedule's masked target for this
+        # step (target 0 past num_steps — only reachable with a cap)
+        target = _num_masked_target(n0, min(step + 1, num_steps),
+                                    num_steps, schedule)
         num_commit = num_masked - target
         num_commit = max(1, min(num_commit, num_masked))
+        if max_commit is not None:
+            num_commit = min(num_commit, max_commit)
 
         commit_idx = conf.view(-1).topk(num_commit).indices
         grid.view(-1)[commit_idx] = sampled.view(-1)[commit_idx]
         steps_out.append(grid.clone().cpu())
-
-    # Safety: force-fill anything left (schedule should already reach 0)
-    is_masked = (grid == MASK_TOKEN)
-    if is_masked.any():
-        mask_ratio = int(is_masked.sum().item()) / total
-        logits = _model_logits(model, grid, cond, guidance_scale,
-                               mask_ratio)
-        if temperature != 1.0:
-            logits = logits / temperature
-        probs = F.softmax(logits, dim=-1)
-        sampled = _sample_all(probs)
-        grid[is_masked] = sampled[is_masked]
-        steps_out.append(grid.clone().cpu())
+        step += 1
 
 
 @torch.no_grad()
@@ -204,7 +208,8 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
              gumbel_scale=1.0, revision_steps=2, revision_fraction=0.1,
              prompt=None, cond_tokens=None, cond_mask=None,
              guidance_scale=1.0, space_bias=0.0,
-             guidance_schedule="constant", cluster_confidence=False):
+             guidance_schedule="constant", cluster_confidence=False,
+             max_commit=None):
     """
     Generate ASCII art via iterative unmasking (MaskGIT-style).
 
@@ -248,6 +253,14 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
                     checkpoints (ambiguous lookalike labels smear the
                     per-glyph probabilities) while keeping the full
                     glyph vocabulary in the output.
+        max_commit: cap on cells committed per step (None = schedule
+                    only). Counters mode-mixing on ambiguous regions:
+                    the cosine schedule mass-commits the low-confidence
+                    tail in its final steps, sampling incompatible
+                    hypotheses in parallel (the edge-echo mechanism).
+                    A cap resolves them sequentially; the fill loops
+                    past num_steps until complete, so decode cost rises
+                    to ~(masked cells / max_commit) forward passes.
 
     Returns:
         steps: list of [H, W] long tensors (grid at each step)
@@ -282,7 +295,7 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
     # --- Main fill ---
     _iterative_fill(model, grid, num_steps, temperature, schedule,
                     gumbel_scale, steps, cond, guidance_scale, space_bias,
-                    guidance_schedule, cluster_confidence)
+                    guidance_schedule, cluster_confidence, max_commit)
 
     # --- Revision passes (poor-man's Token-Critic self-correction) ---
     free = ~fixed
@@ -307,7 +320,8 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
         refill_steps = max(2, num_steps // 4)
         _iterative_fill(model, grid, refill_steps, temperature, schedule,
                         gumbel_scale, steps, cond, guidance_scale,
-                        space_bias, guidance_schedule, cluster_confidence)
+                        space_bias, guidance_schedule, cluster_confidence,
+                        max_commit)
 
     return steps, grid.cpu()
 

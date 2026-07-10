@@ -107,6 +107,9 @@ def main():
     parser.add_argument("--revision-steps", type=int, default=0,
                         help="default 0: measure the raw fill, no cleanup")
     parser.add_argument("--revision-fraction", type=float, default=0.1)
+    parser.add_argument("--max-commit", type=int, default=None,
+                        help="cap cells committed per decode step "
+                             "(sequentializes the ambiguous tail; try 8)")
     parser.add_argument("--cond", action="store_true",
                         help="also pass the shape caption through CLIP "
                              "(default: unconditional — the visible half "
@@ -164,6 +167,7 @@ def main():
                              revision_steps=args.revision_steps,
                              revision_fraction=args.revision_fraction,
                              guidance_schedule=args.schedule,
+                             max_commit=args.max_commit,
                              device=device, **kwargs)
 
         acc, prec, rec = score(result, truth, hide)

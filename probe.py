@@ -89,6 +89,12 @@ def main():
                              "diversity, which hurts precise structure)")
     parser.add_argument("--revision-steps", type=int, default=2)
     parser.add_argument("--revision-fraction", type=float, default=0.1)
+    parser.add_argument("--max-commit", type=int, default=None,
+                        help="cap cells committed per decode step "
+                             "(counters edge echo: the ambiguous "
+                             "low-confidence tail otherwise mass-commits "
+                             "incompatible hypotheses in parallel; try "
+                             "8-32, costs ~cells/cap forward passes)")
     parser.add_argument("--cluster-conf", action="store_true",
                         help="rank decode commitment by visual-cluster "
                              "probability mass instead of single-glyph "
@@ -152,6 +158,7 @@ def main():
                            gumbel_scale=args.gumbel,
                            revision_steps=args.revision_steps,
                            revision_fraction=args.revision_fraction,
+                           max_commit=args.max_commit,
                            device=device, **kwargs)
         ink = int((grid > 2).sum())  # non-space printable cells
         chars = int(torch.unique(grid).numel())
