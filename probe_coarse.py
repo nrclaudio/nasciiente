@@ -61,6 +61,10 @@ def main():
     parser.add_argument("--space-bias", type=float, default=0.0)
     parser.add_argument("--revision-steps", type=int, default=0)
     parser.add_argument("--revision-fraction", type=float, default=0.1)
+    parser.add_argument("--max-commit", type=int, default=None,
+                        help="cap cells committed per decode step "
+                             "(sequentializes the ambiguous tail; on the "
+                             "coarse canvas even 4-8 is cheap)")
     parser.add_argument("--no-cond", action="store_true",
                         help="skip CLIP; unconditional coarse draft "
                              "(mainly for smoke-testing the pipeline)")
@@ -95,6 +99,7 @@ def main():
                   space_bias=args.space_bias,
                   revision_steps=args.revision_steps,
                   revision_fraction=args.revision_fraction,
+                  max_commit=args.max_commit,
                   device=device)
 
     lines = []
