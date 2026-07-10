@@ -1,0 +1,299 @@
+=== GPU ===
+NVIDIA GeForce RTX 5090, 32607 MiB
+
+[32mActivated conda/uv virtual environment at [36m/venv/main[0m
+Python: Python 3.12.13 at /venv/main/bin/python
+
+From https://github.com/nrclaudio/ascii-art-transformer
+ * branch            claude/ascii-art-pr-review-v8c3ok -> FETCH_HEAD
+Already on 'claude/ascii-art-pr-review-v8c3ok'
+Your branch is up to date with 'origin/claude/ascii-art-pr-review-v8c3ok'.
+From https://github.com/nrclaudio/ascii-art-transformer
+ * branch            claude/ascii-art-pr-review-v8c3ok -> FETCH_HEAD
+Already up to date.
+=== Installing dependencies ===
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+
+=== Pre-flight: CLIP text encoder ===
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/196 [00:00<?, ?it/s]Loading weights: 100%|██████████| 196/196 [00:00<00:00, 78398.21it/s]
+[transformers] [1mCLIPTextModel LOAD REPORT[0m from: openai/clip-vit-base-patch32
+Key                                                            | Status     |  | 
+---------------------------------------------------------------+------------+--+-
+vision_model.encoder.layers.{0...11}.mlp.fc2.weight            | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.v_proj.bias     | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.layer_norm2.bias          | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.mlp.fc1.bias              | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.mlp.fc2.bias              | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.k_proj.bias     | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.layer_norm1.bias          | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.layer_norm1.weight        | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.v_proj.weight   | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.out_proj.bias   | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.q_proj.weight   | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.mlp.fc1.weight            | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.layer_norm2.weight        | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.out_proj.weight | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.k_proj.weight   | UNEXPECTED |  | 
+vision_model.pre_layrnorm.bias                                 | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.q_proj.bias     | UNEXPECTED |  | 
+vision_model.embeddings.class_embedding                        | UNEXPECTED |  | 
+vision_model.post_layernorm.weight                             | UNEXPECTED |  | 
+vision_model.embeddings.patch_embedding.weight                 | UNEXPECTED |  | 
+visual_projection.weight                                       | UNEXPECTED |  | 
+vision_model.pre_layrnorm.weight                               | UNEXPECTED |  | 
+logit_scale                                                    | UNEXPECTED |  | 
+text_projection.weight                                         | UNEXPECTED |  | 
+vision_model.embeddings.position_embedding.weight              | UNEXPECTED |  | 
+vision_model.post_layernorm.bias                               | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+CLIP text encoder OK: (1, 8, 512) 8 tokens
+
+================================================================
+  ASCII Art Transformer
+  MaskGIT-style iterative generation with 2D RoPE
+================================================================
+
+--- System Info ---
+  Python:    3.12.13
+  PyTorch:   2.12.0+cu130
+  CUDA:      13.0
+  Device:    cuda
+  GPU:       NVIDIA GeForce RTX 5090
+  VRAM:      33.7 GB
+  SM count:  170
+  Project:   /root/ascii-art-transformer
+
+Geometry data already exists (770 MB): /root/ascii-art-transformer/data/geometry_data.pt
+  Delete it to regenerate. Skipping.
+
+================================================================
+  Done. Total time: 0.00h (0s)
+================================================================
+================================================================
+  ASCII Art Transformer
+  MaskGIT-style iterative generation with 2D RoPE
+================================================================
+
+--- System Info ---
+  Python:    3.12.13
+  PyTorch:   2.12.0+cu130
+  CUDA:      13.0
+  Device:    cuda
+  GPU:       NVIDIA GeForce RTX 5090
+  VRAM:      33.7 GB
+  SM count:  170
+  Project:   /root/ascii-art-transformer
+
+Shading data already exists (385 MB): /root/ascii-art-transformer/data/shading_data.pt
+  Delete it to regenerate. Skipping.
+
+================================================================
+  Done. Total time: 0.00h (1s)
+================================================================
+=== Synthetic data engine v2: 200000 samples (mix: filled=0.20,outline=0.35,tonal=0.45) ===
+Loading stabilityai/sd-turbo on cuda ...
+[transformers] `Siglip2ImageProcessorFast` is deprecated. The `Fast` suffix for image processors has been removed; use `Siglip2ImageProcessor` instead.
+/venv/main/lib/python3.12/site-packages/huggingface_hub/utils/_validators.py:205: UserWarning: The `local_dir_use_symlinks` argument is deprecated and ignored in `hf_hub_download`. Downloading to a local directory does not use symlinks anymore.
+  warnings.warn(
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading pipeline components...:   0%|          | 0/5 [00:00<?, ?it/s]Loading pipeline components...:  40%|████      | 2/5 [00:00<00:00,  5.04it/s]
+Loading weights:   0%|          | 0/372 [00:00<?, ?it/s][ALoading weights: 100%|██████████| 372/372 [00:00<00:00, 6714.96it/s]
+Loading pipeline components...: 100%|██████████| 5/5 [00:00<00:00,  8.95it/s]Loading pipeline components...: 100%|██████████| 5/5 [00:00<00:00,  8.19it/s]
+You have disabled the safety checker for <class 'diffusers.pipelines.stable_diffusion.pipeline_stable_diffusion.StableDiffusionPipeline'> by passing `safety_checker=None`. Ensure that you abide to the conditions of the Stable Diffusion license and do not expose unfiltered results in services or applications open to the public. Both the diffusers team and Hugging Face strongly recommend to keep the safety filter enabled in all public facing circumstances, disabling it only for use-cases that involve analyzing network behavior or auditing its results. For more information, please have a look at https://github.com/huggingface/diffusers/pull/254 .
+  Font: /usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf
+  Glyph render size: 19x23 -> downscaled to 8x12
+  Shape ramp (95 chars):  _`,.-'~;:"^!\)](|/*[j+l<}?>r{L7yv=ciJ1FzTsxS2YC%f3Iun5tZVPwEohk9geqG$6p4HUaXdK&bARQO80@DmBWMN#
+  Shape vector range: [0.000, 1.000]
+Prompt bank: 600,064 captions (e.g. ['three satellite dishes', 'a birdhouse', 'three bridges'])
+Will merge 300,002 samples from data/synthetic_data.pt
+Style mix: filled=20%, outline=35%, tonal=45%
+Conversion pool: 62 workers (GPU generates while CPUs convert)
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]Loading weights: 100%|██████████| 398/398 [00:00<00:00, 73776.15it/s]
+  0/200,000 kept (rejected: 0 too blank, 8 too dense, 0 off-prompt)  0.0 img/s  ETA 55555555555.6h
+  1/200,000 kept (rejected: 0 too blank, 31 too dense, 0 off-prompt)  0.1 img/s  ETA 477.9h
+  503/200,000 kept (rejected: 0 too blank, 1,493 too dense, 12 off-prompt)  4.2 img/s  ETA 13.2h
+  1,004/200,000 kept (rejected: 0 too blank, 2,880 too dense, 20 off-prompt)  4.4 img/s  ETA 12.5h
+  1,507/200,000 kept (rejected: 0 too blank, 4,354 too dense, 28 off-prompt)  4.4 img/s  ETA 12.4h
+  2,008/200,000 kept (rejected: 0 too blank, 5,820 too dense, 36 off-prompt)  4.5 img/s  ETA 12.3h
+  2,509/200,000 kept (rejected: 0 too blank, 7,046 too dense, 45 off-prompt)  4.6 img/s  ETA 12.0h
+  3,015/200,000 kept (rejected: 0 too blank, 8,716 too dense, 53 off-prompt)  4.5 img/s  ETA 12.2h
+  3,515/200,000 kept (rejected: 0 too blank, 10,253 too dense, 64 off-prompt)  4.5 img/s  ETA 12.2h
+  4,016/200,000 kept (rejected: 0 too blank, 11,782 too dense, 74 off-prompt)  4.5 img/s  ETA 12.2h
+  4,516/200,000 kept (rejected: 0 too blank, 13,495 too dense, 85 off-prompt)  4.4 img/s  ETA 12.4h
+  [checkpointed 305,003 samples to data/synthetic_v2.pt]
+  5,018/200,000 kept (rejected: 0 too blank, 14,904 too dense, 94 off-prompt)  4.4 img/s  ETA 12.3h
+  5,518/200,000 kept (rejected: 0 too blank, 16,323 too dense, 103 off-prompt)  4.4 img/s  ETA 12.2h
+  6,018/200,000 kept (rejected: 0 too blank, 18,007 too dense, 119 off-prompt)  4.4 img/s  ETA 12.3h
+  6,521/200,000 kept (rejected: 0 too blank, 19,505 too dense, 134 off-prompt)  4.4 img/s  ETA 12.2h
+  7,021/200,000 kept (rejected: 0 too blank, 21,085 too dense, 150 off-prompt)  4.4 img/s  ETA 12.2h
+  7,524/200,000 kept (rejected: 0 too blank, 22,521 too dense, 163 off-prompt)  4.4 img/s  ETA 12.1h
+  8,026/200,000 kept (rejected: 0 too blank, 23,937 too dense, 165 off-prompt)  4.4 img/s  ETA 12.1h
+  8,526/200,000 kept (rejected: 0 too blank, 25,476 too dense, 174 off-prompt)  4.4 img/s  ETA 12.0h
+  9,029/200,000 kept (rejected: 0 too blank, 26,846 too dense, 181 off-prompt)  4.4 img/s  ETA 12.0h
+  9,532/200,000 kept (rejected: 0 too blank, 28,164 too dense, 192 off-prompt)  4.5 img/s  ETA 11.9h
+  [checkpointed 310,005 samples to data/synthetic_v2.pt]
+  10,032/200,000 kept (rejected: 0 too blank, 29,559 too dense, 201 off-prompt)  4.5 img/s  ETA 11.8h
+  10,532/200,000 kept (rejected: 0 too blank, 31,020 too dense, 208 off-prompt)  4.5 img/s  ETA 11.8h
+  11,032/200,000 kept (rejected: 0 too blank, 32,294 too dense, 218 off-prompt)  4.5 img/s  ETA 11.7h
+  11,536/200,000 kept (rejected: 0 too blank, 33,791 too dense, 233 off-prompt)  4.5 img/s  ETA 11.7h
+  12,038/200,000 kept (rejected: 0 too blank, 35,067 too dense, 247 off-prompt)  4.5 img/s  ETA 11.6h
+  12,540/200,000 kept (rejected: 0 too blank, 36,368 too dense, 252 off-prompt)  4.5 img/s  ETA 11.5h
+  13,042/200,000 kept (rejected: 0 too blank, 37,680 too dense, 262 off-prompt)  4.5 img/s  ETA 11.4h
+  13,545/200,000 kept (rejected: 0 too blank, 39,334 too dense, 273 off-prompt)  4.5 img/s  ETA 11.5h
+  14,048/200,000 kept (rejected: 0 too blank, 40,859 too dense, 285 off-prompt)  4.5 img/s  ETA 11.4h
+  14,549/200,000 kept (rejected: 0 too blank, 42,281 too dense, 290 off-prompt)  4.5 img/s  ETA 11.4h
+  [checkpointed 315,005 samples to data/synthetic_v2.pt]
+  15,051/200,000 kept (rejected: 0 too blank, 43,552 too dense, 301 off-prompt)  4.5 img/s  ETA 11.3h
+  15,552/200,000 kept (rejected: 0 too blank, 44,962 too dense, 310 off-prompt)  4.5 img/s  ETA 11.3h
+  16,052/200,000 kept (rejected: 0 too blank, 46,484 too dense, 320 off-prompt)  4.5 img/s  ETA 11.3h
+  16,553/200,000 kept (rejected: 0 too blank, 48,052 too dense, 331 off-prompt)  4.5 img/s  ETA 11.3h
+  17,054/200,000 kept (rejected: 0 too blank, 49,523 too dense, 343 off-prompt)  4.5 img/s  ETA 11.2h
+  17,554/200,000 kept (rejected: 0 too blank, 50,767 too dense, 351 off-prompt)  4.5 img/s  ETA 11.2h
+  18,056/200,000 kept (rejected: 0 too blank, 52,198 too dense, 362 off-prompt)  4.5 img/s  ETA 11.1h
+  18,560/200,000 kept (rejected: 0 too blank, 53,783 too dense, 369 off-prompt)  4.5 img/s  ETA 11.1h
+  19,060/200,000 kept (rejected: 0 too blank, 55,578 too dense, 378 off-prompt)  4.5 img/s  ETA 11.1h
+  19,560/200,000 kept (rejected: 0 too blank, 56,864 too dense, 384 off-prompt)  4.5 img/s  ETA 11.1h
+  [checkpointed 320,007 samples to data/synthetic_v2.pt]
+  20,062/200,000 kept (rejected: 0 too blank, 58,087 too dense, 395 off-prompt)  4.5 img/s  ETA 11.0h
+  20,562/200,000 kept (rejected: 0 too blank, 59,806 too dense, 408 off-prompt)  4.5 img/s  ETA 11.0h
+  21,063/200,000 kept (rejected: 0 too blank, 61,115 too dense, 422 off-prompt)  4.5 img/s  ETA 11.0h
+  21,564/200,000 kept (rejected: 0 too blank, 62,540 too dense, 432 off-prompt)  4.5 img/s  ETA 10.9h
+  22,066/200,000 kept (rejected: 0 too blank, 64,303 too dense, 447 off-prompt)  4.5 img/s  ETA 11.0h
+  22,568/200,000 kept (rejected: 0 too blank, 65,616 too dense, 456 off-prompt)  4.5 img/s  ETA 10.9h
+  23,071/200,000 kept (rejected: 0 too blank, 66,914 too dense, 463 off-prompt)  4.5 img/s  ETA 10.9h
+  23,574/200,000 kept (rejected: 0 too blank, 68,372 too dense, 470 off-prompt)  4.5 img/s  ETA 10.8h
+  24,074/200,000 kept (rejected: 0 too blank, 69,733 too dense, 473 off-prompt)  4.5 img/s  ETA 10.8h
+  24,574/200,000 kept (rejected: 0 too blank, 71,192 too dense, 490 off-prompt)  4.5 img/s  ETA 10.8h
+  [checkpointed 325,009 samples to data/synthetic_v2.pt]
+  25,074/200,000 kept (rejected: 0 too blank, 72,739 too dense, 499 off-prompt)  4.5 img/s  ETA 10.7h
+  25,574/200,000 kept (rejected: 0 too blank, 74,165 too dense, 509 off-prompt)  4.5 img/s  ETA 10.7h
+  26,076/200,000 kept (rejected: 0 too blank, 75,390 too dense, 518 off-prompt)  4.5 img/s  ETA 10.6h
+  26,578/200,000 kept (rejected: 0 too blank, 76,676 too dense, 530 off-prompt)  4.5 img/s  ETA 10.6h
+  27,078/200,000 kept (rejected: 0 too blank, 78,121 too dense, 538 off-prompt)  4.5 img/s  ETA 10.6h
+  27,579/200,000 kept (rejected: 0 too blank, 79,615 too dense, 542 off-prompt)  4.5 img/s  ETA 10.5h
+  28,080/200,000 kept (rejected: 0 too blank, 81,034 too dense, 550 off-prompt)  4.5 img/s  ETA 10.5h
+  28,580/200,000 kept (rejected: 0 too blank, 82,389 too dense, 559 off-prompt)  4.5 img/s  ETA 10.5h
+  29,083/200,000 kept (rejected: 0 too blank, 83,987 too dense, 570 off-prompt)  4.5 img/s  ETA 10.5h
+  29,586/200,000 kept (rejected: 0 too blank, 85,534 too dense, 584 off-prompt)  4.5 img/s  ETA 10.4h
+  [checkpointed 330,009 samples to data/synthetic_v2.pt]
+  30,088/200,000 kept (rejected: 0 too blank, 87,131 too dense, 597 off-prompt)  4.5 img/s  ETA 10.4h
+  30,590/200,000 kept (rejected: 0 too blank, 88,427 too dense, 607 off-prompt)  4.5 img/s  ETA 10.4h
+  31,091/200,000 kept (rejected: 0 too blank, 89,795 too dense, 610 off-prompt)  4.5 img/s  ETA 10.3h
+  31,591/200,000 kept (rejected: 0 too blank, 91,259 too dense, 622 off-prompt)  4.5 img/s  ETA 10.3h
+  32,093/200,000 kept (rejected: 0 too blank, 92,873 too dense, 634 off-prompt)  4.5 img/s  ETA 10.3h
+  32,597/200,000 kept (rejected: 0 too blank, 94,258 too dense, 650 off-prompt)  4.5 img/s  ETA 10.2h
+  33,099/200,000 kept (rejected: 0 too blank, 95,824 too dense, 661 off-prompt)  4.5 img/s  ETA 10.2h
+  33,600/200,000 kept (rejected: 0 too blank, 97,213 too dense, 667 off-prompt)  4.5 img/s  ETA 10.2h
+  34,100/200,000 kept (rejected: 0 too blank, 98,666 too dense, 674 off-prompt)  4.5 img/s  ETA 10.2h
+  34,602/200,000 kept (rejected: 0 too blank, 99,969 too dense, 685 off-prompt)  4.5 img/s  ETA 10.1h
+  [checkpointed 335,010 samples to data/synthetic_v2.pt]
+  35,106/200,000 kept (rejected: 0 too blank, 101,423 too dense, 695 off-prompt)  4.5 img/s  ETA 10.1h
+  35,606/200,000 kept (rejected: 0 too blank, 102,730 too dense, 704 off-prompt)  4.5 img/s  ETA 10.0h
+  36,110/200,000 kept (rejected: 0 too blank, 104,329 too dense, 713 off-prompt)  4.5 img/s  ETA 10.0h
+  36,613/200,000 kept (rejected: 0 too blank, 105,967 too dense, 732 off-prompt)  4.5 img/s  ETA 10.0h
+  37,114/200,000 kept (rejected: 0 too blank, 107,504 too dense, 750 off-prompt)  4.5 img/s  ETA 10.0h
+  37,617/200,000 kept (rejected: 0 too blank, 108,850 too dense, 757 off-prompt)  4.5 img/s  ETA 9.9h
+  38,123/200,000 kept (rejected: 0 too blank, 110,360 too dense, 757 off-prompt)  4.5 img/s  ETA 9.9h
+  38,623/200,000 kept (rejected: 0 too blank, 111,966 too dense, 763 off-prompt)  4.5 img/s  ETA 9.9h
+  39,125/200,000 kept (rejected: 0 too blank, 113,236 too dense, 767 off-prompt)  4.5 img/s  ETA 9.8h
+  39,625/200,000 kept (rejected: 0 too blank, 114,780 too dense, 779 off-prompt)  4.5 img/s  ETA 9.8h
+  [checkpointed 340,013 samples to data/synthetic_v2.pt]
+  40,127/200,000 kept (rejected: 0 too blank, 116,179 too dense, 790 off-prompt)  4.5 img/s  ETA 9.8h
+  40,628/200,000 kept (rejected: 0 too blank, 117,756 too dense, 800 off-prompt)  4.5 img/s  ETA 9.8h
+  41,130/200,000 kept (rejected: 0 too blank, 119,223 too dense, 815 off-prompt)  4.5 img/s  ETA 9.7h
+  41,630/200,000 kept (rejected: 0 too blank, 120,524 too dense, 822 off-prompt)  4.5 img/s  ETA 9.7h
+  42,134/200,000 kept (rejected: 0 too blank, 121,881 too dense, 833 off-prompt)  4.5 img/s  ETA 9.7h
+  42,635/200,000 kept (rejected: 0 too blank, 123,438 too dense, 847 off-prompt)  4.5 img/s  ETA 9.6h
+  43,136/200,000 kept (rejected: 0 too blank, 124,767 too dense, 857 off-prompt)  4.5 img/s  ETA 9.6h
+  43,642/200,000 kept (rejected: 0 too blank, 126,176 too dense, 870 off-prompt)  4.5 img/s  ETA 9.6h
+  44,143/200,000 kept (rejected: 0 too blank, 127,798 too dense, 883 off-prompt)  4.5 img/s  ETA 9.5h
+  44,643/200,000 kept (rejected: 0 too blank, 129,128 too dense, 893 off-prompt)  4.5 img/s  ETA 9.5h
+  [checkpointed 345,016 samples to data/synthetic_v2.pt]
+  45,143/200,000 kept (rejected: 0 too blank, 130,443 too dense, 902 off-prompt)  4.5 img/s  ETA 9.5h
+  45,644/200,000 kept (rejected: 0 too blank, 132,005 too dense, 911 off-prompt)  4.5 img/s  ETA 9.4h
+  46,147/200,000 kept (rejected: 0 too blank, 133,357 too dense, 920 off-prompt)  4.5 img/s  ETA 9.4h
+  46,647/200,000 kept (rejected: 0 too blank, 134,660 too dense, 925 off-prompt)  4.5 img/s  ETA 9.4h
+  47,150/200,000 kept (rejected: 0 too blank, 136,161 too dense, 937 off-prompt)  4.5 img/s  ETA 9.3h
+  47,654/200,000 kept (rejected: 0 too blank, 137,719 too dense, 939 off-prompt)  4.5 img/s  ETA 9.3h
+  48,157/200,000 kept (rejected: 0 too blank, 139,231 too dense, 948 off-prompt)  4.5 img/s  ETA 9.3h
+  48,659/200,000 kept (rejected: 0 too blank, 140,836 too dense, 961 off-prompt)  4.5 img/s  ETA 9.3h
+  49,160/200,000 kept (rejected: 0 too blank, 142,212 too dense, 972 off-prompt)  4.5 img/s  ETA 9.2h
+  49,661/200,000 kept (rejected: 0 too blank, 143,716 too dense, 983 off-prompt)  4.5 img/s  ETA 9.2h
+  [checkpointed 350,020 samples to data/synthetic_v2.pt]
+  50,163/200,000 kept (rejected: 0 too blank, 145,053 too dense, 992 off-prompt)  4.5 img/s  ETA 9.2h
+  50,663/200,000 kept (rejected: 0 too blank, 146,215 too dense, 1,002 off-prompt)  4.5 img/s  ETA 9.1h
+  51,165/200,000 kept (rejected: 0 too blank, 147,415 too dense, 1,012 off-prompt)  4.6 img/s  ETA 9.1h
+  51,668/200,000 kept (rejected: 0 too blank, 148,916 too dense, 1,024 off-prompt)  4.6 img/s  ETA 9.0h
+  52,170/200,000 kept (rejected: 0 too blank, 150,372 too dense, 1,035 off-prompt)  4.6 img/s  ETA 9.0h
+  52,671/200,000 kept (rejected: 0 too blank, 151,735 too dense, 1,042 off-prompt)  4.6 img/s  ETA 9.0h
+  53,171/200,000 kept (rejected: 0 too blank, 153,088 too dense, 1,053 off-prompt)  4.6 img/s  ETA 8.9h
+  53,676/200,000 kept (rejected: 0 too blank, 154,423 too dense, 1,061 off-prompt)  4.6 img/s  ETA 8.9h
+  54,179/200,000 kept (rejected: 0 too blank, 156,040 too dense, 1,069 off-prompt)  4.6 img/s  ETA 8.9h
+  54,680/200,000 kept (rejected: 0 too blank, 157,569 too dense, 1,079 off-prompt)  4.6 img/s  ETA 8.9h
+  [checkpointed 355,020 samples to data/synthetic_v2.pt]
+  55,181/200,000 kept (rejected: 0 too blank, 159,133 too dense, 1,086 off-prompt)  4.6 img/s  ETA 8.8h
+  55,683/200,000 kept (rejected: 0 too blank, 160,456 too dense, 1,093 off-prompt)  4.6 img/s  ETA 8.8h
+  56,184/200,000 kept (rejected: 0 too blank, 161,970 too dense, 1,102 off-prompt)  4.6 img/s  ETA 8.8h
+  56,684/200,000 kept (rejected: 0 too blank, 163,352 too dense, 1,116 off-prompt)  4.6 img/s  ETA 8.7h
+  57,187/200,000 kept (rejected: 0 too blank, 164,898 too dense, 1,124 off-prompt)  4.6 img/s  ETA 8.7h
+  57,687/200,000 kept (rejected: 0 too blank, 166,336 too dense, 1,137 off-prompt)  4.6 img/s  ETA 8.7h
+  58,189/200,000 kept (rejected: 0 too blank, 168,011 too dense, 1,152 off-prompt)  4.5 img/s  ETA 8.7h
+  58,689/200,000 kept (rejected: 0 too blank, 169,215 too dense, 1,160 off-prompt)  4.6 img/s  ETA 8.6h
+  59,191/200,000 kept (rejected: 0 too blank, 170,614 too dense, 1,172 off-prompt)  4.6 img/s  ETA 8.6h
+  59,692/200,000 kept (rejected: 0 too blank, 172,185 too dense, 1,179 off-prompt)  4.5 img/s  ETA 8.6h
+  [checkpointed 360,021 samples to data/synthetic_v2.pt]
+  60,196/200,000 kept (rejected: 0 too blank, 173,616 too dense, 1,188 off-prompt)  4.5 img/s  ETA 8.5h
+  60,697/200,000 kept (rejected: 0 too blank, 174,933 too dense, 1,202 off-prompt)  4.6 img/s  ETA 8.5h
+  61,198/200,000 kept (rejected: 0 too blank, 176,168 too dense, 1,210 off-prompt)  4.6 img/s  ETA 8.5h
+  61,702/200,000 kept (rejected: 0 too blank, 177,571 too dense, 1,223 off-prompt)  4.6 img/s  ETA 8.4h
+  62,206/200,000 kept (rejected: 0 too blank, 179,017 too dense, 1,233 off-prompt)  4.6 img/s  ETA 8.4h
+  62,706/200,000 kept (rejected: 0 too blank, 180,263 too dense, 1,239 off-prompt)  4.6 img/s  ETA 8.4h
+  63,207/200,000 kept (rejected: 0 too blank, 181,496 too dense, 1,249 off-prompt)  4.6 img/s  ETA 8.3h
+  63,709/200,000 kept (rejected: 0 too blank, 182,854 too dense, 1,261 off-prompt)  4.6 img/s  ETA 8.3h
+  64,209/200,000 kept (rejected: 0 too blank, 184,242 too dense, 1,269 off-prompt)  4.6 img/s  ETA 8.3h
+  64,711/200,000 kept (rejected: 0 too blank, 185,795 too dense, 1,278 off-prompt)  4.6 img/s  ETA 8.2h
+  [checkpointed 365,022 samples to data/synthetic_v2.pt]
+  65,211/200,000 kept (rejected: 0 too blank, 187,278 too dense, 1,287 off-prompt)  4.6 img/s  ETA 8.2h
+  65,714/200,000 kept (rejected: 0 too blank, 188,881 too dense, 1,301 off-prompt)  4.6 img/s  ETA 8.2h
+  66,215/200,000 kept (rejected: 0 too blank, 190,273 too dense, 1,312 off-prompt)  4.6 img/s  ETA 8.2h
+  66,716/200,000 kept (rejected: 0 too blank, 191,844 too dense, 1,320 off-prompt)  4.6 img/s  ETA 8.1h
+  67,216/200,000 kept (rejected: 0 too blank, 193,367 too dense, 1,329 off-prompt)  4.6 img/s  ETA 8.1h
+  67,716/200,000 kept (rejected: 0 too blank, 194,811 too dense, 1,337 off-prompt)  4.6 img/s  ETA 8.1h
+  68,216/200,000 kept (rejected: 0 too blank, 196,050 too dense, 1,342 off-prompt)  4.6 img/s  ETA 8.0h
+  68,717/200,000 kept (rejected: 0 too blank, 197,365 too dense, 1,350 off-prompt)  4.6 img/s  ETA 8.0h
+  69,217/200,000 kept (rejected: 0 too blank, 198,902 too dense, 1,361 off-prompt)  4.6 img/s  ETA 8.0h
+  69,721/200,000 kept (rejected: 0 too blank, 200,564 too dense, 1,371 off-prompt)  4.6 img/s  ETA 7.9h
+  [checkpointed 370,022 samples to data/synthetic_v2.pt]
+  70,222/200,000 kept (rejected: 0 too blank, 201,861 too dense, 1,381 off-prompt)  4.6 img/s  ETA 7.9h
+  70,722/200,000 kept (rejected: 0 too blank, 203,238 too dense, 1,392 off-prompt)  4.6 img/s  ETA 7.9h
+  71,224/200,000 kept (rejected: 0 too blank, 204,666 too dense, 1,407 off-prompt)  4.6 img/s  ETA 7.8h
+  71,725/200,000 kept (rejected: 0 too blank, 206,020 too dense, 1,415 off-prompt)  4.6 img/s  ETA 7.8h
+  72,226/200,000 kept (rejected: 0 too blank, 207,360 too dense, 1,430 off-prompt)  4.6 img/s  ETA 7.8h
+  72,728/200,000 kept (rejected: 0 too blank, 209,200 too dense, 1,440 off-prompt)  4.6 img/s  ETA 7.8h
+  73,231/200,000 kept (rejected: 0 too blank, 210,716 too dense, 1,445 off-prompt)  4.6 img/s  ETA 7.7h
+  73,732/200,000 kept (rejected: 0 too blank, 212,135 too dense, 1,453 off-prompt)  4.6 img/s  ETA 7.7h
+  74,232/200,000 kept (rejected: 0 too blank, 213,653 too dense, 1,459 off-prompt)  4.6 img/s  ETA 7.7h
+  74,734/200,000 kept (rejected: 0 too blank, 215,168 too dense, 1,466 off-prompt)  4.6 img/s  ETA 7.6h
+  [checkpointed 375,025 samples to data/synthetic_v2.pt]
+  75,234/200,000 kept (rejected: 0 too blank, 216,656 too dense, 1,478 off-prompt)  4.5 img/s  ETA 7.6h
+  75,736/200,000 kept (rejected: 0 too blank, 218,123 too dense, 1,485 off-prompt)  4.5 img/s  ETA 7.6h
+  76,236/200,000 kept (rejected: 0 too blank, 219,449 too dense, 1,491 off-prompt)  4.6 img/s  ETA 7.6h
+  76,739/200,000 kept (rejected: 0 too blank, 220,555 too dense, 1,498 off-prompt)  4.6 img/s  ETA 7.5h
+  77,243/200,000 kept (rejected: 0 too blank, 221,980 too dense, 1,505 off-prompt)  4.6 img/s  ETA 7.5h
+  77,744/200,000 kept (rejected: 0 too blank, 223,547 too dense, 1,517 off-prompt)  4.6 img/s  ETA 7.5h
+  78,246/200,000 kept (rejected: 0 too blank, 224,902 too dense, 1,524 off-prompt)  4.6 img/s  ETA 7.4h
+  78,746/200,000 kept (rejected: 0 too blank, 226,449 too dense, 1,533 off-prompt)  4.6 img/s  ETA 7.4h
+  79,249/200,000 kept (rejected: 0 too blank, 228,047 too dense, 1,544 off-prompt)  4.6 img/s  ETA 7.4h
+  79,749/200,000 kept (rejected: 0 too blank, 229,446 too dense, 1,549 off-prompt)  4.6 img/s  ETA 7.3h
+  [checkpointed 380,027 samples to data/synthetic_v2.pt]
+  80,249/200,000 kept (rejected: 0 too blank, 231,012 too dense, 1,563 off-prompt)  4.5 img/s  ETA 7.3h
+  80,751/200,000 kept (rejected: 0 too blank, 232,528 too dense, 1,577 off-prompt)  4.5 img/s  ETA 7.3h
+  81,253/200,000 kept (rejected: 0 too blank, 233,933 too dense, 1,590 off-prompt)  4.5 img/s  ETA 7.3h
+Terminated
+!!! Data engine failed
+/venv/main/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 6 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
