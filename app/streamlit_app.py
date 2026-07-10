@@ -21,7 +21,7 @@ import torch
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from config import (GRID_H, GRID_W, UNMASK_STEPS, TEMPERATURE, VOCAB_SIZE,
-                    MAX_ROWS, MAX_COLS, CFG_SCALE)
+                    MAX_ROWS, MAX_COLS, CFG_SCALE, DECODE_MAX_COMMIT)
 from model.ascii_bert import ASCIIBert
 from model.inference import generate, upscale_grid
 from data.charset import grid_to_string, MASK_TOKEN
@@ -435,6 +435,12 @@ def main():
     revision_steps = st.sidebar.slider(
         "Refinement passes", 0, 5, 2,
         help="Re-mask the least-confident cells and refill.")
+    max_commit = st.sidebar.slider(
+        "Commit cap (cells/step)", 0, 64, DECODE_MAX_COMMIT or 0,
+        help="Max cells committed per step; 0 = uncapped. Low caps "
+             "resolve ambiguous regions one decision at a time — the "
+             "fix for duplicated 'echo' edges — at the cost of extra "
+             "forward passes.")
     space_bias = st.sidebar.slider(
         "Ink boost (anti-blank)", 0.0, 8.0, 0.0, 0.5,
         help="Pushes the empty canvas to place ink; fades out as the grid "
@@ -450,7 +456,8 @@ def main():
         gh, gw = GRID_H, GRID_W
 
     base_kwargs = dict(schedule=schedule, gumbel_scale=gumbel_scale,
-                       revision_steps=revision_steps, space_bias=space_bias)
+                       revision_steps=revision_steps, space_bias=space_bias,
+                       max_commit=max_commit or None)
 
     tabs = st.tabs(["⚡ Generate", "▦ Inpaint", "◫ Guidance lab",
                     "▁▃▅ Training progress"])
