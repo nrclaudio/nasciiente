@@ -1,0 +1,1335 @@
+Device: cuda
+GPU: NVIDIA GeForce RTX 5090
+GPU memory: 33.7 GB
+
+Config: batch=64, accum=1, world=1, eff_batch=64
+Grid: 48x80 = 3840 tokens/sample
+Mask ratio: [15%, 100%]
+
+Model: 34,524,258 params (34,524,258 trainable)
+Gradient checkpointing: True
+Glyph soft targets: alpha=0.1
+EMA: decay 0.999 | bf16: True | caption dropout: 0.1
+
+============================================================
+  Stage: GEOMETRY
+  Epochs: 6, LR: 3.0e-04, Batch: 64 x 1 accum x 1 GPU(s) = 64 effective
+============================================================
+Loading data from /root/ascii-art-transformer/training/../data/geometry_data.pt...
+  Captions: 12,751 unique — embedding with openai/clip-vit-base-patch32...
+Loading weights:   0%|          | 0/196 [00:00<?, ?it/s]Loading weights: 100%|██████████| 196/196 [00:00<00:00, 91955.66it/s]
+[transformers] [1mCLIPTextModel LOAD REPORT[0m from: openai/clip-vit-base-patch32
+Key                                                            | Status     |  | 
+---------------------------------------------------------------+------------+--+-
+vision_model.encoder.layers.{0...11}.mlp.fc2.bias              | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.k_proj.bias     | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.out_proj.bias   | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.k_proj.weight   | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.v_proj.bias     | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.q_proj.weight   | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.v_proj.weight   | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.mlp.fc1.bias              | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.layer_norm1.bias          | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.layer_norm2.weight        | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.layer_norm1.weight        | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.layer_norm2.bias          | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.q_proj.bias     | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.out_proj.weight | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.mlp.fc2.weight            | UNEXPECTED |  | 
+logit_scale                                                    | UNEXPECTED |  | 
+vision_model.embeddings.class_embedding                        | UNEXPECTED |  | 
+text_projection.weight                                         | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.mlp.fc1.weight            | UNEXPECTED |  | 
+visual_projection.weight                                       | UNEXPECTED |  | 
+vision_model.pre_layrnorm.weight                               | UNEXPECTED |  | 
+vision_model.post_layernorm.weight                             | UNEXPECTED |  | 
+vision_model.embeddings.patch_embedding.weight                 | UNEXPECTED |  | 
+vision_model.post_layernorm.bias                               | UNEXPECTED |  | 
+vision_model.embeddings.position_embedding.weight              | UNEXPECTED |  | 
+vision_model.pre_layrnorm.bias                                 | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+  Caption tokens: (12751, 24, 512) (627 MB)
+Samples: 200,000 total -> 190,000 train / 10,000 val
+Batches per epoch: 2,969 train, 157 val
+Scheduler: 500 warmup steps, 17814 total steps
+  [geometry] Epoch 1/6  Batch   296/2969  Loss: 0.3306  LR: 1.78e-04  0.7 batch/s  ETA 3617s
+  [geometry] Epoch 1/6  Batch   592/2969  Loss: 0.2208  LR: 3.00e-04  0.7 batch/s  ETA 3215s
+  [geometry] Epoch 1/6  Batch   888/2969  Loss: 0.1814  LR: 3.00e-04  0.7 batch/s  ETA 2814s
+  [geometry] Epoch 1/6  Batch  1184/2969  Loss: 0.1607  LR: 2.99e-04  0.7 batch/s  ETA 2413s
+  [geometry] Epoch 1/6  Batch  1480/2969  Loss: 0.1480  LR: 2.98e-04  0.7 batch/s  ETA 2013s
+  [geometry] Epoch 1/6  Batch  1776/2969  Loss: 0.1392  LR: 2.96e-04  0.7 batch/s  ETA 1613s
+  [geometry] Epoch 1/6  Batch  2072/2969  Loss: 0.1330  LR: 2.94e-04  0.7 batch/s  ETA 1213s
+  [geometry] Epoch 1/6  Batch  2368/2969  Loss: 0.1280  LR: 2.91e-04  0.7 batch/s  ETA 812s
+  [geometry] Epoch 1/6  Batch  2664/2969  Loss: 0.1243  LR: 2.89e-04  0.7 batch/s  ETA 412s
+  [geometry] Epoch 1/6  Batch  2960/2969  Loss: 0.1212  LR: 2.85e-04  0.7 batch/s  ETA 12s
+
+[geometry] Epoch 1/6 DONE — Train: 0.1211, Val: 0.0911, Acc: 99.2% *best*
+  Epoch time: 4062.6s | Stage ETA: 338.6min | LR: 2.85e-04
+--- Generated Sample (unconditional) ---
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+
+--- Generated Sample (prompt: "a rectangle" (guidance 3.0)) ---
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+    -----------+ - -------+------------------                                   
+   +------- --------------------------------+                                   
+   +----x----x------------------            |                                   
+   t----------|-+------------------@--------+                                   
+   +------|  -  w- ---------+---------------+                                   
+   |      |     ||  |------     - +         ]                                   
+   {+ ----|     |-- | -   + |f          |   +                                   
+   +--------- ---|--+-----+ + -             |                                   
+   +------+------+--------+-++-------- -- - +                                   
+               |                                                                
+                                                                                
+                                                                                
+                                                                                
+
+  Checkpoint saved: /root/ascii-art-transformer/training/../checkpoints/geometry_last.pt (+ best)
+  [geometry] Epoch 2/6  Batch   296/2969  Loss: 0.0933  LR: 2.82e-04  0.7 batch/s  ETA 3611s
+  [geometry] Epoch 2/6  Batch   592/2969  Loss: 0.0928  LR: 2.77e-04  0.7 batch/s  ETA 3212s
+  [geometry] Epoch 2/6  Batch   888/2969  Loss: 0.0929  LR: 2.73e-04  0.7 batch/s  ETA 2812s
+  [geometry] Epoch 2/6  Batch  1184/2969  Loss: 0.0927  LR: 2.68e-04  0.7 batch/s  ETA 2412s
+  [geometry] Epoch 2/6  Batch  1480/2969  Loss: 0.0924  LR: 2.63e-04  0.7 batch/s  ETA 2012s
+  [geometry] Epoch 2/6  Batch  1776/2969  Loss: 0.0921  LR: 2.58e-04  0.7 batch/s  ETA 1612s
+  [geometry] Epoch 2/6  Batch  2072/2969  Loss: 0.0919  LR: 2.52e-04  0.7 batch/s  ETA 1212s
+  [geometry] Epoch 2/6  Batch  2368/2969  Loss: 0.0918  LR: 2.46e-04  0.7 batch/s  ETA 812s
+  [geometry] Epoch 2/6  Batch  2664/2969  Loss: 0.0917  LR: 2.40e-04  0.7 batch/s  ETA 412s
+  [geometry] Epoch 2/6  Batch  2960/2969  Loss: 0.0916  LR: 2.33e-04  0.7 batch/s  ETA 12s
+
+[geometry] Epoch 2/6 DONE — Train: 0.0916, Val: 0.0862, Acc: 99.3% *best*
+  Epoch time: 4061.7s | Stage ETA: 270.9min | LR: 2.33e-04
+--- Generated Sample (unconditional) ---
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+
+--- Generated Sample (prompt: "a rectangle" (guidance 3.0)) ---
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                             +++--------------------+---------+ 
+                                             |||          |         |         | 
+                                             |||          |         {         | 
+                                             |||          |         Z         | 
+                                             +|-----------|---------+----------+
+                                             |{           |   |    +-----------+
+                                             ||           +---|-----!---------||
+                                             ||           |   |    ||----------+
+                                             ||           |   ]    ||---------+|
+                                             (|               |    ||         | 
+                                             ||               |    |r----------|
+                                             ||               |    ||         ||
+                                             ||           +   |----||------A--+|
+                                             ||           |/  +----||---------+|
+                                             +---------------------|+----------+
+                                              ----------------+----+-- ----- --{
+                                                          +   |    ++----------|
+                                                          +--------------------+
+
+  Checkpoint saved: /root/ascii-art-transformer/training/../checkpoints/geometry_last.pt (+ best)
+  [geometry] Epoch 3/6  Batch   296/2969  Loss: 0.0911  LR: 2.26e-04  0.7 batch/s  ETA 3610s
+  [geometry] Epoch 3/6  Batch   592/2969  Loss: 0.0905  LR: 2.19e-04  0.7 batch/s  ETA 3212s
+  [geometry] Epoch 3/6  Batch   888/2969  Loss: 0.0902  LR: 2.12e-04  0.7 batch/s  ETA 2812s
+  [geometry] Epoch 3/6  Batch  1184/2969  Loss: 0.0901  LR: 2.04e-04  0.7 batch/s  ETA 2412s
+  [geometry] Epoch 3/6  Batch  1480/2969  Loss: 0.0901  LR: 1.97e-04  0.7 batch/s  ETA 2012s
+  [geometry] Epoch 3/6  Batch  1776/2969  Loss: 0.0900  LR: 1.89e-04  0.7 batch/s  ETA 1612s
+  [geometry] Epoch 3/6  Batch  2072/2969  Loss: 0.0898  LR: 1.81e-04  0.7 batch/s  ETA 1212s
+  [geometry] Epoch 3/6  Batch  2368/2969  Loss: 0.0898  LR: 1.73e-04  0.7 batch/s  ETA 812s
+  [geometry] Epoch 3/6  Batch  2664/2969  Loss: 0.0897  LR: 1.65e-04  0.7 batch/s  ETA 412s
+  [geometry] Epoch 3/6  Batch  2960/2969  Loss: 0.0897  LR: 1.57e-04  0.7 batch/s  ETA 12s
+
+[geometry] Epoch 3/6 DONE — Train: 0.0897, Val: 0.0845, Acc: 99.3% *best*
+  Epoch time: 4061.7s | Stage ETA: 203.2min | LR: 1.57e-04
+--- Generated Sample (unconditional) ---
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+
+--- Generated Sample (prompt: "a rectangle" (guidance 3.0)) ---
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+        +-----+----+-- -++ q+-----------+                                       
+        !     | + ++----|| +| -         |                                       
+        |     | |  | - -|| +|           |                                       
+        |     |  -|-----+--|+  - +    +-|                                       
+        |     | +----------|+    |    | |                                       
+       +|-----|-------------  ---+---------                                     
+       |-------------------+|    |    |                                         
+       ++-----|-------------+    |    -                                         
+       +-- --|| | |     ||  |    |  - |                                         
+       +------\-6-|---------------------+-                                      
+       +-------------------------+ ---+                                         
+        |    |+-------------+    |    |                                         
+              +-------------+    |    |                                         
+        +-------------------+    |    |                                         
+         ----+--------------+ -- +----+--                                       
+                  |              + ---+                                         
+                  +---------+                                                   
+
+  Checkpoint saved: /root/ascii-art-transformer/training/../checkpoints/geometry_last.pt (+ best)
+  [geometry] Epoch 4/6  Batch   296/2969  Loss: 0.0883  LR: 1.49e-04  0.7 batch/s  ETA 3610s
+  [geometry] Epoch 4/6  Batch   592/2969  Loss: 0.0886  LR: 1.41e-04  0.7 batch/s  ETA 3212s
+  [geometry] Epoch 4/6  Batch   888/2969  Loss: 0.0886  LR: 1.33e-04  0.7 batch/s  ETA 2812s
+  [geometry] Epoch 4/6  Batch  1184/2969  Loss: 0.0884  LR: 1.25e-04  0.7 batch/s  ETA 2412s
+  [geometry] Epoch 4/6  Batch  1480/2969  Loss: 0.0881  LR: 1.17e-04  0.7 batch/s  ETA 2012s
+  [geometry] Epoch 4/6  Batch  1776/2969  Loss: 0.0881  LR: 1.09e-04  0.7 batch/s  ETA 1612s
+  [geometry] Epoch 4/6  Batch  2072/2969  Loss: 0.0881  LR: 1.01e-04  0.7 batch/s  ETA 1212s
+  [geometry] Epoch 4/6  Batch  2368/2969  Loss: 0.0881  LR: 9.38e-05  0.7 batch/s  ETA 812s
+  [geometry] Epoch 4/6  Batch  2664/2969  Loss: 0.0881  LR: 8.64e-05  0.7 batch/s  ETA 412s
+  [geometry] Epoch 4/6  Batch  2960/2969  Loss: 0.0880  LR: 7.92e-05  0.7 batch/s  ETA 12s
+
+[geometry] Epoch 4/6 DONE — Train: 0.0880, Val: 0.0868, Acc: 99.3%
+  Epoch time: 4061.7s | Stage ETA: 135.4min | LR: 7.90e-05
+--- Generated Sample (unconditional) ---
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                             |  
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+
+--- Generated Sample (prompt: "a rectangle" (guidance 3.0)) ---
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                               +-+------  ---------+      -                     
+                               |-------+   --------|                            
+                               | |     |           |                            
+                               | |     |           |                            
+                               1 *     |           |      !                     
+                               | |     |           |                            
+                               |-|-----+-----------+----|  ----                 
+                               | |                      |                       
+                               | |                      |                       
+                                 |                      |                       
+                                 +-----------------|----+---                    
+                        +-----+-- -----------------|----+-    --                
+                        |     |                   ||    |                       
+                        |     |                   ||    |                       
+                        |     |                   ||    |                       
+                        |     |                   ||    |                       
+                        |     |                   ||    |                       
+                        |     |                   ||    |                       
+                        |     |                   |     |    +--                
+                        |     |-------------+ +---++--------------++            
+                        |     +--I-----------------+---|+  - +  - |             
+                        +-------------------------+ --A-+    +----+             
+                                            |          i                        
+                                            |          |                        
+                                            |          |                        
+                                  |---------|----------+  -                     
+                                  |         |                                   
+                                  |         |                                   
+                                  |         |                                   
+                                  |         |                                   
+                                  |         Y                                   
+                                  |         |                                   
+                                  |         |                                   
+                                  +---------+                                   
+                                                                                
+
+  Checkpoint saved: /root/ascii-art-transformer/training/../checkpoints/geometry_last.pt
+  [geometry] Epoch 5/6  Batch   296/2969  Loss: 0.0873  LR: 7.20e-05  0.7 batch/s  ETA 3610s
+  [geometry] Epoch 5/6  Batch   592/2969  Loss: 0.0873  LR: 6.52e-05  0.7 batch/s  ETA 3211s
+  [geometry] Epoch 5/6  Batch   888/2969  Loss: 0.0877  LR: 5.87e-05  0.7 batch/s  ETA 2811s
+  [geometry] Epoch 5/6  Batch  1184/2969  Loss: 0.0878  LR: 5.24e-05  0.7 batch/s  ETA 2412s
+  [geometry] Epoch 5/6  Batch  1480/2969  Loss: 0.0878  LR: 4.65e-05  0.7 batch/s  ETA 2012s
+  [geometry] Epoch 5/6  Batch  1776/2969  Loss: 0.0875  LR: 4.08e-05  0.7 batch/s  ETA 1612s
+  [geometry] Epoch 5/6  Batch  2072/2969  Loss: 0.0874  LR: 3.54e-05  0.7 batch/s  ETA 1212s
+  [geometry] Epoch 5/6  Batch  2368/2969  Loss: 0.0874  LR: 3.04e-05  0.7 batch/s  ETA 812s
+  [geometry] Epoch 5/6  Batch  2664/2969  Loss: 0.0874  LR: 2.57e-05  0.7 batch/s  ETA 412s
+  [geometry] Epoch 5/6  Batch  2960/2969  Loss: 0.0874  LR: 2.14e-05  0.7 batch/s  ETA 12s
+
+[geometry] Epoch 5/6 DONE — Train: 0.0874, Val: 0.0846, Acc: 99.3%
+  Epoch time: 4061.2s | Stage ETA: 67.7min | LR: 2.12e-05
+--- Generated Sample (unconditional) ---
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+
+--- Generated Sample (prompt: "a rectangle" (guidance 3.0)) ---
+                                                  +-----             +-------+  
+                                                                     |       |  
+                                                                     |       |  
+                                                                     +-------+  
+                                              / \ |                             
+                                             -+-+----                           
+                             -                +-+-|---         +-----------+    
+                                              |                |     |     |    
+                                              |                |     |     |    
+                                                               |     |     |    
+                                                               |     |     |    
+                                                               |     |     |    
+                                                               |     |     |    
+                                                               |     |     |    
+                                                               |     |     |    
+                                                               |     |     |    
+                                                               |     |     |    
+                                       +-----+--+     +    --  +-----+-----+--- 
+                                       +-----+--+----++ -      |     ||         
+                                             |       |         |     || -  +--+ 
+                                       |             |         |     ||       | 
+                                                     +----  -+ +------+-------|-
+                                                                     +--------+ 
+                                          -        +-----+-----------+-----+ -  
+                                                  +---+-------+-- +------+      
+                                                   |  |  |    |--+       |      
+                                                   |     |    |  |       |      
+                                                   |  Z+---------+-             
+           +++--------------+-----                 |  |                  |      
+            ||            | |              +------|----|-----------(--+------+  
+            |   ++----+-|---------         |      |   ||          |   |      |  
+           +----+     |     |              |      (   |           |   |      |  
+      --   |    |       +---------+ -- -+---------+----|          |   |      |  
+           |    |       |   |     |     | ------ +-----+-         |   |      |  
+    +------+----|------ |-  |     |     |  |     |                |          |  
+    |           |       |   |     |     | |              -        |   |  +---+ -
+    |           |       |   |     |     | ||     |   | |          |   |  |      
+    |           |       |   |     |     | ||     |   | |          |   |  |      
+    +-----------+       |   |     |     |  |     |   | |          |   + -+-     
+                        |   |     |     | |      +---+-+----------|--------+-   
+                        +---|-------    | +--------------------+-----------+    
+                            |     |                            |  |        |    
+                            +-----+     |  |                   |  |        |    
+                                        |  |                   |  |        |    
+                                        |  |                      +--------+    
+                                        |  |      |                             
+                                        +--+------+-     +-----                 
+                                                                                
+
+  Checkpoint saved: /root/ascii-art-transformer/training/../checkpoints/geometry_last.pt
+  [geometry] Epoch 6/6  Batch   296/2969  Loss: 0.0870  LR: 1.73e-05  0.7 batch/s  ETA 3611s
+  [geometry] Epoch 6/6  Batch   592/2969  Loss: 0.0864  LR: 1.37e-05  0.7 batch/s  ETA 3211s
+  [geometry] Epoch 6/6  Batch   888/2969  Loss: 0.0868  LR: 1.06e-05  0.7 batch/s  ETA 2812s
+  [geometry] Epoch 6/6  Batch  1184/2969  Loss: 0.0870  LR: 7.80e-06  0.7 batch/s  ETA 2412s
+  [geometry] Epoch 6/6  Batch  1480/2969  Loss: 0.0870  LR: 5.44e-06  0.7 batch/s  ETA 2012s
+  [geometry] Epoch 6/6  Batch  1776/2969  Loss: 0.0870  LR: 3.50e-06  0.7 batch/s  ETA 1612s
+  [geometry] Epoch 6/6  Batch  2072/2969  Loss: 0.0871  LR: 1.98e-06  0.7 batch/s  ETA 1212s
+  [geometry] Epoch 6/6  Batch  2368/2969  Loss: 0.0870  LR: 8.91e-07  0.7 batch/s  ETA 812s
+  [geometry] Epoch 6/6  Batch  2664/2969  Loss: 0.0871  LR: 2.30e-07  0.7 batch/s  ETA 412s
+  [geometry] Epoch 6/6  Batch  2960/2969  Loss: 0.0870  LR: 2.00e-10  0.7 batch/s  ETA 12s
+
+[geometry] Epoch 6/6 DONE — Train: 0.0870, Val: 0.0842, Acc: 99.3% *best*
+  Epoch time: 4061.3s | Stage ETA: 0.0min | LR: 0.00e+00
+--- Generated Sample (unconditional) ---
+                                         O                                      
+                                             4                                  
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+
+--- Generated Sample (prompt: "a rectangle" (guidance 3.0)) ---
+                                                                                
+ |-----------------+-  +                                                        
+ +---------------------++                                                       
+ |    +  ----------|- --+                                                       
+ |    |            |   |                                                        
+ |    |            |   |                                                        
+ |    |            |   |                                                        
+ |    |            |   |                                                        
+ |---------------------++                                                       
+ }    |            |    |                                                       
+  -----------------+---+|                                                       
+      |                                                                         
+   |- |----------+  -      -                                                    
+ - |  |  -     --|---                                                           
+   |  |          |      |                                                       
+   |  |          |      |  -                                                    
+ +-+--|-----------------+H -                                                    
+ |    |                                                                         
+ |    |                                                                         
+ |    +------------------+--                                                    
+ |    |                  |                                                      
+ |    |                  |                                                      
+ |    I                  |                                                      
+ |    |                  )                                                      
+ | -  +------------------+----                                                  
+ |    |                                                                         
+ |                                                                              
+      |           ---  - ||                                                     
+ +----------------------+++++--                                                 
+    --+---- --------------                                                      
+  |       |      |                                                              
+| |       |      |   |                                                          
+  |              |   |                                                          
+          |      |   |                                                          
+   +-------------|---+--+-  - --)                                               
+   |      |      |   |  i                                                       
+   |      |      |   |  |                                                       
+   |-----------------+e-|                                                       
+   |      |      |      |                                                       
+   |      |      |      |                                                       
+   +------>------+ -- A-+ - - +                                                 
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+
+  Checkpoint saved: /root/ascii-art-transformer/training/../checkpoints/geometry_last.pt (+ best)
+
+============================================================
+  Stage geometry complete in 406.3min (best val loss: 0.0842)
+============================================================
+
+============================================================
+  Stage: SHADING
+  Epochs: 6, LR: 1.0e-04, Batch: 64 x 1 accum x 1 GPU(s) = 64 effective
+============================================================
+Loading data from data/synthetic_v3.pt...
+  Replay: +60,000 samples from geometry_data.pt (guards against forgetting)
+  Captions: 177,884 unique — embedding with openai/clip-vit-base-patch32...
+  Caption tokens: (177884, 24, 512) (8743 MB)
+Samples: 446,993 total -> 424,644 train / 22,349 val
+Batches per epoch: 6,636 train, 350 val
+Scheduler: 500 warmup steps, 39816 total steps
+  [shading] Epoch 1/6  Batch   663/6636  Loss: 1.1470  LR: 1.00e-04  0.7 batch/s  ETA 8075s
+  [shading] Epoch 1/6  Batch  1326/6636  Loss: 1.0110  LR: 9.99e-05  0.7 batch/s  ETA 7177s
+  [shading] Epoch 1/6  Batch  1989/6636  Loss: 0.9575  LR: 9.96e-05  0.7 batch/s  ETA 6281s
+  [shading] Epoch 1/6  Batch  2652/6636  Loss: 0.9273  LR: 9.93e-05  0.7 batch/s  ETA 5385s
+  [shading] Epoch 1/6  Batch  3315/6636  Loss: 0.9081  LR: 9.87e-05  0.7 batch/s  ETA 4489s
+  [shading] Epoch 1/6  Batch  3978/6636  Loss: 0.8933  LR: 9.81e-05  0.7 batch/s  ETA 3593s
+  [shading] Epoch 1/6  Batch  4641/6636  Loss: 0.8825  LR: 9.73e-05  0.7 batch/s  ETA 2696s
+  [shading] Epoch 1/6  Batch  5304/6636  Loss: 0.8747  LR: 9.64e-05  0.7 batch/s  ETA 1800s
+  [shading] Epoch 1/6  Batch  5967/6636  Loss: 0.8679  LR: 9.53e-05  0.7 batch/s  ETA 904s
+  [shading] Epoch 1/6  Batch  6630/6636  Loss: 0.8623  LR: 9.41e-05  0.7 batch/s  ETA 8s
+
+[shading] Epoch 1/6 DONE — Train: 0.8622, Val: 0.8122, Acc: 90.8% *best*
+  Epoch time: 9078.5s | Stage ETA: 756.5min | LR: 9.41e-05
+--- Generated Sample (unconditional) ---
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+
+--- Generated Sample (prompt: "a dancing gondola, silhouette" (guidance 3.0)) ---
+                       ~~~M#w#                           &####-#                
+                    &a&######L%L                        ########W               
+                 ~####MM#######NR&ww                    "d#######ww             
+              ~ww&##M#########%MMM##Nww~-                 #####M##&&L-          
+           ~u####MN################MMM##################H########MM###&--       
+          ua##MM########################MMMMMMMMMMMMMMMMMW###########M##L       
+         q##M############################################################       
+        a##M##############################################################wE    
+       a##N##############################################################M#     
+     ~~#MN##################################################################    
+     ~######################################################################    
+     J#N###################################################################M    
+     J######################################################################    
+     J######################################################################    
+     J#####################################################################X    
+     J#####################################################################U    
+     ######################################################################     
+     a#####################################################################     
+     ##############################################y#######################     
+     4#####################################################################     
+     ####################################################################4#     
+     ######################################################################     
+     U####################################################################M     
+     #####################################################################      
+     #####################################################################      
+     ####################################################################C      
+     ####################################################################L      
+     ####################################################################L      
+     J###################################################################       
+    #####################################################################~      
+     ###################################################################4#      
+     #####################################################################      
+     #####################################################################      
+    ######################################################################      
+     #####################################################################      
+    ######################################################################      
+    #####################################################################'      
+    #####################################################################       
+    #####################################################################       
+    #####################################################################w      
+    ######################################################################      
+    ######################################################################      
+    ##############################################################N#######      
+    MMM`*M#########################################################M#MMM\'      
+           **MM##########MMMMMMMMMMM##########################MMMMM'            
+              ' `*`******          ''**MMMMMMMMMMMMMMMMMMM%`''                  
+                                                                                
+                                                                                
+
+  Checkpoint saved: /root/ascii-art-transformer/training/../checkpoints/shading_last.pt (+ best)
+  [shading] Epoch 2/6  Batch   663/6636  Loss: 0.8023  LR: 9.28e-05  0.7 batch/s  ETA 8071s
+  [shading] Epoch 2/6  Batch  1326/6636  Loss: 0.8044  LR: 9.14e-05  0.7 batch/s  ETA 7176s
+  [shading] Epoch 2/6  Batch  1989/6636  Loss: 0.8031  LR: 8.98e-05  0.7 batch/s  ETA 6281s
+  [shading] Epoch 2/6  Batch  2652/6636  Loss: 0.8002  LR: 8.82e-05  0.7 batch/s  ETA 5384s
+  [shading] Epoch 2/6  Batch  3315/6636  Loss: 0.7985  LR: 8.64e-05  0.7 batch/s  ETA 4488s
+  [shading] Epoch 2/6  Batch  3978/6636  Loss: 0.7963  LR: 8.45e-05  0.7 batch/s  ETA 3592s
+  [shading] Epoch 2/6  Batch  4641/6636  Loss: 0.7947  LR: 8.26e-05  0.7 batch/s  ETA 2696s
+  [shading] Epoch 2/6  Batch  5304/6636  Loss: 0.7938  LR: 8.05e-05  0.7 batch/s  ETA 1800s
+  [shading] Epoch 2/6  Batch  5967/6636  Loss: 0.7922  LR: 7.84e-05  0.7 batch/s  ETA 904s
+  [shading] Epoch 2/6  Batch  6630/6636  Loss: 0.7911  LR: 7.62e-05  0.7 batch/s  ETA 8s
+
+[shading] Epoch 2/6 DONE — Train: 0.7911, Val: 0.7857, Acc: 91.1% *best*
+  Epoch time: 9077.9s | Stage ETA: 605.3min | LR: 7.61e-05
+--- Generated Sample (unconditional) ---
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+
+--- Generated Sample (prompt: "a dancing gondola, silhouette" (guidance 3.0)) ---
+                                                a#########################M#    
+                                               ~##########################M#    
+                                             ~a##NN#######################M#    
+                                         ~~a~###############################    
+                               ,,&&&&&&&#####MN###########################M#    
+                           ,&&######MMMMMMM4##############################M#    
+                   ww~wwa#####MMM1########################################M#    
+              &wa#########M#M#############################################M#    
+         w~wa###MMMN######################################################M#    
+       ~&###MMN###########################################################M#    
+      &###MN##############################################################M#    
+    #a##N#########################################################9#########    
+    ########################################################################    
+    ######################################################################M#    
+    ######################################################################e#    
+    ########################################################################    
+    ######################################################################M#    
+    ######################################################################M#    
+    ######################################################################o#    
+    ########################################################################    
+    ######################################################################M#    
+    ######################################################################M#    
+    ######################################################################y#    
+    ######################################################################N#    
+    ########################################################################    
+    ##################################################################;###M#    
+    ######################################################################M#    
+    ######################################################################n#    
+    Z#####################################################################M#    
+    ########################################################################    
+    #5######################f############################################N##    
+    #######################################################################M    
+    ######################################################################M\    
+    ######################################################################~     
+    ###################################################################N#M      
+    ##################################################################N##       
+    #################################################################N##F       
+    ###################################################################M        
+    ##################################m############################N##%         
+    ################################################################MM          
+    ###############################################################M*           
+    ##################################<########################N##M\            
+    ####################################z####################N###\              
+    MfM####################################################N###M`               
+      '*MM##############################################N####L'                 
+         `'7MM############################################M`}                   
+              '****M####################################f\                      
+                     V""#############################M'                         
+
+  Checkpoint saved: /root/ascii-art-transformer/training/../checkpoints/shading_last.pt (+ best)
+  [shading] Epoch 3/6  Batch   663/6636  Loss: 0.7785  LR: 7.39e-05  0.7 batch/s  ETA 8071s
+  [shading] Epoch 3/6  Batch  1326/6636  Loss: 0.7759  LR: 7.15e-05  0.7 batch/s  ETA 7176s
+  [shading] Epoch 3/6  Batch  1989/6636  Loss: 0.7758  LR: 6.91e-05  0.7 batch/s  ETA 6280s
+  [shading] Epoch 3/6  Batch  2652/6636  Loss: 0.7747  LR: 6.66e-05  0.7 batch/s  ETA 5385s
+  [shading] Epoch 3/6  Batch  3315/6636  Loss: 0.7722  LR: 6.41e-05  0.7 batch/s  ETA 4488s
+  [shading] Epoch 3/6  Batch  3978/6636  Loss: 0.7721  LR: 6.15e-05  0.7 batch/s  ETA 3592s
+  [shading] Epoch 3/6  Batch  4641/6636  Loss: 0.7723  LR: 5.89e-05  0.7 batch/s  ETA 2696s
+  [shading] Epoch 3/6  Batch  5304/6636  Loss: 0.7714  LR: 5.63e-05  0.7 batch/s  ETA 1800s
+  [shading] Epoch 3/6  Batch  5967/6636  Loss: 0.7702  LR: 5.37e-05  0.7 batch/s  ETA 904s
+  [shading] Epoch 3/6  Batch  6630/6636  Loss: 0.7698  LR: 5.10e-05  0.7 batch/s  ETA 8s
+
+[shading] Epoch 3/6 DONE — Train: 0.7699, Val: 0.7679, Acc: 91.3% *best*
+  Epoch time: 9078.4s | Stage ETA: 454.0min | LR: 5.10e-05
+--- Generated Sample (unconditional) ---
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+       t                                                                        
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+
+--- Generated Sample (prompt: "a dancing gondola, silhouette" (guidance 3.0)) ---
+                                                              %#a###########    
+              %Lwwww                                          d#############    
+              M######&&L                                      ##############    
+               M####MM###aw                                   a############b    
+               J#######MM####&&~~. .                     ,,%aa#############L    
+               J###########MMM######&&#&&wwwwwwwwwwwwwww&####MMN###########[    
+               ####################MMMM#M#\##############MN>##############M     
+             ~a########################################################N#M~     
+             &##N########################################################C      
+            d##n############################M#########################N#M\      
+            d###########################################################L       
+           ~###########################################################ML       
+           B###########################################################'        
+          a############################################################         
+          a############################################################         
+         %#N###########################################################         
+         d#############################################################         
+         ##############################################################         
+         #M############################################################         
+         #M############################################################         
+        N##############################################################         
+       ~###############################################################         
+       J###############################################################         
+       J###############################################################         
+       J###############################################################         
+       u###############################################################         
+       J#############\#################################################         
+       J#############l#################################################L        
+       J##############################################################N.L       
+       J##################V#############################################L       
+       J###############################################################M#C      
+       J###############################################################M##~     
+       /###################################################################-    
+        M########################################################N#########L    
+        *###########################################################A######L    
+         M###############################################N#####MMf     b###L    
+         d############################################N####MM\         M#^#     
+         d##########################################N###M*'                     
+         `########################################N###M^`                       
+          'M#######################################Mt\                          
+           M###################################N##F'                            
+            M###################################M5                              
+            d###############################N##F\                               
+            d################################M%\                                
+            #~###################e4#######M**                                   
+           u##########w##############MM*''                                      
+            #############MMMMM****                                              
+            d######2#F"""                                                       
+
+  Checkpoint saved: /root/ascii-art-transformer/training/../checkpoints/shading_last.pt (+ best)
+  [shading] Epoch 4/6  Batch   663/6636  Loss: 0.7634  LR: 4.84e-05  0.7 batch/s  ETA 8071s
+  [shading] Epoch 4/6  Batch  1326/6636  Loss: 0.7617  LR: 4.57e-05  0.7 batch/s  ETA 7176s
+  [shading] Epoch 4/6  Batch  1989/6636  Loss: 0.7619  LR: 4.31e-05  0.7 batch/s  ETA 6280s
+  [shading] Epoch 4/6  Batch  2652/6636  Loss: 0.7610  LR: 4.05e-05  0.7 batch/s  ETA 5384s
+  [shading] Epoch 4/6  Batch  3315/6636  Loss: 0.7608  LR: 3.79e-05  0.7 batch/s  ETA 4488s
+  [shading] Epoch 4/6  Batch  3978/6636  Loss: 0.7598  LR: 3.53e-05  0.7 batch/s  ETA 3592s
+  [shading] Epoch 4/6  Batch  4641/6636  Loss: 0.7595  LR: 3.28e-05  0.7 batch/s  ETA 2696s
+  [shading] Epoch 4/6  Batch  5304/6636  Loss: 0.7598  LR: 3.04e-05  0.7 batch/s  ETA 1800s
+  [shading] Epoch 4/6  Batch  5967/6636  Loss: 0.7592  LR: 2.79e-05  0.7 batch/s  ETA 904s
+  [shading] Epoch 4/6  Batch  6630/6636  Loss: 0.7583  LR: 2.56e-05  0.7 batch/s  ETA 8s
+
+[shading] Epoch 4/6 DONE — Train: 0.7583, Val: 0.7713, Acc: 91.3%
+  Epoch time: 9077.6s | Stage ETA: 302.6min | LR: 2.56e-05
+--- Generated Sample (unconditional) ---
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+      |                                                                         
+                                                                                
+                                                                                
+                                              -                                 
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+
+--- Generated Sample (prompt: "a dancing gondola, silhouette" (guidance 3.0)) ---
+    #M####################################################################M#    
+    #U###########################################KMMM#####################M#    
+    #####################MMMMMMMMM###############   `MM###################M#    
+    #####################C        f##############     `M##################M#    
+    ############################################M       M#################M#    
+    ###################M~MMMMMMMMMMM############M       '#################M#    
+    ############################################E        J################M#    
+    ############################################E        J################M#    
+    #############################################L-      J################M#    
+    #h############################################&&w+~~a#################M#    
+    #############################################MMM#####MN###############M#    
+    ######################################################################M#    
+    ######################m###B###########################################M#    
+    ################Mf           *MMMM####################################M#    
+    #M#############-                 ^*MM#################################M#    
+    #M#############!                    /MM###############################M#    
+    ##############M#                      '###############################M#    
+    ##############M#                       'M#############################M#    
+    ################-                       M#############################M#    
+     &##MMM#######M##w-                     M#############################M#    
+     ~##L J#########MV#&w-                  M#############################M#    
+     ~##  J############M##w-                N#############################M#    
+     ~##  J#################w+              ##############################M#    
+     ~##  J###################              M#############################M#    
+     ~##  J####################&-          J##############################M#    
+     ~##  J###################M#N&ww-   ~w&##MM***########################M#    
+     ~##  J#####################MM##########M\  %&########################M#    
+     ~##  J########################MMMMMMM##ww&&##MN######################M#    
+     ~##  J##################################MMMMN########################M#    
+     ~##  J###############################################################4#    
+     ~##  J###############################################################M#    
+     ~##L J###############################################################M#    
+     ~##  J###############################################################M#    
+     ~##L J###############################################################N#    
+     ~##L J###############################################################M#    
+     ~##L J#######################################N#######################M#    
+     ~##L J#################################N#######MMMMMMMM##############M#    
+    V&##w J###########################N######MMMM**         ^*M###########M#    
+    ###M#&J#############################MMM*^`                J###########M#    
+    #M##MMMM##########################M\       ~,&&~&&&&&&#&##########n####E    
+    ##################################wwwwwwqw&&#####MMMMMMMMMMM###########F    
+    ##########################################MMMK#########################     
+     `*MMM##############################################################N##     
+          'MMM###########################################################E      
+             `**MMM###################################################N#*\      
+                  `''MMMMMMMMM#######################################h#M:       
+                             '***********N#############################M        
+                                         `'############################W        
+
+  Checkpoint saved: /root/ascii-art-transformer/training/../checkpoints/shading_last.pt
+  [shading] Epoch 5/6  Batch   663/6636  Loss: 0.7477  LR: 2.33e-05  0.7 batch/s  ETA 8071s
+  [shading] Epoch 5/6  Batch  1326/6636  Loss: 0.7496  LR: 2.11e-05  0.7 batch/s  ETA 7176s
+  [shading] Epoch 5/6  Batch  1989/6636  Loss: 0.7519  LR: 1.90e-05  0.7 batch/s  ETA 6280s
+  [shading] Epoch 5/6  Batch  2652/6636  Loss: 0.7525  LR: 1.69e-05  0.7 batch/s  ETA 5384s
+  [shading] Epoch 5/6  Batch  3315/6636  Loss: 0.7526  LR: 1.50e-05  0.7 batch/s  ETA 4488s
+  [shading] Epoch 5/6  Batch  3978/6636  Loss: 0.7526  LR: 1.32e-05  0.7 batch/s  ETA 3592s
+  [shading] Epoch 5/6  Batch  4641/6636  Loss: 0.7520  LR: 1.14e-05  0.7 batch/s  ETA 2696s
+  [shading] Epoch 5/6  Batch  5304/6636  Loss: 0.7524  LR: 9.80e-06  0.7 batch/s  ETA 1800s
+  [shading] Epoch 5/6  Batch  5967/6636  Loss: 0.7526  LR: 8.28e-06  0.7 batch/s  ETA 904s
+  [shading] Epoch 5/6  Batch  6630/6636  Loss: 0.7524  LR: 6.88e-06  0.7 batch/s  ETA 8s
+
+[shading] Epoch 5/6 DONE — Train: 0.7524, Val: 0.7680, Acc: 91.4%
+  Epoch time: 9077.6s | Stage ETA: 151.3min | LR: 6.87e-06
+--- Generated Sample (unconditional) ---
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+            *                                                                   
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+
+--- Generated Sample (prompt: "a dancing gondola, silhouette" (guidance 3.0)) ---
+                                                                          ~     
+                                                                       a &w-    
+                                                                      3##M##    
+                                                                      d#####    
+                                                                      a###M#    
+                      &##-                                      ~w&&w###9#M#    
+                    &####M                                  ~&a####c#M####M#    
+                  ua##N##\                                ~&###MMN########M#    
+                &a##M###`                                ~##MN############M#    
+              ~&##MN###\                                %##N##############M#    
+             &##MN####L                                u##################M#    
+            &##M######L                               ~###################M#    
+           u##N#######WL                              a#N#################M#    
+          <##N#########b                             M#N##################M#    
+         ~##N###########w-                          u##N##################M#    
+        ~##M###########M##w(                       a######################M#    
+        ~#M################N&L                  wu###N####################M#    
+        a##################E#Nw              {&a###N######################M#    
+       ~#####################M##w-       +&&####MM########################M#    
+       J######################MM############MN############################M#    
+       J#N######################MMMMMMMMMMN###############################M#    
+       ###################################################################M#    
+      &#M#################################################################M#    
+      M#N#################################################################M#    
+     `M################################L                         'ffMM####M#    
+     ~#################################&                              *M##M#    
+     &##################################&&&w-~.                        ~##M#    
+     ##################################MMM#####&&&&ou&www         +wwwww##M#    
+     #########################################MMMMMMMM####################M#    
+    &####################################################MMMMMMMMMMN######M#    
+    #M####################################################################M#    
+    #M####################################################################M#    
+    ######################################################################M#    
+    ######################################################################M#    
+    ######################################################################M#    
+    #N####################################################################M#    
+    ######################################################################M#    
+    #K####################################################################M#    
+    #M####################################################################M#    
+    ########################################################################    
+    ########################################################################    
+    /M##P#######################################################MMMMMMMMMMM#    
+     `M#######################################################M*          ~#    
+     `M#######################################################Wwwwwwwww##&##    
+       *MD#N##################################################MMMMMMMMMMM##L    
+          M################################################################L    
+             `*MM##########################################################L    
+                 M#########################################################L    
+
+  Checkpoint saved: /root/ascii-art-transformer/training/../checkpoints/shading_last.pt
+  [shading] Epoch 6/6  Batch   663/6636  Loss: 0.7499  LR: 5.59e-06  0.7 batch/s  ETA 8069s
+  [shading] Epoch 6/6  Batch  1326/6636  Loss: 0.7484  LR: 4.43e-06  0.7 batch/s  ETA 7174s
+  [shading] Epoch 6/6  Batch  1989/6636  Loss: 0.7492  LR: 3.41e-06  0.7 batch/s  ETA 6279s
+  [shading] Epoch 6/6  Batch  2652/6636  Loss: 0.7490  LR: 2.51e-06  0.7 batch/s  ETA 5383s
+  [shading] Epoch 6/6  Batch  3315/6636  Loss: 0.7490  LR: 1.75e-06  0.7 batch/s  ETA 4487s
+  [shading] Epoch 6/6  Batch  3978/6636  Loss: 0.7492  LR: 1.12e-06  0.7 batch/s  ETA 3591s
+  [shading] Epoch 6/6  Batch  4641/6636  Loss: 0.7491  LR: 6.34e-07  0.7 batch/s  ETA 2696s
+  [shading] Epoch 6/6  Batch  5304/6636  Loss: 0.7484  LR: 2.83e-07  0.7 batch/s  ETA 1800s
+  [shading] Epoch 6/6  Batch  5967/6636  Loss: 0.7484  LR: 7.14e-08  0.7 batch/s  ETA 904s

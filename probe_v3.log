@@ -1,0 +1,2155 @@
+
+============================================================
+  Stage: MEMORIZE-V3
+  Epochs: 300, LR: 3.0e-04, Batch: 64 x 1 accum x 1 GPU(s) = 64 effective
+============================================================
+Loading data from data/probe_unique1k.pt...
+  Space weight: 0.193 (auto — equal gradient share)
+  Captions: 1,000 unique — embedding with openai/clip-vit-base-patch32...
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/196 [00:00<?, ?it/s]Loading weights: 100%|██████████| 196/196 [00:00<00:00, 90438.24it/s]
+[transformers] [1mCLIPTextModel LOAD REPORT[0m from: openai/clip-vit-base-patch32
+Key                                                            | Status     |  | 
+---------------------------------------------------------------+------------+--+-
+vision_model.post_layernorm.weight                             | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.v_proj.weight   | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.k_proj.bias     | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.q_proj.weight   | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.q_proj.bias     | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.layer_norm2.bias          | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.v_proj.bias     | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.layer_norm2.weight        | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.mlp.fc2.weight            | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.mlp.fc1.bias              | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.layer_norm1.bias          | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.out_proj.bias   | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.k_proj.weight   | UNEXPECTED |  | 
+vision_model.embeddings.patch_embedding.weight                 | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.layer_norm1.weight        | UNEXPECTED |  | 
+vision_model.pre_layrnorm.bias                                 | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.self_attn.out_proj.weight | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.mlp.fc1.weight            | UNEXPECTED |  | 
+vision_model.encoder.layers.{0...11}.mlp.fc2.bias              | UNEXPECTED |  | 
+logit_scale                                                    | UNEXPECTED |  | 
+text_projection.weight                                         | UNEXPECTED |  | 
+vision_model.pre_layrnorm.weight                               | UNEXPECTED |  | 
+visual_projection.weight                                       | UNEXPECTED |  | 
+vision_model.embeddings.class_embedding                        | UNEXPECTED |  | 
+vision_model.embeddings.position_embedding.weight              | UNEXPECTED |  | 
+vision_model.post_layernorm.bias                               | UNEXPECTED |  | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+  Caption tokens: (1000, 15, 512) (31 MB)
+Samples: 1,000 total -> 950 train / 50 val
+Batches per epoch: 15 train, 1 val
+Scheduler: 450 warmup steps, 4500 total steps
+  [memorize-v3] Epoch 1/300  Batch     1/15  Loss: 4.4075  LR: 6.67e-07  0.5 batch/s  ETA 28s
+  [memorize-v3] Epoch 1/300  Batch     2/15  Loss: 4.4288  LR: 1.33e-06  0.7 batch/s  ETA 19s
+  [memorize-v3] Epoch 1/300  Batch     3/15  Loss: 4.4039  LR: 2.00e-06  0.7 batch/s  ETA 17s
+  [memorize-v3] Epoch 1/300  Batch     4/15  Loss: 4.3906  LR: 2.67e-06  0.7 batch/s  ETA 16s
+  [memorize-v3] Epoch 1/300  Batch     5/15  Loss: 4.3634  LR: 3.33e-06  0.7 batch/s  ETA 14s
+  [memorize-v3] Epoch 1/300  Batch     6/15  Loss: 4.3224  LR: 4.00e-06  0.7 batch/s  ETA 13s
+  [memorize-v3] Epoch 1/300  Batch     7/15  Loss: 4.2823  LR: 4.67e-06  0.7 batch/s  ETA 11s
+  [memorize-v3] Epoch 1/300  Batch     8/15  Loss: 4.2347  LR: 5.33e-06  0.7 batch/s  ETA 10s
+  [memorize-v3] Epoch 1/300  Batch     9/15  Loss: 4.1684  LR: 6.00e-06  0.7 batch/s  ETA 8s
+  [memorize-v3] Epoch 1/300  Batch    10/15  Loss: 4.0968  LR: 6.67e-06  0.7 batch/s  ETA 7s
+  [memorize-v3] Epoch 1/300  Batch    11/15  Loss: 4.0168  LR: 7.33e-06  0.7 batch/s  ETA 5s
+  [memorize-v3] Epoch 1/300  Batch    12/15  Loss: 3.9475  LR: 8.00e-06  0.7 batch/s  ETA 4s
+  [memorize-v3] Epoch 1/300  Batch    13/15  Loss: 3.8791  LR: 8.67e-06  0.7 batch/s  ETA 3s
+  [memorize-v3] Epoch 1/300  Batch    14/15  Loss: 3.8126  LR: 9.33e-06  0.7 batch/s  ETA 1s
+  [memorize-v3] Epoch 1/300  Batch    15/15  Loss: 3.7360  LR: 1.00e-05  0.7 batch/s  ETA 0s
+
+[memorize-v3] Epoch 1/300 DONE — Train: 3.7360, Val: 2.6812, Acc: 83.8% *best*
+  Epoch time: 21.1s | Stage ETA: 105.1min | LR: 1.00e-05
+  [memorize-v3] Epoch 2/300  Batch     1/15  Loss: 2.6859  LR: 1.07e-05  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 2/300  Batch     2/15  Loss: 2.6422  LR: 1.13e-05  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 2/300  Batch     3/15  Loss: 2.6078  LR: 1.20e-05  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 2/300  Batch     4/15  Loss: 2.5512  LR: 1.27e-05  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 2/300  Batch     5/15  Loss: 2.5154  LR: 1.33e-05  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 2/300  Batch     6/15  Loss: 2.4681  LR: 1.40e-05  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 2/300  Batch     7/15  Loss: 2.4513  LR: 1.47e-05  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 2/300  Batch     8/15  Loss: 2.4613  LR: 1.53e-05  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 2/300  Batch     9/15  Loss: 2.4490  LR: 1.60e-05  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 2/300  Batch    10/15  Loss: 2.4560  LR: 1.67e-05  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 2/300  Batch    11/15  Loss: 2.4362  LR: 1.73e-05  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 2/300  Batch    12/15  Loss: 2.4273  LR: 1.80e-05  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 2/300  Batch    13/15  Loss: 2.4177  LR: 1.87e-05  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 2/300  Batch    14/15  Loss: 2.3979  LR: 1.93e-05  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 2/300  Batch    15/15  Loss: 2.3803  LR: 2.00e-05  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 2/300 DONE — Train: 2.3803, Val: 2.0928, Acc: 83.8% *best*
+  Epoch time: 20.4s | Stage ETA: 102.9min | LR: 2.00e-05
+  [memorize-v3] Epoch 3/300  Batch     1/15  Loss: 2.1602  LR: 2.07e-05  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 3/300  Batch     2/15  Loss: 2.2054  LR: 2.13e-05  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 3/300  Batch     3/15  Loss: 2.1876  LR: 2.20e-05  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 3/300  Batch     4/15  Loss: 2.1877  LR: 2.27e-05  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 3/300  Batch     5/15  Loss: 2.1722  LR: 2.33e-05  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 3/300  Batch     6/15  Loss: 2.1800  LR: 2.40e-05  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 3/300  Batch     7/15  Loss: 2.1630  LR: 2.47e-05  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 3/300  Batch     8/15  Loss: 2.1632  LR: 2.53e-05  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 3/300  Batch     9/15  Loss: 2.1500  LR: 2.60e-05  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 3/300  Batch    10/15  Loss: 2.1436  LR: 2.67e-05  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 3/300  Batch    11/15  Loss: 2.1239  LR: 2.73e-05  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 3/300  Batch    12/15  Loss: 2.1221  LR: 2.80e-05  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 3/300  Batch    13/15  Loss: 2.1170  LR: 2.87e-05  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 3/300  Batch    14/15  Loss: 2.0998  LR: 2.93e-05  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 3/300  Batch    15/15  Loss: 2.1184  LR: 3.00e-05  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 3/300 DONE — Train: 2.1184, Val: 1.9574, Acc: 84.1% *best*
+  Epoch time: 20.4s | Stage ETA: 102.0min | LR: 3.00e-05
+  [memorize-v3] Epoch 4/300  Batch     1/15  Loss: 1.9807  LR: 3.07e-05  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 4/300  Batch     2/15  Loss: 1.9862  LR: 3.13e-05  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 4/300  Batch     3/15  Loss: 2.0082  LR: 3.20e-05  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 4/300  Batch     4/15  Loss: 2.0320  LR: 3.27e-05  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 4/300  Batch     5/15  Loss: 1.9984  LR: 3.33e-05  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 4/300  Batch     6/15  Loss: 1.9556  LR: 3.40e-05  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 4/300  Batch     7/15  Loss: 1.9626  LR: 3.47e-05  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 4/300  Batch     8/15  Loss: 1.9537  LR: 3.53e-05  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 4/300  Batch     9/15  Loss: 1.9879  LR: 3.60e-05  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 4/300  Batch    10/15  Loss: 1.9832  LR: 3.67e-05  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 4/300  Batch    11/15  Loss: 1.9778  LR: 3.73e-05  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 4/300  Batch    12/15  Loss: 1.9682  LR: 3.80e-05  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 4/300  Batch    13/15  Loss: 1.9681  LR: 3.87e-05  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 4/300  Batch    14/15  Loss: 1.9617  LR: 3.93e-05  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 4/300  Batch    15/15  Loss: 1.9672  LR: 4.00e-05  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 4/300 DONE — Train: 1.9672, Val: 1.8373, Acc: 78.4% *best*
+  Epoch time: 20.4s | Stage ETA: 101.3min | LR: 4.00e-05
+  [memorize-v3] Epoch 5/300  Batch     1/15  Loss: 2.0527  LR: 4.07e-05  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 5/300  Batch     2/15  Loss: 1.9764  LR: 4.13e-05  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 5/300  Batch     3/15  Loss: 1.9488  LR: 4.20e-05  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 5/300  Batch     4/15  Loss: 1.9259  LR: 4.27e-05  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 5/300  Batch     5/15  Loss: 1.9441  LR: 4.33e-05  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 5/300  Batch     6/15  Loss: 1.9109  LR: 4.40e-05  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 5/300  Batch     7/15  Loss: 1.9029  LR: 4.47e-05  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 5/300  Batch     8/15  Loss: 1.9036  LR: 4.53e-05  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 5/300  Batch     9/15  Loss: 1.9104  LR: 4.60e-05  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 5/300  Batch    10/15  Loss: 1.9113  LR: 4.67e-05  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 5/300  Batch    11/15  Loss: 1.8898  LR: 4.73e-05  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 5/300  Batch    12/15  Loss: 1.8912  LR: 4.80e-05  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 5/300  Batch    13/15  Loss: 1.8809  LR: 4.87e-05  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 5/300  Batch    14/15  Loss: 1.8857  LR: 4.93e-05  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 5/300  Batch    15/15  Loss: 1.8910  LR: 5.00e-05  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 5/300 DONE — Train: 1.8910, Val: 1.7818, Acc: 77.8% *best*
+  Epoch time: 20.4s | Stage ETA: 100.8min | LR: 5.00e-05
+  [memorize-v3] Epoch 6/300  Batch     1/15  Loss: 1.6451  LR: 5.07e-05  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 6/300  Batch     2/15  Loss: 1.8324  LR: 5.13e-05  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 6/300  Batch     3/15  Loss: 1.7718  LR: 5.20e-05  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 6/300  Batch     4/15  Loss: 1.8290  LR: 5.27e-05  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 6/300  Batch     5/15  Loss: 1.8092  LR: 5.33e-05  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 6/300  Batch     6/15  Loss: 1.8071  LR: 5.40e-05  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 6/300  Batch     7/15  Loss: 1.7887  LR: 5.47e-05  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 6/300  Batch     8/15  Loss: 1.7780  LR: 5.53e-05  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 6/300  Batch     9/15  Loss: 1.7696  LR: 5.60e-05  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 6/300  Batch    10/15  Loss: 1.7527  LR: 5.67e-05  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 6/300  Batch    11/15  Loss: 1.7534  LR: 5.73e-05  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 6/300  Batch    12/15  Loss: 1.7466  LR: 5.80e-05  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 6/300  Batch    13/15  Loss: 1.7497  LR: 5.87e-05  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 6/300  Batch    14/15  Loss: 1.7278  LR: 5.93e-05  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 6/300  Batch    15/15  Loss: 1.7505  LR: 6.00e-05  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 6/300 DONE — Train: 1.7505, Val: 1.7323, Acc: 79.8% *best*
+  Epoch time: 20.4s | Stage ETA: 100.4min | LR: 6.00e-05
+  [memorize-v3] Epoch 7/300  Batch     1/15  Loss: 1.6437  LR: 6.07e-05  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 7/300  Batch     2/15  Loss: 1.6776  LR: 6.13e-05  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 7/300  Batch     3/15  Loss: 1.6855  LR: 6.20e-05  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 7/300  Batch     4/15  Loss: 1.6704  LR: 6.27e-05  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 7/300  Batch     5/15  Loss: 1.6996  LR: 6.33e-05  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 7/300  Batch     6/15  Loss: 1.7143  LR: 6.40e-05  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 7/300  Batch     7/15  Loss: 1.7215  LR: 6.47e-05  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 7/300  Batch     8/15  Loss: 1.7264  LR: 6.53e-05  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 7/300  Batch     9/15  Loss: 1.7007  LR: 6.60e-05  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 7/300  Batch    10/15  Loss: 1.6897  LR: 6.67e-05  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 7/300  Batch    11/15  Loss: 1.6773  LR: 6.73e-05  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 7/300  Batch    12/15  Loss: 1.6802  LR: 6.80e-05  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 7/300  Batch    13/15  Loss: 1.6834  LR: 6.87e-05  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 7/300  Batch    14/15  Loss: 1.6708  LR: 6.93e-05  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 7/300  Batch    15/15  Loss: 1.6625  LR: 7.00e-05  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 7/300 DONE — Train: 1.6625, Val: 1.4932, Acc: 87.6% *best*
+  Epoch time: 20.4s | Stage ETA: 99.9min | LR: 7.00e-05
+  [memorize-v3] Epoch 8/300  Batch     1/15  Loss: 1.6163  LR: 7.07e-05  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 8/300  Batch     2/15  Loss: 1.5734  LR: 7.13e-05  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 8/300  Batch     3/15  Loss: 1.5077  LR: 7.20e-05  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 8/300  Batch     4/15  Loss: 1.5877  LR: 7.27e-05  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 8/300  Batch     5/15  Loss: 1.6030  LR: 7.33e-05  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 8/300  Batch     6/15  Loss: 1.5932  LR: 7.40e-05  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 8/300  Batch     7/15  Loss: 1.6116  LR: 7.47e-05  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 8/300  Batch     8/15  Loss: 1.5920  LR: 7.53e-05  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 8/300  Batch     9/15  Loss: 1.5790  LR: 7.60e-05  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 8/300  Batch    10/15  Loss: 1.5779  LR: 7.67e-05  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 8/300  Batch    11/15  Loss: 1.5639  LR: 7.73e-05  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 8/300  Batch    12/15  Loss: 1.5687  LR: 7.80e-05  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 8/300  Batch    13/15  Loss: 1.5626  LR: 7.87e-05  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 8/300  Batch    14/15  Loss: 1.5732  LR: 7.93e-05  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 8/300  Batch    15/15  Loss: 1.5668  LR: 8.00e-05  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 8/300 DONE — Train: 1.5668, Val: 1.4357, Acc: 88.1% *best*
+  Epoch time: 20.3s | Stage ETA: 99.5min | LR: 8.00e-05
+  [memorize-v3] Epoch 9/300  Batch     1/15  Loss: 1.6270  LR: 8.07e-05  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 9/300  Batch     2/15  Loss: 1.6041  LR: 8.13e-05  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 9/300  Batch     3/15  Loss: 1.5246  LR: 8.20e-05  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 9/300  Batch     4/15  Loss: 1.4950  LR: 8.27e-05  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 9/300  Batch     5/15  Loss: 1.4925  LR: 8.33e-05  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 9/300  Batch     6/15  Loss: 1.4961  LR: 8.40e-05  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 9/300  Batch     7/15  Loss: 1.4957  LR: 8.47e-05  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 9/300  Batch     8/15  Loss: 1.5171  LR: 8.53e-05  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 9/300  Batch     9/15  Loss: 1.5001  LR: 8.60e-05  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 9/300  Batch    10/15  Loss: 1.5016  LR: 8.67e-05  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 9/300  Batch    11/15  Loss: 1.4985  LR: 8.73e-05  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 9/300  Batch    12/15  Loss: 1.5057  LR: 8.80e-05  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 9/300  Batch    13/15  Loss: 1.5153  LR: 8.87e-05  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 9/300  Batch    14/15  Loss: 1.4990  LR: 8.93e-05  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 9/300  Batch    15/15  Loss: 1.4996  LR: 9.00e-05  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 9/300 DONE — Train: 1.4996, Val: 1.3438, Acc: 87.4% *best*
+  Epoch time: 20.4s | Stage ETA: 99.1min | LR: 9.00e-05
+  [memorize-v3] Epoch 10/300  Batch     1/15  Loss: 1.3491  LR: 9.07e-05  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 10/300  Batch     2/15  Loss: 1.3943  LR: 9.13e-05  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 10/300  Batch     3/15  Loss: 1.4589  LR: 9.20e-05  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 10/300  Batch     4/15  Loss: 1.4803  LR: 9.27e-05  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 10/300  Batch     5/15  Loss: 1.4483  LR: 9.33e-05  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 10/300  Batch     6/15  Loss: 1.4646  LR: 9.40e-05  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 10/300  Batch     7/15  Loss: 1.4784  LR: 9.47e-05  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 10/300  Batch     8/15  Loss: 1.4790  LR: 9.53e-05  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 10/300  Batch     9/15  Loss: 1.4507  LR: 9.60e-05  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 10/300  Batch    10/15  Loss: 1.4491  LR: 9.67e-05  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 10/300  Batch    11/15  Loss: 1.4564  LR: 9.73e-05  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 10/300  Batch    12/15  Loss: 1.4681  LR: 9.80e-05  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 10/300  Batch    13/15  Loss: 1.4723  LR: 9.87e-05  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 10/300  Batch    14/15  Loss: 1.4695  LR: 9.93e-05  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 10/300  Batch    15/15  Loss: 1.4698  LR: 1.00e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 10/300 DONE — Train: 1.4698, Val: 1.3585, Acc: 89.4%
+  Epoch time: 20.4s | Stage ETA: 98.7min | LR: 1.00e-04
+  [memorize-v3] Epoch 11/300  Batch     1/15  Loss: 1.3178  LR: 1.01e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 11/300  Batch     2/15  Loss: 1.3456  LR: 1.01e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 11/300  Batch     3/15  Loss: 1.3517  LR: 1.02e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 11/300  Batch     4/15  Loss: 1.3685  LR: 1.03e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 11/300  Batch     5/15  Loss: 1.3676  LR: 1.03e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 11/300  Batch     6/15  Loss: 1.3566  LR: 1.04e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 11/300  Batch     7/15  Loss: 1.3793  LR: 1.05e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 11/300  Batch     8/15  Loss: 1.3696  LR: 1.05e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 11/300  Batch     9/15  Loss: 1.3938  LR: 1.06e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 11/300  Batch    10/15  Loss: 1.3992  LR: 1.07e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 11/300  Batch    11/15  Loss: 1.3865  LR: 1.07e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 11/300  Batch    12/15  Loss: 1.3968  LR: 1.08e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 11/300  Batch    13/15  Loss: 1.4056  LR: 1.09e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 11/300  Batch    14/15  Loss: 1.4167  LR: 1.09e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 11/300  Batch    15/15  Loss: 1.4249  LR: 1.10e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 11/300 DONE — Train: 1.4249, Val: 1.5309, Acc: 84.0%
+  Epoch time: 20.4s | Stage ETA: 98.4min | LR: 1.10e-04
+  [memorize-v3] Epoch 12/300  Batch     1/15  Loss: 1.4353  LR: 1.11e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 12/300  Batch     2/15  Loss: 1.4465  LR: 1.11e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 12/300  Batch     3/15  Loss: 1.4035  LR: 1.12e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 12/300  Batch     4/15  Loss: 1.3539  LR: 1.13e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 12/300  Batch     5/15  Loss: 1.3869  LR: 1.13e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 12/300  Batch     6/15  Loss: 1.4061  LR: 1.14e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 12/300  Batch     7/15  Loss: 1.4092  LR: 1.15e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 12/300  Batch     8/15  Loss: 1.4055  LR: 1.15e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 12/300  Batch     9/15  Loss: 1.4012  LR: 1.16e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 12/300  Batch    10/15  Loss: 1.3986  LR: 1.17e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 12/300  Batch    11/15  Loss: 1.4065  LR: 1.17e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 12/300  Batch    12/15  Loss: 1.4037  LR: 1.18e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 12/300  Batch    13/15  Loss: 1.4082  LR: 1.19e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 12/300  Batch    14/15  Loss: 1.4143  LR: 1.19e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 12/300  Batch    15/15  Loss: 1.4122  LR: 1.20e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 12/300 DONE — Train: 1.4122, Val: 1.3524, Acc: 86.8%
+  Epoch time: 20.4s | Stage ETA: 98.0min | LR: 1.20e-04
+  [memorize-v3] Epoch 13/300  Batch     1/15  Loss: 1.5290  LR: 1.21e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 13/300  Batch     2/15  Loss: 1.4953  LR: 1.21e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 13/300  Batch     3/15  Loss: 1.4616  LR: 1.22e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 13/300  Batch     4/15  Loss: 1.4716  LR: 1.23e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 13/300  Batch     5/15  Loss: 1.4829  LR: 1.23e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 13/300  Batch     6/15  Loss: 1.4349  LR: 1.24e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 13/300  Batch     7/15  Loss: 1.4493  LR: 1.25e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 13/300  Batch     8/15  Loss: 1.4511  LR: 1.25e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 13/300  Batch     9/15  Loss: 1.4416  LR: 1.26e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 13/300  Batch    10/15  Loss: 1.4357  LR: 1.27e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 13/300  Batch    11/15  Loss: 1.4389  LR: 1.27e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 13/300  Batch    12/15  Loss: 1.4232  LR: 1.28e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 13/300  Batch    13/15  Loss: 1.4275  LR: 1.29e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 13/300  Batch    14/15  Loss: 1.4313  LR: 1.29e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 13/300  Batch    15/15  Loss: 1.4089  LR: 1.30e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 13/300 DONE — Train: 1.4089, Val: 1.4375, Acc: 87.4%
+  Epoch time: 20.4s | Stage ETA: 97.7min | LR: 1.30e-04
+  [memorize-v3] Epoch 14/300  Batch     1/15  Loss: 1.5396  LR: 1.31e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 14/300  Batch     2/15  Loss: 1.4586  LR: 1.31e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 14/300  Batch     3/15  Loss: 1.4475  LR: 1.32e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 14/300  Batch     4/15  Loss: 1.4232  LR: 1.33e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 14/300  Batch     5/15  Loss: 1.4189  LR: 1.33e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 14/300  Batch     6/15  Loss: 1.4180  LR: 1.34e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 14/300  Batch     7/15  Loss: 1.4066  LR: 1.35e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 14/300  Batch     8/15  Loss: 1.3887  LR: 1.35e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 14/300  Batch     9/15  Loss: 1.3999  LR: 1.36e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 14/300  Batch    10/15  Loss: 1.3965  LR: 1.37e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 14/300  Batch    11/15  Loss: 1.3828  LR: 1.37e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 14/300  Batch    12/15  Loss: 1.3881  LR: 1.38e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 14/300  Batch    13/15  Loss: 1.3952  LR: 1.39e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 14/300  Batch    14/15  Loss: 1.3845  LR: 1.39e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 14/300  Batch    15/15  Loss: 1.3758  LR: 1.40e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 14/300 DONE — Train: 1.3758, Val: 1.2723, Acc: 86.4% *best*
+  Epoch time: 20.4s | Stage ETA: 97.3min | LR: 1.40e-04
+  [memorize-v3] Epoch 15/300  Batch     1/15  Loss: 1.2531  LR: 1.41e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 15/300  Batch     2/15  Loss: 1.2406  LR: 1.41e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 15/300  Batch     3/15  Loss: 1.2225  LR: 1.42e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 15/300  Batch     4/15  Loss: 1.2450  LR: 1.43e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 15/300  Batch     5/15  Loss: 1.3049  LR: 1.43e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 15/300  Batch     6/15  Loss: 1.3344  LR: 1.44e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 15/300  Batch     7/15  Loss: 1.3726  LR: 1.45e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 15/300  Batch     8/15  Loss: 1.3841  LR: 1.45e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 15/300  Batch     9/15  Loss: 1.3601  LR: 1.46e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 15/300  Batch    10/15  Loss: 1.3511  LR: 1.47e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 15/300  Batch    11/15  Loss: 1.3466  LR: 1.47e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 15/300  Batch    12/15  Loss: 1.3438  LR: 1.48e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 15/300  Batch    13/15  Loss: 1.3448  LR: 1.49e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 15/300  Batch    14/15  Loss: 1.3461  LR: 1.49e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 15/300  Batch    15/15  Loss: 1.3442  LR: 1.50e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 15/300 DONE — Train: 1.3442, Val: 1.2250, Acc: 88.9% *best*
+  Epoch time: 20.4s | Stage ETA: 96.9min | LR: 1.50e-04
+  [memorize-v3] Epoch 16/300  Batch     1/15  Loss: 1.4945  LR: 1.51e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 16/300  Batch     2/15  Loss: 1.4134  LR: 1.51e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 16/300  Batch     3/15  Loss: 1.3773  LR: 1.52e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 16/300  Batch     4/15  Loss: 1.3651  LR: 1.53e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 16/300  Batch     5/15  Loss: 1.3593  LR: 1.53e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 16/300  Batch     6/15  Loss: 1.3644  LR: 1.54e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 16/300  Batch     7/15  Loss: 1.3442  LR: 1.55e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 16/300  Batch     8/15  Loss: 1.3480  LR: 1.55e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 16/300  Batch     9/15  Loss: 1.3502  LR: 1.56e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 16/300  Batch    10/15  Loss: 1.3640  LR: 1.57e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 16/300  Batch    11/15  Loss: 1.3526  LR: 1.57e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 16/300  Batch    12/15  Loss: 1.3423  LR: 1.58e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 16/300  Batch    13/15  Loss: 1.3392  LR: 1.59e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 16/300  Batch    14/15  Loss: 1.3352  LR: 1.59e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 16/300  Batch    15/15  Loss: 1.3327  LR: 1.60e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 16/300 DONE — Train: 1.3327, Val: 1.2444, Acc: 87.8%
+  Epoch time: 20.4s | Stage ETA: 96.6min | LR: 1.60e-04
+  [memorize-v3] Epoch 17/300  Batch     1/15  Loss: 1.2488  LR: 1.61e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 17/300  Batch     2/15  Loss: 1.3326  LR: 1.61e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 17/300  Batch     3/15  Loss: 1.3198  LR: 1.62e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 17/300  Batch     4/15  Loss: 1.2968  LR: 1.63e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 17/300  Batch     5/15  Loss: 1.2827  LR: 1.63e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 17/300  Batch     6/15  Loss: 1.2676  LR: 1.64e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 17/300  Batch     7/15  Loss: 1.2874  LR: 1.65e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 17/300  Batch     8/15  Loss: 1.2926  LR: 1.65e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 17/300  Batch     9/15  Loss: 1.3098  LR: 1.66e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 17/300  Batch    10/15  Loss: 1.3211  LR: 1.67e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 17/300  Batch    11/15  Loss: 1.3417  LR: 1.67e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 17/300  Batch    12/15  Loss: 1.3439  LR: 1.68e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 17/300  Batch    13/15  Loss: 1.3390  LR: 1.69e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 17/300  Batch    14/15  Loss: 1.3276  LR: 1.69e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 17/300  Batch    15/15  Loss: 1.3157  LR: 1.70e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 17/300 DONE — Train: 1.3157, Val: 1.2860, Acc: 87.9%
+  Epoch time: 20.4s | Stage ETA: 96.2min | LR: 1.70e-04
+  [memorize-v3] Epoch 18/300  Batch     1/15  Loss: 1.2531  LR: 1.71e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 18/300  Batch     2/15  Loss: 1.2784  LR: 1.71e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 18/300  Batch     3/15  Loss: 1.3253  LR: 1.72e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 18/300  Batch     4/15  Loss: 1.3085  LR: 1.73e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 18/300  Batch     5/15  Loss: 1.3069  LR: 1.73e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 18/300  Batch     6/15  Loss: 1.3051  LR: 1.74e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 18/300  Batch     7/15  Loss: 1.3004  LR: 1.75e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 18/300  Batch     8/15  Loss: 1.3069  LR: 1.75e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 18/300  Batch     9/15  Loss: 1.3164  LR: 1.76e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 18/300  Batch    10/15  Loss: 1.3293  LR: 1.77e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 18/300  Batch    11/15  Loss: 1.3369  LR: 1.77e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 18/300  Batch    12/15  Loss: 1.3416  LR: 1.78e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 18/300  Batch    13/15  Loss: 1.3519  LR: 1.79e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 18/300  Batch    14/15  Loss: 1.3477  LR: 1.79e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 18/300  Batch    15/15  Loss: 1.3463  LR: 1.80e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 18/300 DONE — Train: 1.3463, Val: 1.2272, Acc: 87.9%
+  Epoch time: 20.4s | Stage ETA: 95.9min | LR: 1.80e-04
+  [memorize-v3] Epoch 19/300  Batch     1/15  Loss: 1.4302  LR: 1.81e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 19/300  Batch     2/15  Loss: 1.3703  LR: 1.81e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 19/300  Batch     3/15  Loss: 1.3771  LR: 1.82e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 19/300  Batch     4/15  Loss: 1.3645  LR: 1.83e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 19/300  Batch     5/15  Loss: 1.3364  LR: 1.83e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 19/300  Batch     6/15  Loss: 1.3029  LR: 1.84e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 19/300  Batch     7/15  Loss: 1.2817  LR: 1.85e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 19/300  Batch     8/15  Loss: 1.2859  LR: 1.85e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 19/300  Batch     9/15  Loss: 1.2986  LR: 1.86e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 19/300  Batch    10/15  Loss: 1.3097  LR: 1.87e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 19/300  Batch    11/15  Loss: 1.3223  LR: 1.87e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 19/300  Batch    12/15  Loss: 1.3243  LR: 1.88e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 19/300  Batch    13/15  Loss: 1.3276  LR: 1.89e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 19/300  Batch    14/15  Loss: 1.3167  LR: 1.89e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 19/300  Batch    15/15  Loss: 1.3022  LR: 1.90e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 19/300 DONE — Train: 1.3022, Val: 1.2709, Acc: 87.8%
+  Epoch time: 20.4s | Stage ETA: 95.5min | LR: 1.90e-04
+  [memorize-v3] Epoch 20/300  Batch     1/15  Loss: 1.3810  LR: 1.91e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 20/300  Batch     2/15  Loss: 1.2587  LR: 1.91e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 20/300  Batch     3/15  Loss: 1.2767  LR: 1.92e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 20/300  Batch     4/15  Loss: 1.3157  LR: 1.93e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 20/300  Batch     5/15  Loss: 1.3184  LR: 1.93e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 20/300  Batch     6/15  Loss: 1.2941  LR: 1.94e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 20/300  Batch     7/15  Loss: 1.2791  LR: 1.95e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 20/300  Batch     8/15  Loss: 1.2539  LR: 1.95e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 20/300  Batch     9/15  Loss: 1.2626  LR: 1.96e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 20/300  Batch    10/15  Loss: 1.2669  LR: 1.97e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 20/300  Batch    11/15  Loss: 1.2680  LR: 1.97e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 20/300  Batch    12/15  Loss: 1.2683  LR: 1.98e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 20/300  Batch    13/15  Loss: 1.2654  LR: 1.99e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 20/300  Batch    14/15  Loss: 1.2673  LR: 1.99e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 20/300  Batch    15/15  Loss: 1.2609  LR: 2.00e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 20/300 DONE — Train: 1.2609, Val: 1.3290, Acc: 87.5%
+  Epoch time: 20.4s | Stage ETA: 95.2min | LR: 2.00e-04
+  [memorize-v3] Epoch 21/300  Batch     1/15  Loss: 1.3747  LR: 2.01e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 21/300  Batch     2/15  Loss: 1.3418  LR: 2.01e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 21/300  Batch     3/15  Loss: 1.2951  LR: 2.02e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 21/300  Batch     4/15  Loss: 1.3448  LR: 2.03e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 21/300  Batch     5/15  Loss: 1.3488  LR: 2.03e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 21/300  Batch     6/15  Loss: 1.3488  LR: 2.04e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 21/300  Batch     7/15  Loss: 1.3587  LR: 2.05e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 21/300  Batch     8/15  Loss: 1.3388  LR: 2.05e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 21/300  Batch     9/15  Loss: 1.3166  LR: 2.06e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 21/300  Batch    10/15  Loss: 1.2942  LR: 2.07e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 21/300  Batch    11/15  Loss: 1.3055  LR: 2.07e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 21/300  Batch    12/15  Loss: 1.3194  LR: 2.08e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 21/300  Batch    13/15  Loss: 1.3179  LR: 2.09e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 21/300  Batch    14/15  Loss: 1.2984  LR: 2.09e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 21/300  Batch    15/15  Loss: 1.2844  LR: 2.10e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 21/300 DONE — Train: 1.2844, Val: 1.1901, Acc: 87.5% *best*
+  Epoch time: 20.4s | Stage ETA: 94.8min | LR: 2.10e-04
+  [memorize-v3] Epoch 22/300  Batch     1/15  Loss: 1.1919  LR: 2.11e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 22/300  Batch     2/15  Loss: 1.2850  LR: 2.11e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 22/300  Batch     3/15  Loss: 1.3377  LR: 2.12e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 22/300  Batch     4/15  Loss: 1.3294  LR: 2.13e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 22/300  Batch     5/15  Loss: 1.3003  LR: 2.13e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 22/300  Batch     6/15  Loss: 1.2986  LR: 2.14e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 22/300  Batch     7/15  Loss: 1.2771  LR: 2.15e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 22/300  Batch     8/15  Loss: 1.3133  LR: 2.15e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 22/300  Batch     9/15  Loss: 1.2991  LR: 2.16e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 22/300  Batch    10/15  Loss: 1.2849  LR: 2.17e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 22/300  Batch    11/15  Loss: 1.2707  LR: 2.17e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 22/300  Batch    12/15  Loss: 1.2643  LR: 2.18e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 22/300  Batch    13/15  Loss: 1.2777  LR: 2.19e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 22/300  Batch    14/15  Loss: 1.2787  LR: 2.19e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 22/300  Batch    15/15  Loss: 1.2784  LR: 2.20e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 22/300 DONE — Train: 1.2784, Val: 1.1897, Acc: 88.5% *best*
+  Epoch time: 20.3s | Stage ETA: 94.5min | LR: 2.20e-04
+  [memorize-v3] Epoch 23/300  Batch     1/15  Loss: 1.2295  LR: 2.21e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 23/300  Batch     2/15  Loss: 1.3607  LR: 2.21e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 23/300  Batch     3/15  Loss: 1.3672  LR: 2.22e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 23/300  Batch     4/15  Loss: 1.2986  LR: 2.23e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 23/300  Batch     5/15  Loss: 1.2916  LR: 2.23e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 23/300  Batch     6/15  Loss: 1.3021  LR: 2.24e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 23/300  Batch     7/15  Loss: 1.2904  LR: 2.25e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 23/300  Batch     8/15  Loss: 1.2975  LR: 2.25e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 23/300  Batch     9/15  Loss: 1.3090  LR: 2.26e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 23/300  Batch    10/15  Loss: 1.3146  LR: 2.27e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 23/300  Batch    11/15  Loss: 1.3013  LR: 2.27e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 23/300  Batch    12/15  Loss: 1.2985  LR: 2.28e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 23/300  Batch    13/15  Loss: 1.2992  LR: 2.29e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 23/300  Batch    14/15  Loss: 1.3044  LR: 2.29e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 23/300  Batch    15/15  Loss: 1.2864  LR: 2.30e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 23/300 DONE — Train: 1.2864, Val: 1.2564, Acc: 85.4%
+  Epoch time: 20.3s | Stage ETA: 94.1min | LR: 2.30e-04
+  [memorize-v3] Epoch 24/300  Batch     1/15  Loss: 1.1746  LR: 2.31e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 24/300  Batch     2/15  Loss: 1.2751  LR: 2.31e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 24/300  Batch     3/15  Loss: 1.2523  LR: 2.32e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 24/300  Batch     4/15  Loss: 1.2542  LR: 2.33e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 24/300  Batch     5/15  Loss: 1.2694  LR: 2.33e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 24/300  Batch     6/15  Loss: 1.2991  LR: 2.34e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 24/300  Batch     7/15  Loss: 1.2908  LR: 2.35e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 24/300  Batch     8/15  Loss: 1.2840  LR: 2.35e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 24/300  Batch     9/15  Loss: 1.2731  LR: 2.36e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 24/300  Batch    10/15  Loss: 1.2929  LR: 2.37e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 24/300  Batch    11/15  Loss: 1.2951  LR: 2.37e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 24/300  Batch    12/15  Loss: 1.3002  LR: 2.38e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 24/300  Batch    13/15  Loss: 1.2943  LR: 2.39e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 24/300  Batch    14/15  Loss: 1.2970  LR: 2.39e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 24/300  Batch    15/15  Loss: 1.2877  LR: 2.40e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 24/300 DONE — Train: 1.2877, Val: 1.1098, Acc: 88.1% *best*
+  Epoch time: 20.4s | Stage ETA: 93.8min | LR: 2.40e-04
+  [memorize-v3] Epoch 25/300  Batch     1/15  Loss: 1.2799  LR: 2.41e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 25/300  Batch     2/15  Loss: 1.2484  LR: 2.41e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 25/300  Batch     3/15  Loss: 1.2409  LR: 2.42e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 25/300  Batch     4/15  Loss: 1.2444  LR: 2.43e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 25/300  Batch     5/15  Loss: 1.2445  LR: 2.43e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 25/300  Batch     6/15  Loss: 1.2664  LR: 2.44e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 25/300  Batch     7/15  Loss: 1.2589  LR: 2.45e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 25/300  Batch     8/15  Loss: 1.2807  LR: 2.45e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 25/300  Batch     9/15  Loss: 1.3059  LR: 2.46e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 25/300  Batch    10/15  Loss: 1.2976  LR: 2.47e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 25/300  Batch    11/15  Loss: 1.2870  LR: 2.47e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 25/300  Batch    12/15  Loss: 1.2760  LR: 2.48e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 25/300  Batch    13/15  Loss: 1.2869  LR: 2.49e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 25/300  Batch    14/15  Loss: 1.2663  LR: 2.49e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 25/300  Batch    15/15  Loss: 1.2563  LR: 2.50e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 25/300 DONE — Train: 1.2563, Val: 1.3124, Acc: 83.5%
+  Epoch time: 20.3s | Stage ETA: 93.4min | LR: 2.50e-04
+  [memorize-v3] Epoch 26/300  Batch     1/15  Loss: 1.3278  LR: 2.51e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 26/300  Batch     2/15  Loss: 1.3198  LR: 2.51e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 26/300  Batch     3/15  Loss: 1.2640  LR: 2.52e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 26/300  Batch     4/15  Loss: 1.2300  LR: 2.53e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 26/300  Batch     5/15  Loss: 1.2314  LR: 2.53e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 26/300  Batch     6/15  Loss: 1.2000  LR: 2.54e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 26/300  Batch     7/15  Loss: 1.2071  LR: 2.55e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 26/300  Batch     8/15  Loss: 1.2241  LR: 2.55e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 26/300  Batch     9/15  Loss: 1.2255  LR: 2.56e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 26/300  Batch    10/15  Loss: 1.2099  LR: 2.57e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 26/300  Batch    11/15  Loss: 1.2055  LR: 2.57e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 26/300  Batch    12/15  Loss: 1.2080  LR: 2.58e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 26/300  Batch    13/15  Loss: 1.2065  LR: 2.59e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 26/300  Batch    14/15  Loss: 1.2075  LR: 2.59e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 26/300  Batch    15/15  Loss: 1.2098  LR: 2.60e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 26/300 DONE — Train: 1.2098, Val: 1.1438, Acc: 88.0%
+  Epoch time: 20.3s | Stage ETA: 93.1min | LR: 2.60e-04
+  [memorize-v3] Epoch 27/300  Batch     1/15  Loss: 1.3627  LR: 2.61e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 27/300  Batch     2/15  Loss: 1.2780  LR: 2.61e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 27/300  Batch     3/15  Loss: 1.2757  LR: 2.62e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 27/300  Batch     4/15  Loss: 1.2396  LR: 2.63e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 27/300  Batch     5/15  Loss: 1.2418  LR: 2.63e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 27/300  Batch     6/15  Loss: 1.2472  LR: 2.64e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 27/300  Batch     7/15  Loss: 1.2746  LR: 2.65e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 27/300  Batch     8/15  Loss: 1.2498  LR: 2.65e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 27/300  Batch     9/15  Loss: 1.2392  LR: 2.66e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 27/300  Batch    10/15  Loss: 1.2199  LR: 2.67e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 27/300  Batch    11/15  Loss: 1.2224  LR: 2.67e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 27/300  Batch    12/15  Loss: 1.2142  LR: 2.68e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 27/300  Batch    13/15  Loss: 1.2108  LR: 2.69e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 27/300  Batch    14/15  Loss: 1.2154  LR: 2.69e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 27/300  Batch    15/15  Loss: 1.2258  LR: 2.70e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 27/300 DONE — Train: 1.2258, Val: 1.2275, Acc: 88.0%
+  Epoch time: 20.4s | Stage ETA: 92.8min | LR: 2.70e-04
+  [memorize-v3] Epoch 28/300  Batch     1/15  Loss: 1.3198  LR: 2.71e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 28/300  Batch     2/15  Loss: 1.1970  LR: 2.71e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 28/300  Batch     3/15  Loss: 1.1956  LR: 2.72e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 28/300  Batch     4/15  Loss: 1.2100  LR: 2.73e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 28/300  Batch     5/15  Loss: 1.2596  LR: 2.73e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 28/300  Batch     6/15  Loss: 1.2194  LR: 2.74e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 28/300  Batch     7/15  Loss: 1.2010  LR: 2.75e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 28/300  Batch     8/15  Loss: 1.1968  LR: 2.75e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 28/300  Batch     9/15  Loss: 1.2156  LR: 2.76e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 28/300  Batch    10/15  Loss: 1.2214  LR: 2.77e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 28/300  Batch    11/15  Loss: 1.2360  LR: 2.77e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 28/300  Batch    12/15  Loss: 1.2410  LR: 2.78e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 28/300  Batch    13/15  Loss: 1.2273  LR: 2.79e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 28/300  Batch    14/15  Loss: 1.2395  LR: 2.79e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 28/300  Batch    15/15  Loss: 1.2550  LR: 2.80e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 28/300 DONE — Train: 1.2550, Val: 1.2715, Acc: 88.1%
+  Epoch time: 20.3s | Stage ETA: 92.4min | LR: 2.80e-04
+  [memorize-v3] Epoch 29/300  Batch     1/15  Loss: 1.1236  LR: 2.81e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 29/300  Batch     2/15  Loss: 1.0671  LR: 2.81e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 29/300  Batch     3/15  Loss: 1.1300  LR: 2.82e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 29/300  Batch     4/15  Loss: 1.1443  LR: 2.83e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 29/300  Batch     5/15  Loss: 1.1298  LR: 2.83e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 29/300  Batch     6/15  Loss: 1.1461  LR: 2.84e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 29/300  Batch     7/15  Loss: 1.2050  LR: 2.85e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 29/300  Batch     8/15  Loss: 1.1983  LR: 2.85e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 29/300  Batch     9/15  Loss: 1.2059  LR: 2.86e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 29/300  Batch    10/15  Loss: 1.2278  LR: 2.87e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 29/300  Batch    11/15  Loss: 1.2283  LR: 2.87e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 29/300  Batch    12/15  Loss: 1.2167  LR: 2.88e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 29/300  Batch    13/15  Loss: 1.2225  LR: 2.89e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 29/300  Batch    14/15  Loss: 1.2143  LR: 2.89e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 29/300  Batch    15/15  Loss: 1.2314  LR: 2.90e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 29/300 DONE — Train: 1.2314, Val: 1.1630, Acc: 86.7%
+  Epoch time: 20.3s | Stage ETA: 92.1min | LR: 2.90e-04
+  [memorize-v3] Epoch 30/300  Batch     1/15  Loss: 1.0656  LR: 2.91e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 30/300  Batch     2/15  Loss: 1.2264  LR: 2.91e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 30/300  Batch     3/15  Loss: 1.2453  LR: 2.92e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 30/300  Batch     4/15  Loss: 1.2219  LR: 2.93e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 30/300  Batch     5/15  Loss: 1.2546  LR: 2.93e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 30/300  Batch     6/15  Loss: 1.2538  LR: 2.94e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 30/300  Batch     7/15  Loss: 1.2620  LR: 2.95e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 30/300  Batch     8/15  Loss: 1.2475  LR: 2.95e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 30/300  Batch     9/15  Loss: 1.2466  LR: 2.96e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 30/300  Batch    10/15  Loss: 1.2561  LR: 2.97e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 30/300  Batch    11/15  Loss: 1.2449  LR: 2.97e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 30/300  Batch    12/15  Loss: 1.2536  LR: 2.98e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 30/300  Batch    13/15  Loss: 1.2473  LR: 2.99e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 30/300  Batch    14/15  Loss: 1.2518  LR: 2.99e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 30/300  Batch    15/15  Loss: 1.2487  LR: 3.00e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 30/300 DONE — Train: 1.2487, Val: 1.2644, Acc: 88.2%
+  Epoch time: 20.4s | Stage ETA: 91.7min | LR: 3.00e-04
+  [memorize-v3] Epoch 31/300  Batch     1/15  Loss: 1.2796  LR: 3.00e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 31/300  Batch     2/15  Loss: 1.2164  LR: 3.00e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 31/300  Batch     3/15  Loss: 1.2079  LR: 3.00e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 31/300  Batch     4/15  Loss: 1.2521  LR: 3.00e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 31/300  Batch     5/15  Loss: 1.2312  LR: 3.00e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 31/300  Batch     6/15  Loss: 1.2013  LR: 3.00e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 31/300  Batch     7/15  Loss: 1.1999  LR: 3.00e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 31/300  Batch     8/15  Loss: 1.2140  LR: 3.00e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 31/300  Batch     9/15  Loss: 1.2409  LR: 3.00e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 31/300  Batch    10/15  Loss: 1.2541  LR: 3.00e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 31/300  Batch    11/15  Loss: 1.2468  LR: 3.00e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 31/300  Batch    12/15  Loss: 1.2419  LR: 3.00e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 31/300  Batch    13/15  Loss: 1.2359  LR: 3.00e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 31/300  Batch    14/15  Loss: 1.2409  LR: 3.00e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 31/300  Batch    15/15  Loss: 1.2421  LR: 3.00e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 31/300 DONE — Train: 1.2421, Val: 1.1670, Acc: 88.8%
+  Epoch time: 20.4s | Stage ETA: 91.4min | LR: 3.00e-04
+  [memorize-v3] Epoch 32/300  Batch     1/15  Loss: 1.2594  LR: 3.00e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 32/300  Batch     2/15  Loss: 1.2392  LR: 3.00e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 32/300  Batch     3/15  Loss: 1.2610  LR: 3.00e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 32/300  Batch     4/15  Loss: 1.2532  LR: 3.00e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 32/300  Batch     5/15  Loss: 1.2755  LR: 3.00e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 32/300  Batch     6/15  Loss: 1.3052  LR: 3.00e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 32/300  Batch     7/15  Loss: 1.3095  LR: 3.00e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 32/300  Batch     8/15  Loss: 1.2688  LR: 3.00e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 32/300  Batch     9/15  Loss: 1.2486  LR: 3.00e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 32/300  Batch    10/15  Loss: 1.2477  LR: 3.00e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 32/300  Batch    11/15  Loss: 1.2436  LR: 3.00e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 32/300  Batch    12/15  Loss: 1.2406  LR: 3.00e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 32/300  Batch    13/15  Loss: 1.2309  LR: 3.00e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 32/300  Batch    14/15  Loss: 1.2330  LR: 3.00e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 32/300  Batch    15/15  Loss: 1.2310  LR: 3.00e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 32/300 DONE — Train: 1.2310, Val: 1.1112, Acc: 89.6%
+  Epoch time: 20.3s | Stage ETA: 91.0min | LR: 3.00e-04
+  [memorize-v3] Epoch 33/300  Batch     1/15  Loss: 1.2096  LR: 3.00e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 33/300  Batch     2/15  Loss: 1.2197  LR: 3.00e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 33/300  Batch     3/15  Loss: 1.2642  LR: 3.00e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 33/300  Batch     4/15  Loss: 1.2451  LR: 3.00e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 33/300  Batch     5/15  Loss: 1.2518  LR: 3.00e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 33/300  Batch     6/15  Loss: 1.2374  LR: 3.00e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 33/300  Batch     7/15  Loss: 1.2362  LR: 3.00e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 33/300  Batch     8/15  Loss: 1.2549  LR: 3.00e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 33/300  Batch     9/15  Loss: 1.2384  LR: 3.00e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 33/300  Batch    10/15  Loss: 1.2274  LR: 3.00e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 33/300  Batch    11/15  Loss: 1.2332  LR: 3.00e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 33/300  Batch    12/15  Loss: 1.2349  LR: 3.00e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 33/300  Batch    13/15  Loss: 1.2182  LR: 3.00e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 33/300  Batch    14/15  Loss: 1.2139  LR: 3.00e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 33/300  Batch    15/15  Loss: 1.2199  LR: 3.00e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 33/300 DONE — Train: 1.2199, Val: 1.1790, Acc: 89.1%
+  Epoch time: 20.4s | Stage ETA: 90.7min | LR: 3.00e-04
+  [memorize-v3] Epoch 34/300  Batch     1/15  Loss: 1.2626  LR: 3.00e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 34/300  Batch     2/15  Loss: 1.2003  LR: 3.00e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 34/300  Batch     3/15  Loss: 1.1652  LR: 3.00e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 34/300  Batch     4/15  Loss: 1.1889  LR: 3.00e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 34/300  Batch     5/15  Loss: 1.2009  LR: 3.00e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 34/300  Batch     6/15  Loss: 1.2171  LR: 3.00e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 34/300  Batch     7/15  Loss: 1.2148  LR: 3.00e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 34/300  Batch     8/15  Loss: 1.2219  LR: 3.00e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 34/300  Batch     9/15  Loss: 1.2224  LR: 3.00e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 34/300  Batch    10/15  Loss: 1.2152  LR: 3.00e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 34/300  Batch    11/15  Loss: 1.2058  LR: 3.00e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 34/300  Batch    12/15  Loss: 1.1871  LR: 3.00e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 34/300  Batch    13/15  Loss: 1.1878  LR: 3.00e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 34/300  Batch    14/15  Loss: 1.1997  LR: 3.00e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 34/300  Batch    15/15  Loss: 1.1995  LR: 3.00e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 34/300 DONE — Train: 1.1995, Val: 1.2117, Acc: 87.7%
+  Epoch time: 20.4s | Stage ETA: 90.3min | LR: 3.00e-04
+  [memorize-v3] Epoch 35/300  Batch     1/15  Loss: 1.2686  LR: 3.00e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 35/300  Batch     2/15  Loss: 1.3837  LR: 3.00e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 35/300  Batch     3/15  Loss: 1.3328  LR: 3.00e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 35/300  Batch     4/15  Loss: 1.3326  LR: 3.00e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 35/300  Batch     5/15  Loss: 1.2772  LR: 3.00e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 35/300  Batch     6/15  Loss: 1.2644  LR: 3.00e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 35/300  Batch     7/15  Loss: 1.2295  LR: 3.00e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 35/300  Batch     8/15  Loss: 1.2063  LR: 3.00e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 35/300  Batch     9/15  Loss: 1.2295  LR: 3.00e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 35/300  Batch    10/15  Loss: 1.2228  LR: 3.00e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 35/300  Batch    11/15  Loss: 1.2176  LR: 3.00e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 35/300  Batch    12/15  Loss: 1.2064  LR: 3.00e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 35/300  Batch    13/15  Loss: 1.2100  LR: 3.00e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 35/300  Batch    14/15  Loss: 1.2172  LR: 3.00e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 35/300  Batch    15/15  Loss: 1.2103  LR: 3.00e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 35/300 DONE — Train: 1.2103, Val: 1.2554, Acc: 88.1%
+  Epoch time: 20.4s | Stage ETA: 90.0min | LR: 3.00e-04
+  [memorize-v3] Epoch 36/300  Batch     1/15  Loss: 0.9523  LR: 3.00e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 36/300  Batch     2/15  Loss: 1.0616  LR: 3.00e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 36/300  Batch     3/15  Loss: 1.0783  LR: 3.00e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 36/300  Batch     4/15  Loss: 1.1465  LR: 3.00e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 36/300  Batch     5/15  Loss: 1.1721  LR: 3.00e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 36/300  Batch     6/15  Loss: 1.1762  LR: 3.00e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 36/300  Batch     7/15  Loss: 1.1689  LR: 3.00e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 36/300  Batch     8/15  Loss: 1.2154  LR: 3.00e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 36/300  Batch     9/15  Loss: 1.2057  LR: 3.00e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 36/300  Batch    10/15  Loss: 1.2120  LR: 3.00e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 36/300  Batch    11/15  Loss: 1.2106  LR: 3.00e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 36/300  Batch    12/15  Loss: 1.1971  LR: 3.00e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 36/300  Batch    13/15  Loss: 1.1980  LR: 3.00e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 36/300  Batch    14/15  Loss: 1.2020  LR: 3.00e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 36/300  Batch    15/15  Loss: 1.1936  LR: 3.00e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 36/300 DONE — Train: 1.1936, Val: 1.2735, Acc: 88.0%
+  Epoch time: 20.4s | Stage ETA: 89.7min | LR: 3.00e-04
+  [memorize-v3] Epoch 37/300  Batch     1/15  Loss: 1.3753  LR: 3.00e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 37/300  Batch     2/15  Loss: 1.3155  LR: 3.00e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 37/300  Batch     3/15  Loss: 1.2805  LR: 3.00e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 37/300  Batch     4/15  Loss: 1.2698  LR: 3.00e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 37/300  Batch     5/15  Loss: 1.2375  LR: 3.00e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 37/300  Batch     6/15  Loss: 1.2213  LR: 3.00e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 37/300  Batch     7/15  Loss: 1.1968  LR: 3.00e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 37/300  Batch     8/15  Loss: 1.2079  LR: 3.00e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 37/300  Batch     9/15  Loss: 1.2163  LR: 3.00e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 37/300  Batch    10/15  Loss: 1.2237  LR: 3.00e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 37/300  Batch    11/15  Loss: 1.2228  LR: 3.00e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 37/300  Batch    12/15  Loss: 1.2234  LR: 3.00e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 37/300  Batch    13/15  Loss: 1.2153  LR: 3.00e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 37/300  Batch    14/15  Loss: 1.2100  LR: 3.00e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 37/300  Batch    15/15  Loss: 1.2044  LR: 3.00e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 37/300 DONE — Train: 1.2044, Val: 1.1948, Acc: 88.0%
+  Epoch time: 20.4s | Stage ETA: 89.3min | LR: 3.00e-04
+  [memorize-v3] Epoch 38/300  Batch     1/15  Loss: 1.1172  LR: 2.99e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 38/300  Batch     2/15  Loss: 1.0969  LR: 2.99e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 38/300  Batch     3/15  Loss: 1.0993  LR: 2.99e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 38/300  Batch     4/15  Loss: 1.1019  LR: 2.99e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 38/300  Batch     5/15  Loss: 1.0883  LR: 2.99e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 38/300  Batch     6/15  Loss: 1.0991  LR: 2.99e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 38/300  Batch     7/15  Loss: 1.1026  LR: 2.99e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 38/300  Batch     8/15  Loss: 1.1381  LR: 2.99e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 38/300  Batch     9/15  Loss: 1.1524  LR: 2.99e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 38/300  Batch    10/15  Loss: 1.1517  LR: 2.99e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 38/300  Batch    11/15  Loss: 1.1701  LR: 2.99e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 38/300  Batch    12/15  Loss: 1.1859  LR: 2.99e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 38/300  Batch    13/15  Loss: 1.1734  LR: 2.99e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 38/300  Batch    14/15  Loss: 1.1730  LR: 2.99e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 38/300  Batch    15/15  Loss: 1.1861  LR: 2.99e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 38/300 DONE — Train: 1.1861, Val: 1.1070, Acc: 87.0% *best*
+  Epoch time: 20.4s | Stage ETA: 89.0min | LR: 2.99e-04
+  [memorize-v3] Epoch 39/300  Batch     1/15  Loss: 1.1991  LR: 2.99e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 39/300  Batch     2/15  Loss: 1.1613  LR: 2.99e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 39/300  Batch     3/15  Loss: 1.1409  LR: 2.99e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 39/300  Batch     4/15  Loss: 1.2251  LR: 2.99e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 39/300  Batch     5/15  Loss: 1.2082  LR: 2.99e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 39/300  Batch     6/15  Loss: 1.2217  LR: 2.99e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 39/300  Batch     7/15  Loss: 1.1977  LR: 2.99e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 39/300  Batch     8/15  Loss: 1.1848  LR: 2.99e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 39/300  Batch     9/15  Loss: 1.1782  LR: 2.99e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 39/300  Batch    10/15  Loss: 1.1722  LR: 2.99e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 39/300  Batch    11/15  Loss: 1.1643  LR: 2.99e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 39/300  Batch    12/15  Loss: 1.1624  LR: 2.99e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 39/300  Batch    13/15  Loss: 1.1815  LR: 2.99e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 39/300  Batch    14/15  Loss: 1.1752  LR: 2.99e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 39/300  Batch    15/15  Loss: 1.1703  LR: 2.99e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 39/300 DONE — Train: 1.1703, Val: 1.2052, Acc: 87.8%
+  Epoch time: 20.4s | Stage ETA: 88.6min | LR: 2.99e-04
+  [memorize-v3] Epoch 40/300  Batch     1/15  Loss: 1.2184  LR: 2.99e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 40/300  Batch     2/15  Loss: 1.2365  LR: 2.99e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 40/300  Batch     3/15  Loss: 1.1789  LR: 2.99e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 40/300  Batch     4/15  Loss: 1.1824  LR: 2.99e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 40/300  Batch     5/15  Loss: 1.1913  LR: 2.99e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 40/300  Batch     6/15  Loss: 1.1950  LR: 2.99e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 40/300  Batch     7/15  Loss: 1.1747  LR: 2.99e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 40/300  Batch     8/15  Loss: 1.1839  LR: 2.99e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 40/300  Batch     9/15  Loss: 1.1718  LR: 2.99e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 40/300  Batch    10/15  Loss: 1.1693  LR: 2.99e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 40/300  Batch    11/15  Loss: 1.1775  LR: 2.99e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 40/300  Batch    12/15  Loss: 1.1608  LR: 2.99e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 40/300  Batch    13/15  Loss: 1.1678  LR: 2.99e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 40/300  Batch    14/15  Loss: 1.1692  LR: 2.99e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 40/300  Batch    15/15  Loss: 1.1748  LR: 2.99e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 40/300 DONE — Train: 1.1748, Val: 1.1403, Acc: 88.2%
+  Epoch time: 20.3s | Stage ETA: 88.3min | LR: 2.99e-04
+  [memorize-v3] Epoch 41/300  Batch     1/15  Loss: 1.0498  LR: 2.99e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 41/300  Batch     2/15  Loss: 1.1106  LR: 2.99e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 41/300  Batch     3/15  Loss: 1.1038  LR: 2.99e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 41/300  Batch     4/15  Loss: 1.1546  LR: 2.99e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 41/300  Batch     5/15  Loss: 1.1662  LR: 2.99e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 41/300  Batch     6/15  Loss: 1.1419  LR: 2.99e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 41/300  Batch     7/15  Loss: 1.1758  LR: 2.99e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 41/300  Batch     8/15  Loss: 1.1658  LR: 2.99e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 41/300  Batch     9/15  Loss: 1.1600  LR: 2.99e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 41/300  Batch    10/15  Loss: 1.1811  LR: 2.99e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 41/300  Batch    11/15  Loss: 1.1741  LR: 2.99e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 41/300  Batch    12/15  Loss: 1.1741  LR: 2.99e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 41/300  Batch    13/15  Loss: 1.1681  LR: 2.99e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 41/300  Batch    14/15  Loss: 1.1793  LR: 2.99e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 41/300  Batch    15/15  Loss: 1.1643  LR: 2.99e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 41/300 DONE — Train: 1.1643, Val: 1.1879, Acc: 87.1%
+  Epoch time: 20.4s | Stage ETA: 88.0min | LR: 2.99e-04
+  [memorize-v3] Epoch 42/300  Batch     1/15  Loss: 1.1688  LR: 2.99e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 42/300  Batch     2/15  Loss: 1.2649  LR: 2.99e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 42/300  Batch     3/15  Loss: 1.2240  LR: 2.99e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 42/300  Batch     4/15  Loss: 1.1924  LR: 2.99e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 42/300  Batch     5/15  Loss: 1.2217  LR: 2.99e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 42/300  Batch     6/15  Loss: 1.2256  LR: 2.99e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 42/300  Batch     7/15  Loss: 1.2169  LR: 2.99e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 42/300  Batch     8/15  Loss: 1.2069  LR: 2.99e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 42/300  Batch     9/15  Loss: 1.1834  LR: 2.99e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 42/300  Batch    10/15  Loss: 1.1820  LR: 2.99e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 42/300  Batch    11/15  Loss: 1.1877  LR: 2.99e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 42/300  Batch    12/15  Loss: 1.1776  LR: 2.99e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 42/300  Batch    13/15  Loss: 1.1796  LR: 2.99e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 42/300  Batch    14/15  Loss: 1.1768  LR: 2.99e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 42/300  Batch    15/15  Loss: 1.1796  LR: 2.99e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 42/300 DONE — Train: 1.1796, Val: 1.1335, Acc: 89.1%
+  Epoch time: 20.4s | Stage ETA: 87.6min | LR: 2.99e-04
+  [memorize-v3] Epoch 43/300  Batch     1/15  Loss: 1.3663  LR: 2.99e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 43/300  Batch     2/15  Loss: 1.2092  LR: 2.99e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 43/300  Batch     3/15  Loss: 1.2591  LR: 2.98e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 43/300  Batch     4/15  Loss: 1.2645  LR: 2.98e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 43/300  Batch     5/15  Loss: 1.2141  LR: 2.98e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 43/300  Batch     6/15  Loss: 1.1986  LR: 2.98e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 43/300  Batch     7/15  Loss: 1.2046  LR: 2.98e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 43/300  Batch     8/15  Loss: 1.2155  LR: 2.98e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 43/300  Batch     9/15  Loss: 1.2098  LR: 2.98e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 43/300  Batch    10/15  Loss: 1.2096  LR: 2.98e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 43/300  Batch    11/15  Loss: 1.1980  LR: 2.98e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 43/300  Batch    12/15  Loss: 1.1848  LR: 2.98e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 43/300  Batch    13/15  Loss: 1.1875  LR: 2.98e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 43/300  Batch    14/15  Loss: 1.1704  LR: 2.98e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 43/300  Batch    15/15  Loss: 1.1695  LR: 2.98e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 43/300 DONE — Train: 1.1695, Val: 1.1831, Acc: 87.6%
+  Epoch time: 20.4s | Stage ETA: 87.3min | LR: 2.98e-04
+  [memorize-v3] Epoch 44/300  Batch     1/15  Loss: 1.1190  LR: 2.98e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 44/300  Batch     2/15  Loss: 1.0660  LR: 2.98e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 44/300  Batch     3/15  Loss: 1.0711  LR: 2.98e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 44/300  Batch     4/15  Loss: 1.1072  LR: 2.98e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 44/300  Batch     5/15  Loss: 1.1280  LR: 2.98e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 44/300  Batch     6/15  Loss: 1.1404  LR: 2.98e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 44/300  Batch     7/15  Loss: 1.1542  LR: 2.98e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 44/300  Batch     8/15  Loss: 1.1624  LR: 2.98e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 44/300  Batch     9/15  Loss: 1.1712  LR: 2.98e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 44/300  Batch    10/15  Loss: 1.1612  LR: 2.98e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 44/300  Batch    11/15  Loss: 1.1596  LR: 2.98e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 44/300  Batch    12/15  Loss: 1.1603  LR: 2.98e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 44/300  Batch    13/15  Loss: 1.1634  LR: 2.98e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 44/300  Batch    14/15  Loss: 1.1721  LR: 2.98e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 44/300  Batch    15/15  Loss: 1.1694  LR: 2.98e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 44/300 DONE — Train: 1.1694, Val: 1.1360, Acc: 88.4%
+  Epoch time: 20.4s | Stage ETA: 86.9min | LR: 2.98e-04
+  [memorize-v3] Epoch 45/300  Batch     1/15  Loss: 1.2265  LR: 2.98e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 45/300  Batch     2/15  Loss: 1.1595  LR: 2.98e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 45/300  Batch     3/15  Loss: 1.1542  LR: 2.98e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 45/300  Batch     4/15  Loss: 1.1428  LR: 2.98e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 45/300  Batch     5/15  Loss: 1.1481  LR: 2.98e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 45/300  Batch     6/15  Loss: 1.1333  LR: 2.98e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 45/300  Batch     7/15  Loss: 1.1426  LR: 2.98e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 45/300  Batch     8/15  Loss: 1.1346  LR: 2.98e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 45/300  Batch     9/15  Loss: 1.1214  LR: 2.98e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 45/300  Batch    10/15  Loss: 1.1371  LR: 2.98e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 45/300  Batch    11/15  Loss: 1.1373  LR: 2.98e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 45/300  Batch    12/15  Loss: 1.1350  LR: 2.98e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 45/300  Batch    13/15  Loss: 1.1496  LR: 2.98e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 45/300  Batch    14/15  Loss: 1.1513  LR: 2.98e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 45/300  Batch    15/15  Loss: 1.1427  LR: 2.98e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 45/300 DONE — Train: 1.1427, Val: 1.1786, Acc: 88.7%
+  Epoch time: 20.3s | Stage ETA: 86.6min | LR: 2.98e-04
+  [memorize-v3] Epoch 46/300  Batch     1/15  Loss: 1.3027  LR: 2.98e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 46/300  Batch     2/15  Loss: 1.2011  LR: 2.98e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 46/300  Batch     3/15  Loss: 1.1747  LR: 2.98e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 46/300  Batch     4/15  Loss: 1.2047  LR: 2.98e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 46/300  Batch     5/15  Loss: 1.2010  LR: 2.98e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 46/300  Batch     6/15  Loss: 1.1816  LR: 2.98e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 46/300  Batch     7/15  Loss: 1.1891  LR: 2.98e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 46/300  Batch     8/15  Loss: 1.2036  LR: 2.98e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 46/300  Batch     9/15  Loss: 1.1935  LR: 2.98e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 46/300  Batch    10/15  Loss: 1.1698  LR: 2.98e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 46/300  Batch    11/15  Loss: 1.1651  LR: 2.97e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 46/300  Batch    12/15  Loss: 1.1661  LR: 2.97e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 46/300  Batch    13/15  Loss: 1.1555  LR: 2.97e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 46/300  Batch    14/15  Loss: 1.1559  LR: 2.97e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 46/300  Batch    15/15  Loss: 1.1557  LR: 2.97e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 46/300 DONE — Train: 1.1557, Val: 1.1020, Acc: 89.0% *best*
+  Epoch time: 20.4s | Stage ETA: 86.3min | LR: 2.97e-04
+  [memorize-v3] Epoch 47/300  Batch     1/15  Loss: 0.9289  LR: 2.97e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 47/300  Batch     2/15  Loss: 1.0040  LR: 2.97e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 47/300  Batch     3/15  Loss: 1.0892  LR: 2.97e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 47/300  Batch     4/15  Loss: 1.1220  LR: 2.97e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 47/300  Batch     5/15  Loss: 1.1305  LR: 2.97e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 47/300  Batch     6/15  Loss: 1.1296  LR: 2.97e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 47/300  Batch     7/15  Loss: 1.1322  LR: 2.97e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 47/300  Batch     8/15  Loss: 1.1387  LR: 2.97e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 47/300  Batch     9/15  Loss: 1.1418  LR: 2.97e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 47/300  Batch    10/15  Loss: 1.1522  LR: 2.97e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 47/300  Batch    11/15  Loss: 1.1468  LR: 2.97e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 47/300  Batch    12/15  Loss: 1.1493  LR: 2.97e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 47/300  Batch    13/15  Loss: 1.1513  LR: 2.97e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 47/300  Batch    14/15  Loss: 1.1519  LR: 2.97e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 47/300  Batch    15/15  Loss: 1.1413  LR: 2.97e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 47/300 DONE — Train: 1.1413, Val: 1.1968, Acc: 87.5%
+  Epoch time: 20.4s | Stage ETA: 85.9min | LR: 2.97e-04
+  [memorize-v3] Epoch 48/300  Batch     1/15  Loss: 1.0960  LR: 2.97e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 48/300  Batch     2/15  Loss: 1.0977  LR: 2.97e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 48/300  Batch     3/15  Loss: 1.1393  LR: 2.97e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 48/300  Batch     4/15  Loss: 1.1472  LR: 2.97e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 48/300  Batch     5/15  Loss: 1.1628  LR: 2.97e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 48/300  Batch     6/15  Loss: 1.1550  LR: 2.97e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 48/300  Batch     7/15  Loss: 1.1479  LR: 2.97e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 48/300  Batch     8/15  Loss: 1.1489  LR: 2.97e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 48/300  Batch     9/15  Loss: 1.1563  LR: 2.97e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 48/300  Batch    10/15  Loss: 1.1374  LR: 2.97e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 48/300  Batch    11/15  Loss: 1.1387  LR: 2.97e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 48/300  Batch    12/15  Loss: 1.1364  LR: 2.97e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 48/300  Batch    13/15  Loss: 1.1402  LR: 2.97e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 48/300  Batch    14/15  Loss: 1.1505  LR: 2.97e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 48/300  Batch    15/15  Loss: 1.1450  LR: 2.97e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 48/300 DONE — Train: 1.1450, Val: 1.0603, Acc: 89.1% *best*
+  Epoch time: 20.4s | Stage ETA: 85.6min | LR: 2.97e-04
+  [memorize-v3] Epoch 49/300  Batch     1/15  Loss: 1.0387  LR: 2.97e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 49/300  Batch     2/15  Loss: 1.0802  LR: 2.97e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 49/300  Batch     3/15  Loss: 1.0632  LR: 2.97e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 49/300  Batch     4/15  Loss: 1.0868  LR: 2.97e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 49/300  Batch     5/15  Loss: 1.0914  LR: 2.97e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 49/300  Batch     6/15  Loss: 1.0997  LR: 2.97e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 49/300  Batch     7/15  Loss: 1.1396  LR: 2.97e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 49/300  Batch     8/15  Loss: 1.1733  LR: 2.97e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 49/300  Batch     9/15  Loss: 1.1545  LR: 2.97e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 49/300  Batch    10/15  Loss: 1.1524  LR: 2.96e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 49/300  Batch    11/15  Loss: 1.1453  LR: 2.96e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 49/300  Batch    12/15  Loss: 1.1283  LR: 2.96e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 49/300  Batch    13/15  Loss: 1.1367  LR: 2.96e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 49/300  Batch    14/15  Loss: 1.1317  LR: 2.96e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 49/300  Batch    15/15  Loss: 1.1492  LR: 2.96e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 49/300 DONE — Train: 1.1492, Val: 1.0514, Acc: 90.2% *best*
+  Epoch time: 20.4s | Stage ETA: 85.2min | LR: 2.96e-04
+  [memorize-v3] Epoch 50/300  Batch     1/15  Loss: 1.2060  LR: 2.96e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 50/300  Batch     2/15  Loss: 1.1707  LR: 2.96e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 50/300  Batch     3/15  Loss: 1.1941  LR: 2.96e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 50/300  Batch     4/15  Loss: 1.1190  LR: 2.96e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 50/300  Batch     5/15  Loss: 1.1120  LR: 2.96e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 50/300  Batch     6/15  Loss: 1.1123  LR: 2.96e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 50/300  Batch     7/15  Loss: 1.1357  LR: 2.96e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 50/300  Batch     8/15  Loss: 1.1309  LR: 2.96e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 50/300  Batch     9/15  Loss: 1.1354  LR: 2.96e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 50/300  Batch    10/15  Loss: 1.1426  LR: 2.96e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 50/300  Batch    11/15  Loss: 1.1477  LR: 2.96e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 50/300  Batch    12/15  Loss: 1.1438  LR: 2.96e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 50/300  Batch    13/15  Loss: 1.1353  LR: 2.96e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 50/300  Batch    14/15  Loss: 1.1312  LR: 2.96e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 50/300  Batch    15/15  Loss: 1.1428  LR: 2.96e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 50/300 DONE — Train: 1.1428, Val: 1.2836, Acc: 87.1%
+  Epoch time: 20.4s | Stage ETA: 84.9min | LR: 2.96e-04
+  [memorize-v3] Epoch 51/300  Batch     1/15  Loss: 1.2987  LR: 2.96e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 51/300  Batch     2/15  Loss: 1.1839  LR: 2.96e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 51/300  Batch     3/15  Loss: 1.1416  LR: 2.96e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 51/300  Batch     4/15  Loss: 1.1928  LR: 2.96e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 51/300  Batch     5/15  Loss: 1.1655  LR: 2.96e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 51/300  Batch     6/15  Loss: 1.1520  LR: 2.96e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 51/300  Batch     7/15  Loss: 1.1622  LR: 2.96e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 51/300  Batch     8/15  Loss: 1.1582  LR: 2.96e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 51/300  Batch     9/15  Loss: 1.1432  LR: 2.96e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 51/300  Batch    10/15  Loss: 1.1489  LR: 2.96e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 51/300  Batch    11/15  Loss: 1.1557  LR: 2.96e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 51/300  Batch    12/15  Loss: 1.1668  LR: 2.96e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 51/300  Batch    13/15  Loss: 1.1567  LR: 2.96e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 51/300  Batch    14/15  Loss: 1.1614  LR: 2.96e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 51/300  Batch    15/15  Loss: 1.1432  LR: 2.96e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 51/300 DONE — Train: 1.1432, Val: 1.1128, Acc: 89.2%
+  Epoch time: 20.3s | Stage ETA: 84.5min | LR: 2.96e-04
+  [memorize-v3] Epoch 52/300  Batch     1/15  Loss: 1.1649  LR: 2.96e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 52/300  Batch     2/15  Loss: 1.2228  LR: 2.95e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 52/300  Batch     3/15  Loss: 1.2052  LR: 2.95e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 52/300  Batch     4/15  Loss: 1.1752  LR: 2.95e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 52/300  Batch     5/15  Loss: 1.1814  LR: 2.95e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 52/300  Batch     6/15  Loss: 1.1929  LR: 2.95e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 52/300  Batch     7/15  Loss: 1.1681  LR: 2.95e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 52/300  Batch     8/15  Loss: 1.1532  LR: 2.95e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 52/300  Batch     9/15  Loss: 1.1469  LR: 2.95e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 52/300  Batch    10/15  Loss: 1.1486  LR: 2.95e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 52/300  Batch    11/15  Loss: 1.1604  LR: 2.95e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 52/300  Batch    12/15  Loss: 1.1634  LR: 2.95e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 52/300  Batch    13/15  Loss: 1.1657  LR: 2.95e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 52/300  Batch    14/15  Loss: 1.1617  LR: 2.95e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 52/300  Batch    15/15  Loss: 1.1621  LR: 2.95e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 52/300 DONE — Train: 1.1621, Val: 1.1387, Acc: 89.3%
+  Epoch time: 20.3s | Stage ETA: 84.2min | LR: 2.95e-04
+  [memorize-v3] Epoch 53/300  Batch     1/15  Loss: 1.1922  LR: 2.95e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 53/300  Batch     2/15  Loss: 1.1511  LR: 2.95e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 53/300  Batch     3/15  Loss: 1.1487  LR: 2.95e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 53/300  Batch     4/15  Loss: 1.1847  LR: 2.95e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 53/300  Batch     5/15  Loss: 1.1531  LR: 2.95e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 53/300  Batch     6/15  Loss: 1.1871  LR: 2.95e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 53/300  Batch     7/15  Loss: 1.1869  LR: 2.95e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 53/300  Batch     8/15  Loss: 1.1933  LR: 2.95e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 53/300  Batch     9/15  Loss: 1.1701  LR: 2.95e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 53/300  Batch    10/15  Loss: 1.1641  LR: 2.95e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 53/300  Batch    11/15  Loss: 1.1656  LR: 2.95e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 53/300  Batch    12/15  Loss: 1.1611  LR: 2.95e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 53/300  Batch    13/15  Loss: 1.1602  LR: 2.95e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 53/300  Batch    14/15  Loss: 1.1595  LR: 2.95e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 53/300  Batch    15/15  Loss: 1.1473  LR: 2.95e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 53/300 DONE — Train: 1.1473, Val: 1.1473, Acc: 88.7%
+  Epoch time: 20.4s | Stage ETA: 83.9min | LR: 2.95e-04
+  [memorize-v3] Epoch 54/300  Batch     1/15  Loss: 1.1571  LR: 2.95e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 54/300  Batch     2/15  Loss: 1.0532  LR: 2.95e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 54/300  Batch     3/15  Loss: 1.0664  LR: 2.95e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 54/300  Batch     4/15  Loss: 1.0542  LR: 2.95e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 54/300  Batch     5/15  Loss: 1.1054  LR: 2.95e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 54/300  Batch     6/15  Loss: 1.0971  LR: 2.94e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 54/300  Batch     7/15  Loss: 1.1130  LR: 2.94e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 54/300  Batch     8/15  Loss: 1.1115  LR: 2.94e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 54/300  Batch     9/15  Loss: 1.1043  LR: 2.94e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 54/300  Batch    10/15  Loss: 1.0933  LR: 2.94e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 54/300  Batch    11/15  Loss: 1.0902  LR: 2.94e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 54/300  Batch    12/15  Loss: 1.0981  LR: 2.94e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 54/300  Batch    13/15  Loss: 1.1121  LR: 2.94e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 54/300  Batch    14/15  Loss: 1.1121  LR: 2.94e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 54/300  Batch    15/15  Loss: 1.1227  LR: 2.94e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 54/300 DONE — Train: 1.1227, Val: 1.1856, Acc: 88.3%
+  Epoch time: 20.3s | Stage ETA: 83.5min | LR: 2.94e-04
+  [memorize-v3] Epoch 55/300  Batch     1/15  Loss: 1.0611  LR: 2.94e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 55/300  Batch     2/15  Loss: 1.0364  LR: 2.94e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 55/300  Batch     3/15  Loss: 1.0840  LR: 2.94e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 55/300  Batch     4/15  Loss: 1.0894  LR: 2.94e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 55/300  Batch     5/15  Loss: 1.0964  LR: 2.94e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 55/300  Batch     6/15  Loss: 1.0643  LR: 2.94e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 55/300  Batch     7/15  Loss: 1.0844  LR: 2.94e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 55/300  Batch     8/15  Loss: 1.0952  LR: 2.94e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 55/300  Batch     9/15  Loss: 1.0960  LR: 2.94e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 55/300  Batch    10/15  Loss: 1.1031  LR: 2.94e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 55/300  Batch    11/15  Loss: 1.1208  LR: 2.94e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 55/300  Batch    12/15  Loss: 1.1229  LR: 2.94e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 55/300  Batch    13/15  Loss: 1.1241  LR: 2.94e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 55/300  Batch    14/15  Loss: 1.1221  LR: 2.94e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 55/300  Batch    15/15  Loss: 1.1235  LR: 2.94e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 55/300 DONE — Train: 1.1235, Val: 1.1401, Acc: 88.4%
+  Epoch time: 20.4s | Stage ETA: 83.2min | LR: 2.94e-04
+  [memorize-v3] Epoch 56/300  Batch     1/15  Loss: 1.0804  LR: 2.94e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 56/300  Batch     2/15  Loss: 1.0634  LR: 2.94e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 56/300  Batch     3/15  Loss: 1.0637  LR: 2.94e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 56/300  Batch     4/15  Loss: 1.0648  LR: 2.94e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 56/300  Batch     5/15  Loss: 1.0881  LR: 2.94e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 56/300  Batch     6/15  Loss: 1.0870  LR: 2.93e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 56/300  Batch     7/15  Loss: 1.0726  LR: 2.93e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 56/300  Batch     8/15  Loss: 1.0823  LR: 2.93e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 56/300  Batch     9/15  Loss: 1.0838  LR: 2.93e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 56/300  Batch    10/15  Loss: 1.0960  LR: 2.93e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 56/300  Batch    11/15  Loss: 1.1025  LR: 2.93e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 56/300  Batch    12/15  Loss: 1.0990  LR: 2.93e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 56/300  Batch    13/15  Loss: 1.0977  LR: 2.93e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 56/300  Batch    14/15  Loss: 1.1092  LR: 2.93e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 56/300  Batch    15/15  Loss: 1.1083  LR: 2.93e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 56/300 DONE — Train: 1.1083, Val: 1.0971, Acc: 89.7%
+  Epoch time: 20.4s | Stage ETA: 82.8min | LR: 2.93e-04
+  [memorize-v3] Epoch 57/300  Batch     1/15  Loss: 1.0879  LR: 2.93e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 57/300  Batch     2/15  Loss: 1.1422  LR: 2.93e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 57/300  Batch     3/15  Loss: 1.1316  LR: 2.93e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 57/300  Batch     4/15  Loss: 1.1423  LR: 2.93e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 57/300  Batch     5/15  Loss: 1.1226  LR: 2.93e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 57/300  Batch     6/15  Loss: 1.1152  LR: 2.93e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 57/300  Batch     7/15  Loss: 1.1358  LR: 2.93e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 57/300  Batch     8/15  Loss: 1.1425  LR: 2.93e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 57/300  Batch     9/15  Loss: 1.1310  LR: 2.93e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 57/300  Batch    10/15  Loss: 1.1292  LR: 2.93e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 57/300  Batch    11/15  Loss: 1.1028  LR: 2.93e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 57/300  Batch    12/15  Loss: 1.0958  LR: 2.93e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 57/300  Batch    13/15  Loss: 1.0961  LR: 2.93e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 57/300  Batch    14/15  Loss: 1.0947  LR: 2.93e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 57/300  Batch    15/15  Loss: 1.0890  LR: 2.93e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 57/300 DONE — Train: 1.0890, Val: 1.1265, Acc: 88.8%
+  Epoch time: 20.3s | Stage ETA: 82.5min | LR: 2.93e-04
+  [memorize-v3] Epoch 58/300  Batch     1/15  Loss: 1.0126  LR: 2.93e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 58/300  Batch     2/15  Loss: 1.0593  LR: 2.93e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 58/300  Batch     3/15  Loss: 1.0304  LR: 2.93e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 58/300  Batch     4/15  Loss: 1.0663  LR: 2.93e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 58/300  Batch     5/15  Loss: 1.0786  LR: 2.92e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 58/300  Batch     6/15  Loss: 1.0812  LR: 2.92e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 58/300  Batch     7/15  Loss: 1.0830  LR: 2.92e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 58/300  Batch     8/15  Loss: 1.0751  LR: 2.92e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 58/300  Batch     9/15  Loss: 1.0873  LR: 2.92e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 58/300  Batch    10/15  Loss: 1.1065  LR: 2.92e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 58/300  Batch    11/15  Loss: 1.0919  LR: 2.92e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 58/300  Batch    12/15  Loss: 1.0864  LR: 2.92e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 58/300  Batch    13/15  Loss: 1.0992  LR: 2.92e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 58/300  Batch    14/15  Loss: 1.1011  LR: 2.92e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 58/300  Batch    15/15  Loss: 1.0945  LR: 2.92e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 58/300 DONE — Train: 1.0945, Val: 1.0438, Acc: 89.8% *best*
+  Epoch time: 20.4s | Stage ETA: 82.2min | LR: 2.92e-04
+  [memorize-v3] Epoch 59/300  Batch     1/15  Loss: 1.0775  LR: 2.92e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 59/300  Batch     2/15  Loss: 1.0811  LR: 2.92e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 59/300  Batch     3/15  Loss: 1.0609  LR: 2.92e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 59/300  Batch     4/15  Loss: 1.0507  LR: 2.92e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 59/300  Batch     5/15  Loss: 1.1034  LR: 2.92e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 59/300  Batch     6/15  Loss: 1.0792  LR: 2.92e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 59/300  Batch     7/15  Loss: 1.0669  LR: 2.92e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 59/300  Batch     8/15  Loss: 1.0555  LR: 2.92e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 59/300  Batch     9/15  Loss: 1.0870  LR: 2.92e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 59/300  Batch    10/15  Loss: 1.0918  LR: 2.92e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 59/300  Batch    11/15  Loss: 1.0884  LR: 2.92e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 59/300  Batch    12/15  Loss: 1.1037  LR: 2.92e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 59/300  Batch    13/15  Loss: 1.1149  LR: 2.92e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 59/300  Batch    14/15  Loss: 1.1175  LR: 2.92e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 59/300  Batch    15/15  Loss: 1.1289  LR: 2.92e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 59/300 DONE — Train: 1.1289, Val: 1.0963, Acc: 88.9%
+  Epoch time: 20.4s | Stage ETA: 81.8min | LR: 2.92e-04
+  [memorize-v3] Epoch 60/300  Batch     1/15  Loss: 1.1119  LR: 2.92e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 60/300  Batch     2/15  Loss: 1.1738  LR: 2.91e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 60/300  Batch     3/15  Loss: 1.1625  LR: 2.91e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 60/300  Batch     4/15  Loss: 1.1236  LR: 2.91e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 60/300  Batch     5/15  Loss: 1.1446  LR: 2.91e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 60/300  Batch     6/15  Loss: 1.1359  LR: 2.91e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 60/300  Batch     7/15  Loss: 1.1235  LR: 2.91e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 60/300  Batch     8/15  Loss: 1.1286  LR: 2.91e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 60/300  Batch     9/15  Loss: 1.1386  LR: 2.91e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 60/300  Batch    10/15  Loss: 1.1373  LR: 2.91e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 60/300  Batch    11/15  Loss: 1.1376  LR: 2.91e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 60/300  Batch    12/15  Loss: 1.1270  LR: 2.91e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 60/300  Batch    13/15  Loss: 1.1232  LR: 2.91e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 60/300  Batch    14/15  Loss: 1.1104  LR: 2.91e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 60/300  Batch    15/15  Loss: 1.1080  LR: 2.91e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 60/300 DONE — Train: 1.1080, Val: 1.0172, Acc: 90.0% *best*
+  Epoch time: 20.4s | Stage ETA: 81.5min | LR: 2.91e-04
+  [memorize-v3] Epoch 61/300  Batch     1/15  Loss: 1.0242  LR: 2.91e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 61/300  Batch     2/15  Loss: 1.0274  LR: 2.91e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 61/300  Batch     3/15  Loss: 1.1084  LR: 2.91e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 61/300  Batch     4/15  Loss: 1.1462  LR: 2.91e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 61/300  Batch     5/15  Loss: 1.1431  LR: 2.91e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 61/300  Batch     6/15  Loss: 1.1314  LR: 2.91e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 61/300  Batch     7/15  Loss: 1.1374  LR: 2.91e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 61/300  Batch     8/15  Loss: 1.1371  LR: 2.91e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 61/300  Batch     9/15  Loss: 1.1449  LR: 2.91e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 61/300  Batch    10/15  Loss: 1.1328  LR: 2.91e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 61/300  Batch    11/15  Loss: 1.1314  LR: 2.91e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 61/300  Batch    12/15  Loss: 1.1282  LR: 2.90e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 61/300  Batch    13/15  Loss: 1.1341  LR: 2.90e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 61/300  Batch    14/15  Loss: 1.1199  LR: 2.90e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 61/300  Batch    15/15  Loss: 1.1109  LR: 2.90e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 61/300 DONE — Train: 1.1109, Val: 1.1270, Acc: 88.4%
+  Epoch time: 20.4s | Stage ETA: 81.1min | LR: 2.90e-04
+  [memorize-v3] Epoch 62/300  Batch     1/15  Loss: 1.2295  LR: 2.90e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 62/300  Batch     2/15  Loss: 1.1097  LR: 2.90e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 62/300  Batch     3/15  Loss: 1.1062  LR: 2.90e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 62/300  Batch     4/15  Loss: 1.1355  LR: 2.90e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 62/300  Batch     5/15  Loss: 1.1301  LR: 2.90e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 62/300  Batch     6/15  Loss: 1.1269  LR: 2.90e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 62/300  Batch     7/15  Loss: 1.1239  LR: 2.90e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 62/300  Batch     8/15  Loss: 1.1351  LR: 2.90e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 62/300  Batch     9/15  Loss: 1.1227  LR: 2.90e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 62/300  Batch    10/15  Loss: 1.1106  LR: 2.90e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 62/300  Batch    11/15  Loss: 1.1173  LR: 2.90e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 62/300  Batch    12/15  Loss: 1.1129  LR: 2.90e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 62/300  Batch    13/15  Loss: 1.1096  LR: 2.90e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 62/300  Batch    14/15  Loss: 1.1029  LR: 2.90e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 62/300  Batch    15/15  Loss: 1.1113  LR: 2.90e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 62/300 DONE — Train: 1.1113, Val: 1.1903, Acc: 87.8%
+  Epoch time: 20.4s | Stage ETA: 80.8min | LR: 2.90e-04
+  [memorize-v3] Epoch 63/300  Batch     1/15  Loss: 1.1959  LR: 2.90e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 63/300  Batch     2/15  Loss: 1.2500  LR: 2.90e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 63/300  Batch     3/15  Loss: 1.1525  LR: 2.90e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 63/300  Batch     4/15  Loss: 1.1457  LR: 2.90e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 63/300  Batch     5/15  Loss: 1.1056  LR: 2.90e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 63/300  Batch     6/15  Loss: 1.1073  LR: 2.89e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 63/300  Batch     7/15  Loss: 1.0895  LR: 2.89e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 63/300  Batch     8/15  Loss: 1.0965  LR: 2.89e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 63/300  Batch     9/15  Loss: 1.0923  LR: 2.89e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 63/300  Batch    10/15  Loss: 1.1105  LR: 2.89e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 63/300  Batch    11/15  Loss: 1.1164  LR: 2.89e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 63/300  Batch    12/15  Loss: 1.1210  LR: 2.89e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 63/300  Batch    13/15  Loss: 1.1061  LR: 2.89e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 63/300  Batch    14/15  Loss: 1.0987  LR: 2.89e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 63/300  Batch    15/15  Loss: 1.0956  LR: 2.89e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 63/300 DONE — Train: 1.0956, Val: 1.1415, Acc: 89.1%
+  Epoch time: 20.4s | Stage ETA: 80.5min | LR: 2.89e-04
+  [memorize-v3] Epoch 64/300  Batch     1/15  Loss: 1.0693  LR: 2.89e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 64/300  Batch     2/15  Loss: 1.0898  LR: 2.89e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 64/300  Batch     3/15  Loss: 1.0664  LR: 2.89e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 64/300  Batch     4/15  Loss: 1.0425  LR: 2.89e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 64/300  Batch     5/15  Loss: 1.0663  LR: 2.89e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 64/300  Batch     6/15  Loss: 1.0818  LR: 2.89e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 64/300  Batch     7/15  Loss: 1.0725  LR: 2.89e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 64/300  Batch     8/15  Loss: 1.0628  LR: 2.89e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 64/300  Batch     9/15  Loss: 1.0536  LR: 2.89e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 64/300  Batch    10/15  Loss: 1.0759  LR: 2.89e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 64/300  Batch    11/15  Loss: 1.0885  LR: 2.89e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 64/300  Batch    12/15  Loss: 1.0747  LR: 2.89e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 64/300  Batch    13/15  Loss: 1.0877  LR: 2.89e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 64/300  Batch    14/15  Loss: 1.1072  LR: 2.88e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 64/300  Batch    15/15  Loss: 1.1021  LR: 2.88e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 64/300 DONE — Train: 1.1021, Val: 1.0866, Acc: 88.4%
+  Epoch time: 20.4s | Stage ETA: 80.1min | LR: 2.88e-04
+  [memorize-v3] Epoch 65/300  Batch     1/15  Loss: 0.9052  LR: 2.88e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 65/300  Batch     2/15  Loss: 1.0222  LR: 2.88e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 65/300  Batch     3/15  Loss: 1.0964  LR: 2.88e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 65/300  Batch     4/15  Loss: 1.0685  LR: 2.88e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 65/300  Batch     5/15  Loss: 1.0861  LR: 2.88e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 65/300  Batch     6/15  Loss: 1.0796  LR: 2.88e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 65/300  Batch     7/15  Loss: 1.0741  LR: 2.88e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 65/300  Batch     8/15  Loss: 1.0996  LR: 2.88e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 65/300  Batch     9/15  Loss: 1.1028  LR: 2.88e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 65/300  Batch    10/15  Loss: 1.0880  LR: 2.88e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 65/300  Batch    11/15  Loss: 1.0805  LR: 2.88e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 65/300  Batch    12/15  Loss: 1.0900  LR: 2.88e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 65/300  Batch    13/15  Loss: 1.0873  LR: 2.88e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 65/300  Batch    14/15  Loss: 1.0967  LR: 2.88e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 65/300  Batch    15/15  Loss: 1.0937  LR: 2.88e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 65/300 DONE — Train: 1.0937, Val: 1.0413, Acc: 89.0%
+  Epoch time: 20.4s | Stage ETA: 79.8min | LR: 2.88e-04
+  [memorize-v3] Epoch 66/300  Batch     1/15  Loss: 1.1822  LR: 2.88e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 66/300  Batch     2/15  Loss: 1.1176  LR: 2.88e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 66/300  Batch     3/15  Loss: 1.1060  LR: 2.88e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 66/300  Batch     4/15  Loss: 1.0633  LR: 2.88e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 66/300  Batch     5/15  Loss: 1.0712  LR: 2.88e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 66/300  Batch     6/15  Loss: 1.0766  LR: 2.87e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 66/300  Batch     7/15  Loss: 1.1120  LR: 2.87e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 66/300  Batch     8/15  Loss: 1.0994  LR: 2.87e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 66/300  Batch     9/15  Loss: 1.0947  LR: 2.87e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 66/300  Batch    10/15  Loss: 1.1124  LR: 2.87e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 66/300  Batch    11/15  Loss: 1.0987  LR: 2.87e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 66/300  Batch    12/15  Loss: 1.0957  LR: 2.87e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 66/300  Batch    13/15  Loss: 1.0889  LR: 2.87e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 66/300  Batch    14/15  Loss: 1.0993  LR: 2.87e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 66/300  Batch    15/15  Loss: 1.1030  LR: 2.87e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 66/300 DONE — Train: 1.1030, Val: 1.1829, Acc: 85.9%
+  Epoch time: 20.4s | Stage ETA: 79.4min | LR: 2.87e-04
+  [memorize-v3] Epoch 67/300  Batch     1/15  Loss: 1.0491  LR: 2.87e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 67/300  Batch     2/15  Loss: 1.0339  LR: 2.87e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 67/300  Batch     3/15  Loss: 1.0754  LR: 2.87e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 67/300  Batch     4/15  Loss: 1.1029  LR: 2.87e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 67/300  Batch     5/15  Loss: 1.0845  LR: 2.87e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 67/300  Batch     6/15  Loss: 1.0783  LR: 2.87e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 67/300  Batch     7/15  Loss: 1.1009  LR: 2.87e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 67/300  Batch     8/15  Loss: 1.1112  LR: 2.87e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 67/300  Batch     9/15  Loss: 1.0969  LR: 2.87e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 67/300  Batch    10/15  Loss: 1.1102  LR: 2.87e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 67/300  Batch    11/15  Loss: 1.1139  LR: 2.87e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 67/300  Batch    12/15  Loss: 1.1016  LR: 2.86e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 67/300  Batch    13/15  Loss: 1.1001  LR: 2.86e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 67/300  Batch    14/15  Loss: 1.0976  LR: 2.86e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 67/300  Batch    15/15  Loss: 1.0930  LR: 2.86e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 67/300 DONE — Train: 1.0930, Val: 1.1162, Acc: 89.6%
+  Epoch time: 20.3s | Stage ETA: 79.1min | LR: 2.86e-04
+  [memorize-v3] Epoch 68/300  Batch     1/15  Loss: 1.1284  LR: 2.86e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 68/300  Batch     2/15  Loss: 1.1417  LR: 2.86e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 68/300  Batch     3/15  Loss: 1.2306  LR: 2.86e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 68/300  Batch     4/15  Loss: 1.1809  LR: 2.86e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 68/300  Batch     5/15  Loss: 1.1483  LR: 2.86e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 68/300  Batch     6/15  Loss: 1.1164  LR: 2.86e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 68/300  Batch     7/15  Loss: 1.1113  LR: 2.86e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 68/300  Batch     8/15  Loss: 1.0995  LR: 2.86e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 68/300  Batch     9/15  Loss: 1.1001  LR: 2.86e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 68/300  Batch    10/15  Loss: 1.0999  LR: 2.86e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 68/300  Batch    11/15  Loss: 1.1073  LR: 2.86e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 68/300  Batch    12/15  Loss: 1.1124  LR: 2.86e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 68/300  Batch    13/15  Loss: 1.1136  LR: 2.86e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 68/300  Batch    14/15  Loss: 1.1022  LR: 2.86e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 68/300  Batch    15/15  Loss: 1.1125  LR: 2.86e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 68/300 DONE — Train: 1.1125, Val: 1.0497, Acc: 89.6%
+  Epoch time: 20.4s | Stage ETA: 78.8min | LR: 2.86e-04
+  [memorize-v3] Epoch 69/300  Batch     1/15  Loss: 1.0820  LR: 2.86e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 69/300  Batch     2/15  Loss: 1.0455  LR: 2.85e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 69/300  Batch     3/15  Loss: 1.0197  LR: 2.85e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 69/300  Batch     4/15  Loss: 1.0120  LR: 2.85e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 69/300  Batch     5/15  Loss: 1.0245  LR: 2.85e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 69/300  Batch     6/15  Loss: 1.0228  LR: 2.85e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 69/300  Batch     7/15  Loss: 1.0150  LR: 2.85e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 69/300  Batch     8/15  Loss: 1.0444  LR: 2.85e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 69/300  Batch     9/15  Loss: 1.0585  LR: 2.85e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 69/300  Batch    10/15  Loss: 1.0641  LR: 2.85e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 69/300  Batch    11/15  Loss: 1.0761  LR: 2.85e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 69/300  Batch    12/15  Loss: 1.0942  LR: 2.85e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 69/300  Batch    13/15  Loss: 1.0887  LR: 2.85e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 69/300  Batch    14/15  Loss: 1.0926  LR: 2.85e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 69/300  Batch    15/15  Loss: 1.1048  LR: 2.85e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 69/300 DONE — Train: 1.1048, Val: 1.1372, Acc: 89.1%
+  Epoch time: 20.4s | Stage ETA: 78.4min | LR: 2.85e-04
+  [memorize-v3] Epoch 70/300  Batch     1/15  Loss: 0.9753  LR: 2.85e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 70/300  Batch     2/15  Loss: 1.0654  LR: 2.85e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 70/300  Batch     3/15  Loss: 1.0775  LR: 2.85e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 70/300  Batch     4/15  Loss: 1.0668  LR: 2.85e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 70/300  Batch     5/15  Loss: 1.1062  LR: 2.85e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 70/300  Batch     6/15  Loss: 1.1085  LR: 2.85e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 70/300  Batch     7/15  Loss: 1.0981  LR: 2.84e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 70/300  Batch     8/15  Loss: 1.1038  LR: 2.84e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 70/300  Batch     9/15  Loss: 1.1114  LR: 2.84e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 70/300  Batch    10/15  Loss: 1.1175  LR: 2.84e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 70/300  Batch    11/15  Loss: 1.1112  LR: 2.84e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 70/300  Batch    12/15  Loss: 1.1061  LR: 2.84e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 70/300  Batch    13/15  Loss: 1.0978  LR: 2.84e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 70/300  Batch    14/15  Loss: 1.0980  LR: 2.84e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 70/300  Batch    15/15  Loss: 1.1084  LR: 2.84e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 70/300 DONE — Train: 1.1084, Val: 1.2037, Acc: 85.8%
+  Epoch time: 20.4s | Stage ETA: 78.1min | LR: 2.84e-04
+  [memorize-v3] Epoch 71/300  Batch     1/15  Loss: 1.1787  LR: 2.84e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 71/300  Batch     2/15  Loss: 1.0906  LR: 2.84e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 71/300  Batch     3/15  Loss: 1.0544  LR: 2.84e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 71/300  Batch     4/15  Loss: 1.0644  LR: 2.84e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 71/300  Batch     5/15  Loss: 1.0827  LR: 2.84e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 71/300  Batch     6/15  Loss: 1.0969  LR: 2.84e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 71/300  Batch     7/15  Loss: 1.0900  LR: 2.84e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 71/300  Batch     8/15  Loss: 1.0760  LR: 2.84e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 71/300  Batch     9/15  Loss: 1.0777  LR: 2.84e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 71/300  Batch    10/15  Loss: 1.0663  LR: 2.84e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 71/300  Batch    11/15  Loss: 1.0755  LR: 2.83e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 71/300  Batch    12/15  Loss: 1.0655  LR: 2.83e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 71/300  Batch    13/15  Loss: 1.0680  LR: 2.83e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 71/300  Batch    14/15  Loss: 1.0740  LR: 2.83e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 71/300  Batch    15/15  Loss: 1.0803  LR: 2.83e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 71/300 DONE — Train: 1.0803, Val: 1.0821, Acc: 89.1%
+  Epoch time: 20.4s | Stage ETA: 77.7min | LR: 2.83e-04
+  [memorize-v3] Epoch 72/300  Batch     1/15  Loss: 1.2860  LR: 2.83e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 72/300  Batch     2/15  Loss: 1.2495  LR: 2.83e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 72/300  Batch     3/15  Loss: 1.1946  LR: 2.83e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 72/300  Batch     4/15  Loss: 1.1394  LR: 2.83e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 72/300  Batch     5/15  Loss: 1.1382  LR: 2.83e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 72/300  Batch     6/15  Loss: 1.1263  LR: 2.83e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 72/300  Batch     7/15  Loss: 1.1234  LR: 2.83e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 72/300  Batch     8/15  Loss: 1.1029  LR: 2.83e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 72/300  Batch     9/15  Loss: 1.1092  LR: 2.83e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 72/300  Batch    10/15  Loss: 1.1055  LR: 2.83e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 72/300  Batch    11/15  Loss: 1.1063  LR: 2.83e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 72/300  Batch    12/15  Loss: 1.1005  LR: 2.83e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 72/300  Batch    13/15  Loss: 1.0945  LR: 2.83e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 72/300  Batch    14/15  Loss: 1.0993  LR: 2.82e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 72/300  Batch    15/15  Loss: 1.1078  LR: 2.82e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 72/300 DONE — Train: 1.1078, Val: 1.0819, Acc: 88.9%
+  Epoch time: 20.4s | Stage ETA: 77.4min | LR: 2.82e-04
+  [memorize-v3] Epoch 73/300  Batch     1/15  Loss: 1.0111  LR: 2.82e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 73/300  Batch     2/15  Loss: 0.9818  LR: 2.82e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 73/300  Batch     3/15  Loss: 0.9783  LR: 2.82e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 73/300  Batch     4/15  Loss: 0.9932  LR: 2.82e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 73/300  Batch     5/15  Loss: 1.0103  LR: 2.82e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 73/300  Batch     6/15  Loss: 1.0314  LR: 2.82e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 73/300  Batch     7/15  Loss: 1.0692  LR: 2.82e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 73/300  Batch     8/15  Loss: 1.0644  LR: 2.82e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 73/300  Batch     9/15  Loss: 1.0659  LR: 2.82e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 73/300  Batch    10/15  Loss: 1.0569  LR: 2.82e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 73/300  Batch    11/15  Loss: 1.0757  LR: 2.82e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 73/300  Batch    12/15  Loss: 1.0712  LR: 2.82e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 73/300  Batch    13/15  Loss: 1.0803  LR: 2.82e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 73/300  Batch    14/15  Loss: 1.0826  LR: 2.82e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 73/300  Batch    15/15  Loss: 1.0890  LR: 2.82e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 73/300 DONE — Train: 1.0890, Val: 1.0736, Acc: 88.4%
+  Epoch time: 20.4s | Stage ETA: 77.1min | LR: 2.82e-04
+  [memorize-v3] Epoch 74/300  Batch     1/15  Loss: 1.0386  LR: 2.82e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 74/300  Batch     2/15  Loss: 1.0256  LR: 2.82e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 74/300  Batch     3/15  Loss: 1.0748  LR: 2.81e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 74/300  Batch     4/15  Loss: 1.0597  LR: 2.81e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 74/300  Batch     5/15  Loss: 1.0531  LR: 2.81e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 74/300  Batch     6/15  Loss: 1.0572  LR: 2.81e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 74/300  Batch     7/15  Loss: 1.0601  LR: 2.81e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 74/300  Batch     8/15  Loss: 1.0755  LR: 2.81e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 74/300  Batch     9/15  Loss: 1.0726  LR: 2.81e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 74/300  Batch    10/15  Loss: 1.0788  LR: 2.81e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 74/300  Batch    11/15  Loss: 1.0920  LR: 2.81e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 74/300  Batch    12/15  Loss: 1.0899  LR: 2.81e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 74/300  Batch    13/15  Loss: 1.0870  LR: 2.81e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 74/300  Batch    14/15  Loss: 1.0895  LR: 2.81e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 74/300  Batch    15/15  Loss: 1.0897  LR: 2.81e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 74/300 DONE — Train: 1.0897, Val: 0.9889, Acc: 89.8% *best*
+  Epoch time: 20.4s | Stage ETA: 76.7min | LR: 2.81e-04
+  [memorize-v3] Epoch 75/300  Batch     1/15  Loss: 0.9614  LR: 2.81e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 75/300  Batch     2/15  Loss: 0.9951  LR: 2.81e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 75/300  Batch     3/15  Loss: 1.0638  LR: 2.81e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 75/300  Batch     4/15  Loss: 1.0276  LR: 2.81e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 75/300  Batch     5/15  Loss: 1.0622  LR: 2.80e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 75/300  Batch     6/15  Loss: 1.0556  LR: 2.80e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 75/300  Batch     7/15  Loss: 1.0572  LR: 2.80e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 75/300  Batch     8/15  Loss: 1.0678  LR: 2.80e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 75/300  Batch     9/15  Loss: 1.0654  LR: 2.80e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 75/300  Batch    10/15  Loss: 1.0487  LR: 2.80e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 75/300  Batch    11/15  Loss: 1.0584  LR: 2.80e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 75/300  Batch    12/15  Loss: 1.0556  LR: 2.80e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 75/300  Batch    13/15  Loss: 1.0594  LR: 2.80e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 75/300  Batch    14/15  Loss: 1.0663  LR: 2.80e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 75/300  Batch    15/15  Loss: 1.0687  LR: 2.80e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 75/300 DONE — Train: 1.0687, Val: 1.0147, Acc: 89.3%
+  Epoch time: 20.4s | Stage ETA: 76.4min | LR: 2.80e-04
+  [memorize-v3] Epoch 76/300  Batch     1/15  Loss: 1.1160  LR: 2.80e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 76/300  Batch     2/15  Loss: 1.2091  LR: 2.80e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 76/300  Batch     3/15  Loss: 1.1208  LR: 2.80e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 76/300  Batch     4/15  Loss: 1.0901  LR: 2.80e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 76/300  Batch     5/15  Loss: 1.0897  LR: 2.80e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 76/300  Batch     6/15  Loss: 1.0866  LR: 2.80e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 76/300  Batch     7/15  Loss: 1.1019  LR: 2.79e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 76/300  Batch     8/15  Loss: 1.1101  LR: 2.79e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 76/300  Batch     9/15  Loss: 1.1073  LR: 2.79e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 76/300  Batch    10/15  Loss: 1.0906  LR: 2.79e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 76/300  Batch    11/15  Loss: 1.0891  LR: 2.79e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 76/300  Batch    12/15  Loss: 1.0877  LR: 2.79e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 76/300  Batch    13/15  Loss: 1.0824  LR: 2.79e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 76/300  Batch    14/15  Loss: 1.0887  LR: 2.79e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 76/300  Batch    15/15  Loss: 1.0849  LR: 2.79e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 76/300 DONE — Train: 1.0849, Val: 1.0694, Acc: 88.9%
+  Epoch time: 20.4s | Stage ETA: 76.0min | LR: 2.79e-04
+  [memorize-v3] Epoch 77/300  Batch     1/15  Loss: 0.9500  LR: 2.79e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 77/300  Batch     2/15  Loss: 0.9722  LR: 2.79e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 77/300  Batch     3/15  Loss: 1.0635  LR: 2.79e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 77/300  Batch     4/15  Loss: 1.0482  LR: 2.79e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 77/300  Batch     5/15  Loss: 1.0331  LR: 2.79e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 77/300  Batch     6/15  Loss: 1.0435  LR: 2.79e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 77/300  Batch     7/15  Loss: 1.0373  LR: 2.79e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 77/300  Batch     8/15  Loss: 1.0365  LR: 2.79e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 77/300  Batch     9/15  Loss: 1.0576  LR: 2.78e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 77/300  Batch    10/15  Loss: 1.0459  LR: 2.78e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 77/300  Batch    11/15  Loss: 1.0402  LR: 2.78e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 77/300  Batch    12/15  Loss: 1.0416  LR: 2.78e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 77/300  Batch    13/15  Loss: 1.0416  LR: 2.78e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 77/300  Batch    14/15  Loss: 1.0494  LR: 2.78e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 77/300  Batch    15/15  Loss: 1.0498  LR: 2.78e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 77/300 DONE — Train: 1.0498, Val: 1.1601, Acc: 88.5%
+  Epoch time: 20.4s | Stage ETA: 75.7min | LR: 2.78e-04
+  [memorize-v3] Epoch 78/300  Batch     1/15  Loss: 1.1606  LR: 2.78e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 78/300  Batch     2/15  Loss: 1.0545  LR: 2.78e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 78/300  Batch     3/15  Loss: 1.0819  LR: 2.78e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 78/300  Batch     4/15  Loss: 1.1071  LR: 2.78e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 78/300  Batch     5/15  Loss: 1.1064  LR: 2.78e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 78/300  Batch     6/15  Loss: 1.1059  LR: 2.78e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 78/300  Batch     7/15  Loss: 1.0875  LR: 2.78e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 78/300  Batch     8/15  Loss: 1.0716  LR: 2.78e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 78/300  Batch     9/15  Loss: 1.0818  LR: 2.78e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 78/300  Batch    10/15  Loss: 1.0717  LR: 2.78e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 78/300  Batch    11/15  Loss: 1.0878  LR: 2.77e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 78/300  Batch    12/15  Loss: 1.0829  LR: 2.77e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 78/300  Batch    13/15  Loss: 1.0938  LR: 2.77e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 78/300  Batch    14/15  Loss: 1.0940  LR: 2.77e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 78/300  Batch    15/15  Loss: 1.0995  LR: 2.77e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 78/300 DONE — Train: 1.0995, Val: 1.0786, Acc: 89.1%
+  Epoch time: 20.4s | Stage ETA: 75.4min | LR: 2.77e-04
+  [memorize-v3] Epoch 79/300  Batch     1/15  Loss: 1.2154  LR: 2.77e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 79/300  Batch     2/15  Loss: 1.1247  LR: 2.77e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 79/300  Batch     3/15  Loss: 1.1050  LR: 2.77e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 79/300  Batch     4/15  Loss: 1.0740  LR: 2.77e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 79/300  Batch     5/15  Loss: 1.0692  LR: 2.77e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 79/300  Batch     6/15  Loss: 1.0835  LR: 2.77e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 79/300  Batch     7/15  Loss: 1.1028  LR: 2.77e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 79/300  Batch     8/15  Loss: 1.1034  LR: 2.77e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 79/300  Batch     9/15  Loss: 1.1033  LR: 2.77e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 79/300  Batch    10/15  Loss: 1.1095  LR: 2.77e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 79/300  Batch    11/15  Loss: 1.0963  LR: 2.77e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 79/300  Batch    12/15  Loss: 1.1013  LR: 2.76e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 79/300  Batch    13/15  Loss: 1.0873  LR: 2.76e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 79/300  Batch    14/15  Loss: 1.0800  LR: 2.76e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 79/300  Batch    15/15  Loss: 1.0702  LR: 2.76e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 79/300 DONE — Train: 1.0702, Val: 1.1331, Acc: 89.6%
+  Epoch time: 20.4s | Stage ETA: 75.0min | LR: 2.76e-04
+  [memorize-v3] Epoch 80/300  Batch     1/15  Loss: 0.9427  LR: 2.76e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 80/300  Batch     2/15  Loss: 0.9014  LR: 2.76e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 80/300  Batch     3/15  Loss: 0.9313  LR: 2.76e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 80/300  Batch     4/15  Loss: 0.9805  LR: 2.76e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 80/300  Batch     5/15  Loss: 0.9629  LR: 2.76e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 80/300  Batch     6/15  Loss: 0.9921  LR: 2.76e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 80/300  Batch     7/15  Loss: 0.9918  LR: 2.76e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 80/300  Batch     8/15  Loss: 0.9923  LR: 2.76e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 80/300  Batch     9/15  Loss: 1.0241  LR: 2.76e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 80/300  Batch    10/15  Loss: 1.0315  LR: 2.76e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 80/300  Batch    11/15  Loss: 1.0383  LR: 2.76e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 80/300  Batch    12/15  Loss: 1.0426  LR: 2.76e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 80/300  Batch    13/15  Loss: 1.0453  LR: 2.75e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 80/300  Batch    14/15  Loss: 1.0404  LR: 2.75e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 80/300  Batch    15/15  Loss: 1.0453  LR: 2.75e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 80/300 DONE — Train: 1.0453, Val: 1.1325, Acc: 87.5%
+  Epoch time: 20.3s | Stage ETA: 74.7min | LR: 2.75e-04
+  [memorize-v3] Epoch 81/300  Batch     1/15  Loss: 0.9360  LR: 2.75e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 81/300  Batch     2/15  Loss: 1.0803  LR: 2.75e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 81/300  Batch     3/15  Loss: 1.1054  LR: 2.75e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 81/300  Batch     4/15  Loss: 1.0854  LR: 2.75e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 81/300  Batch     5/15  Loss: 1.0607  LR: 2.75e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 81/300  Batch     6/15  Loss: 1.0615  LR: 2.75e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 81/300  Batch     7/15  Loss: 1.0453  LR: 2.75e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 81/300  Batch     8/15  Loss: 1.0803  LR: 2.75e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 81/300  Batch     9/15  Loss: 1.0791  LR: 2.75e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 81/300  Batch    10/15  Loss: 1.0675  LR: 2.75e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 81/300  Batch    11/15  Loss: 1.0566  LR: 2.75e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 81/300  Batch    12/15  Loss: 1.0657  LR: 2.75e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 81/300  Batch    13/15  Loss: 1.0736  LR: 2.74e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 81/300  Batch    14/15  Loss: 1.0693  LR: 2.74e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 81/300  Batch    15/15  Loss: 1.0582  LR: 2.74e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 81/300 DONE — Train: 1.0582, Val: 0.9909, Acc: 90.6%
+  Epoch time: 20.3s | Stage ETA: 74.3min | LR: 2.74e-04
+  [memorize-v3] Epoch 82/300  Batch     1/15  Loss: 1.1484  LR: 2.74e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 82/300  Batch     2/15  Loss: 1.0358  LR: 2.74e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 82/300  Batch     3/15  Loss: 1.0627  LR: 2.74e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 82/300  Batch     4/15  Loss: 1.0596  LR: 2.74e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 82/300  Batch     5/15  Loss: 1.0419  LR: 2.74e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 82/300  Batch     6/15  Loss: 1.0285  LR: 2.74e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 82/300  Batch     7/15  Loss: 1.0344  LR: 2.74e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 82/300  Batch     8/15  Loss: 1.0406  LR: 2.74e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 82/300  Batch     9/15  Loss: 1.0524  LR: 2.74e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 82/300  Batch    10/15  Loss: 1.0707  LR: 2.74e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 82/300  Batch    11/15  Loss: 1.0728  LR: 2.74e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 82/300  Batch    12/15  Loss: 1.0773  LR: 2.74e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 82/300  Batch    13/15  Loss: 1.0745  LR: 2.74e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 82/300  Batch    14/15  Loss: 1.0677  LR: 2.73e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 82/300  Batch    15/15  Loss: 1.0684  LR: 2.73e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 82/300 DONE — Train: 1.0684, Val: 1.1391, Acc: 88.5%
+  Epoch time: 20.4s | Stage ETA: 74.0min | LR: 2.73e-04
+  [memorize-v3] Epoch 83/300  Batch     1/15  Loss: 1.0424  LR: 2.73e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 83/300  Batch     2/15  Loss: 1.0228  LR: 2.73e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 83/300  Batch     3/15  Loss: 1.0502  LR: 2.73e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 83/300  Batch     4/15  Loss: 1.0460  LR: 2.73e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 83/300  Batch     5/15  Loss: 1.0925  LR: 2.73e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 83/300  Batch     6/15  Loss: 1.0882  LR: 2.73e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 83/300  Batch     7/15  Loss: 1.0972  LR: 2.73e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 83/300  Batch     8/15  Loss: 1.0668  LR: 2.73e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 83/300  Batch     9/15  Loss: 1.0469  LR: 2.73e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 83/300  Batch    10/15  Loss: 1.0448  LR: 2.73e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 83/300  Batch    11/15  Loss: 1.0462  LR: 2.73e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 83/300  Batch    12/15  Loss: 1.0599  LR: 2.73e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 83/300  Batch    13/15  Loss: 1.0593  LR: 2.73e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 83/300  Batch    14/15  Loss: 1.0525  LR: 2.72e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 83/300  Batch    15/15  Loss: 1.0615  LR: 2.72e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 83/300 DONE — Train: 1.0615, Val: 1.0057, Acc: 89.7%
+  Epoch time: 20.4s | Stage ETA: 73.7min | LR: 2.72e-04
+  [memorize-v3] Epoch 84/300  Batch     1/15  Loss: 1.0576  LR: 2.72e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 84/300  Batch     2/15  Loss: 1.1684  LR: 2.72e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 84/300  Batch     3/15  Loss: 1.1499  LR: 2.72e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 84/300  Batch     4/15  Loss: 1.0829  LR: 2.72e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 84/300  Batch     5/15  Loss: 1.0955  LR: 2.72e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 84/300  Batch     6/15  Loss: 1.0980  LR: 2.72e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 84/300  Batch     7/15  Loss: 1.0915  LR: 2.72e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 84/300  Batch     8/15  Loss: 1.0884  LR: 2.72e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 84/300  Batch     9/15  Loss: 1.0710  LR: 2.72e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 84/300  Batch    10/15  Loss: 1.0641  LR: 2.72e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 84/300  Batch    11/15  Loss: 1.0453  LR: 2.72e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 84/300  Batch    12/15  Loss: 1.0420  LR: 2.72e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 84/300  Batch    13/15  Loss: 1.0387  LR: 2.71e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 84/300  Batch    14/15  Loss: 1.0326  LR: 2.71e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 84/300  Batch    15/15  Loss: 1.0479  LR: 2.71e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 84/300 DONE — Train: 1.0479, Val: 1.0686, Acc: 89.7%
+  Epoch time: 20.4s | Stage ETA: 73.3min | LR: 2.71e-04
+  [memorize-v3] Epoch 85/300  Batch     1/15  Loss: 0.9593  LR: 2.71e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 85/300  Batch     2/15  Loss: 1.0375  LR: 2.71e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 85/300  Batch     3/15  Loss: 1.0250  LR: 2.71e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 85/300  Batch     4/15  Loss: 1.0284  LR: 2.71e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 85/300  Batch     5/15  Loss: 1.0141  LR: 2.71e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 85/300  Batch     6/15  Loss: 1.0187  LR: 2.71e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 85/300  Batch     7/15  Loss: 1.0266  LR: 2.71e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 85/300  Batch     8/15  Loss: 1.0219  LR: 2.71e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 85/300  Batch     9/15  Loss: 1.0251  LR: 2.71e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 85/300  Batch    10/15  Loss: 1.0414  LR: 2.71e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 85/300  Batch    11/15  Loss: 1.0497  LR: 2.71e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 85/300  Batch    12/15  Loss: 1.0485  LR: 2.71e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 85/300  Batch    13/15  Loss: 1.0419  LR: 2.70e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 85/300  Batch    14/15  Loss: 1.0545  LR: 2.70e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 85/300  Batch    15/15  Loss: 1.0464  LR: 2.70e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 85/300 DONE — Train: 1.0464, Val: 1.1342, Acc: 89.1%
+  Epoch time: 20.4s | Stage ETA: 73.0min | LR: 2.70e-04
+  [memorize-v3] Epoch 86/300  Batch     1/15  Loss: 1.0771  LR: 2.70e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 86/300  Batch     2/15  Loss: 1.0241  LR: 2.70e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 86/300  Batch     3/15  Loss: 1.0001  LR: 2.70e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 86/300  Batch     4/15  Loss: 1.0572  LR: 2.70e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 86/300  Batch     5/15  Loss: 1.0398  LR: 2.70e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 86/300  Batch     6/15  Loss: 1.0670  LR: 2.70e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 86/300  Batch     7/15  Loss: 1.0394  LR: 2.70e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 86/300  Batch     8/15  Loss: 1.0351  LR: 2.70e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 86/300  Batch     9/15  Loss: 1.0488  LR: 2.70e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 86/300  Batch    10/15  Loss: 1.0392  LR: 2.70e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 86/300  Batch    11/15  Loss: 1.0403  LR: 2.70e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 86/300  Batch    12/15  Loss: 1.0482  LR: 2.69e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 86/300  Batch    13/15  Loss: 1.0521  LR: 2.69e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 86/300  Batch    14/15  Loss: 1.0531  LR: 2.69e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 86/300  Batch    15/15  Loss: 1.0653  LR: 2.69e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 86/300 DONE — Train: 1.0653, Val: 1.1138, Acc: 89.0%
+  Epoch time: 20.4s | Stage ETA: 72.6min | LR: 2.69e-04
+  [memorize-v3] Epoch 87/300  Batch     1/15  Loss: 1.2164  LR: 2.69e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 87/300  Batch     2/15  Loss: 1.2405  LR: 2.69e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 87/300  Batch     3/15  Loss: 1.1793  LR: 2.69e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 87/300  Batch     4/15  Loss: 1.0797  LR: 2.69e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 87/300  Batch     5/15  Loss: 1.0752  LR: 2.69e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 87/300  Batch     6/15  Loss: 1.0285  LR: 2.69e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 87/300  Batch     7/15  Loss: 1.0232  LR: 2.69e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 87/300  Batch     8/15  Loss: 1.0297  LR: 2.69e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 87/300  Batch     9/15  Loss: 1.0432  LR: 2.69e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 87/300  Batch    10/15  Loss: 1.0264  LR: 2.69e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 87/300  Batch    11/15  Loss: 1.0316  LR: 2.68e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 87/300  Batch    12/15  Loss: 1.0291  LR: 2.68e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 87/300  Batch    13/15  Loss: 1.0262  LR: 2.68e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 87/300  Batch    14/15  Loss: 1.0408  LR: 2.68e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 87/300  Batch    15/15  Loss: 1.0335  LR: 2.68e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 87/300 DONE — Train: 1.0335, Val: 1.0010, Acc: 89.4%
+  Epoch time: 20.4s | Stage ETA: 72.3min | LR: 2.68e-04
+  [memorize-v3] Epoch 88/300  Batch     1/15  Loss: 0.9791  LR: 2.68e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 88/300  Batch     2/15  Loss: 0.8915  LR: 2.68e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 88/300  Batch     3/15  Loss: 0.9657  LR: 2.68e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 88/300  Batch     4/15  Loss: 0.9988  LR: 2.68e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 88/300  Batch     5/15  Loss: 1.0055  LR: 2.68e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 88/300  Batch     6/15  Loss: 0.9916  LR: 2.68e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 88/300  Batch     7/15  Loss: 0.9754  LR: 2.68e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 88/300  Batch     8/15  Loss: 0.9841  LR: 2.68e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 88/300  Batch     9/15  Loss: 1.0008  LR: 2.68e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 88/300  Batch    10/15  Loss: 0.9941  LR: 2.67e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 88/300  Batch    11/15  Loss: 1.0002  LR: 2.67e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 88/300  Batch    12/15  Loss: 1.0154  LR: 2.67e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 88/300  Batch    13/15  Loss: 1.0239  LR: 2.67e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 88/300  Batch    14/15  Loss: 1.0172  LR: 2.67e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 88/300  Batch    15/15  Loss: 1.0342  LR: 2.67e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 88/300 DONE — Train: 1.0342, Val: 1.0037, Acc: 89.7%
+  Epoch time: 20.4s | Stage ETA: 72.0min | LR: 2.67e-04
+  [memorize-v3] Epoch 89/300  Batch     1/15  Loss: 1.0808  LR: 2.67e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 89/300  Batch     2/15  Loss: 1.0638  LR: 2.67e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 89/300  Batch     3/15  Loss: 1.0317  LR: 2.67e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 89/300  Batch     4/15  Loss: 1.0363  LR: 2.67e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 89/300  Batch     5/15  Loss: 1.0560  LR: 2.67e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 89/300  Batch     6/15  Loss: 1.0700  LR: 2.67e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 89/300  Batch     7/15  Loss: 1.0476  LR: 2.67e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 89/300  Batch     8/15  Loss: 1.0329  LR: 2.67e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 89/300  Batch     9/15  Loss: 1.0479  LR: 2.66e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 89/300  Batch    10/15  Loss: 1.0611  LR: 2.66e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 89/300  Batch    11/15  Loss: 1.0801  LR: 2.66e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 89/300  Batch    12/15  Loss: 1.0708  LR: 2.66e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 89/300  Batch    13/15  Loss: 1.0783  LR: 2.66e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 89/300  Batch    14/15  Loss: 1.0665  LR: 2.66e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 89/300  Batch    15/15  Loss: 1.0637  LR: 2.66e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 89/300 DONE — Train: 1.0637, Val: 1.0020, Acc: 89.8%
+  Epoch time: 20.4s | Stage ETA: 71.6min | LR: 2.66e-04
+  [memorize-v3] Epoch 90/300  Batch     1/15  Loss: 1.0541  LR: 2.66e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 90/300  Batch     2/15  Loss: 1.0072  LR: 2.66e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 90/300  Batch     3/15  Loss: 1.0428  LR: 2.66e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 90/300  Batch     4/15  Loss: 1.0200  LR: 2.66e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 90/300  Batch     5/15  Loss: 1.0046  LR: 2.66e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 90/300  Batch     6/15  Loss: 1.0053  LR: 2.66e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 90/300  Batch     7/15  Loss: 1.0081  LR: 2.66e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 90/300  Batch     8/15  Loss: 1.0077  LR: 2.65e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 90/300  Batch     9/15  Loss: 1.0133  LR: 2.65e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 90/300  Batch    10/15  Loss: 1.0071  LR: 2.65e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 90/300  Batch    11/15  Loss: 1.0284  LR: 2.65e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 90/300  Batch    12/15  Loss: 1.0308  LR: 2.65e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 90/300  Batch    13/15  Loss: 1.0424  LR: 2.65e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 90/300  Batch    14/15  Loss: 1.0424  LR: 2.65e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 90/300  Batch    15/15  Loss: 1.0446  LR: 2.65e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 90/300 DONE — Train: 1.0446, Val: 1.1129, Acc: 88.4%
+  Epoch time: 20.4s | Stage ETA: 71.3min | LR: 2.65e-04
+  [memorize-v3] Epoch 91/300  Batch     1/15  Loss: 1.0386  LR: 2.65e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 91/300  Batch     2/15  Loss: 1.0587  LR: 2.65e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 91/300  Batch     3/15  Loss: 1.0737  LR: 2.65e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 91/300  Batch     4/15  Loss: 1.0102  LR: 2.65e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 91/300  Batch     5/15  Loss: 1.0771  LR: 2.65e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 91/300  Batch     6/15  Loss: 1.0691  LR: 2.64e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 91/300  Batch     7/15  Loss: 1.0424  LR: 2.64e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 91/300  Batch     8/15  Loss: 1.0341  LR: 2.64e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 91/300  Batch     9/15  Loss: 1.0214  LR: 2.64e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 91/300  Batch    10/15  Loss: 1.0098  LR: 2.64e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 91/300  Batch    11/15  Loss: 1.0338  LR: 2.64e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 91/300  Batch    12/15  Loss: 1.0404  LR: 2.64e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 91/300  Batch    13/15  Loss: 1.0343  LR: 2.64e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 91/300  Batch    14/15  Loss: 1.0272  LR: 2.64e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 91/300  Batch    15/15  Loss: 1.0216  LR: 2.64e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 91/300 DONE — Train: 1.0216, Val: 0.9955, Acc: 89.4%
+  Epoch time: 20.4s | Stage ETA: 70.9min | LR: 2.64e-04
+  [memorize-v3] Epoch 92/300  Batch     1/15  Loss: 0.8425  LR: 2.64e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 92/300  Batch     2/15  Loss: 1.0012  LR: 2.64e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 92/300  Batch     3/15  Loss: 1.0307  LR: 2.64e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 92/300  Batch     4/15  Loss: 1.0239  LR: 2.63e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 92/300  Batch     5/15  Loss: 1.0347  LR: 2.63e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 92/300  Batch     6/15  Loss: 1.0592  LR: 2.63e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 92/300  Batch     7/15  Loss: 1.0843  LR: 2.63e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 92/300  Batch     8/15  Loss: 1.0862  LR: 2.63e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 92/300  Batch     9/15  Loss: 1.0821  LR: 2.63e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 92/300  Batch    10/15  Loss: 1.0658  LR: 2.63e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 92/300  Batch    11/15  Loss: 1.0548  LR: 2.63e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 92/300  Batch    12/15  Loss: 1.0611  LR: 2.63e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 92/300  Batch    13/15  Loss: 1.0561  LR: 2.63e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 92/300  Batch    14/15  Loss: 1.0532  LR: 2.63e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 92/300  Batch    15/15  Loss: 1.0437  LR: 2.63e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 92/300 DONE — Train: 1.0437, Val: 1.1534, Acc: 88.7%
+  Epoch time: 20.4s | Stage ETA: 70.6min | LR: 2.63e-04
+  [memorize-v3] Epoch 93/300  Batch     1/15  Loss: 1.0845  LR: 2.63e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 93/300  Batch     2/15  Loss: 1.0684  LR: 2.62e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 93/300  Batch     3/15  Loss: 1.0966  LR: 2.62e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 93/300  Batch     4/15  Loss: 1.1453  LR: 2.62e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 93/300  Batch     5/15  Loss: 1.1049  LR: 2.62e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 93/300  Batch     6/15  Loss: 1.0808  LR: 2.62e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 93/300  Batch     7/15  Loss: 1.0695  LR: 2.62e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 93/300  Batch     8/15  Loss: 1.0728  LR: 2.62e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 93/300  Batch     9/15  Loss: 1.0774  LR: 2.62e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 93/300  Batch    10/15  Loss: 1.0715  LR: 2.62e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 93/300  Batch    11/15  Loss: 1.0587  LR: 2.62e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 93/300  Batch    12/15  Loss: 1.0667  LR: 2.62e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 93/300  Batch    13/15  Loss: 1.0492  LR: 2.62e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 93/300  Batch    14/15  Loss: 1.0485  LR: 2.62e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 93/300  Batch    15/15  Loss: 1.0488  LR: 2.61e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 93/300 DONE — Train: 1.0488, Val: 1.1490, Acc: 87.8%
+  Epoch time: 20.4s | Stage ETA: 70.3min | LR: 2.61e-04
+  [memorize-v3] Epoch 94/300  Batch     1/15  Loss: 1.0130  LR: 2.61e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 94/300  Batch     2/15  Loss: 0.9993  LR: 2.61e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 94/300  Batch     3/15  Loss: 1.0348  LR: 2.61e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 94/300  Batch     4/15  Loss: 1.0497  LR: 2.61e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 94/300  Batch     5/15  Loss: 1.0407  LR: 2.61e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 94/300  Batch     6/15  Loss: 1.0398  LR: 2.61e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 94/300  Batch     7/15  Loss: 1.0456  LR: 2.61e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 94/300  Batch     8/15  Loss: 1.0188  LR: 2.61e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 94/300  Batch     9/15  Loss: 1.0483  LR: 2.61e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 94/300  Batch    10/15  Loss: 1.0241  LR: 2.61e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 94/300  Batch    11/15  Loss: 1.0247  LR: 2.61e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 94/300  Batch    12/15  Loss: 1.0314  LR: 2.61e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 94/300  Batch    13/15  Loss: 1.0155  LR: 2.60e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 94/300  Batch    14/15  Loss: 1.0360  LR: 2.60e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 94/300  Batch    15/15  Loss: 1.0397  LR: 2.60e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 94/300 DONE — Train: 1.0397, Val: 1.1437, Acc: 88.0%
+  Epoch time: 20.4s | Stage ETA: 69.9min | LR: 2.60e-04
+  [memorize-v3] Epoch 95/300  Batch     1/15  Loss: 1.0047  LR: 2.60e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 95/300  Batch     2/15  Loss: 1.1014  LR: 2.60e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 95/300  Batch     3/15  Loss: 1.0717  LR: 2.60e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 95/300  Batch     4/15  Loss: 1.0427  LR: 2.60e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 95/300  Batch     5/15  Loss: 1.0501  LR: 2.60e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 95/300  Batch     6/15  Loss: 1.0337  LR: 2.60e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 95/300  Batch     7/15  Loss: 1.0424  LR: 2.60e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 95/300  Batch     8/15  Loss: 1.0308  LR: 2.60e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 95/300  Batch     9/15  Loss: 1.0315  LR: 2.60e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 95/300  Batch    10/15  Loss: 1.0201  LR: 2.60e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 95/300  Batch    11/15  Loss: 1.0282  LR: 2.59e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 95/300  Batch    12/15  Loss: 1.0245  LR: 2.59e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 95/300  Batch    13/15  Loss: 1.0218  LR: 2.59e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 95/300  Batch    14/15  Loss: 1.0301  LR: 2.59e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 95/300  Batch    15/15  Loss: 1.0372  LR: 2.59e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 95/300 DONE — Train: 1.0372, Val: 1.1019, Acc: 88.9%
+  Epoch time: 20.4s | Stage ETA: 69.6min | LR: 2.59e-04
+  [memorize-v3] Epoch 96/300  Batch     1/15  Loss: 1.0656  LR: 2.59e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 96/300  Batch     2/15  Loss: 1.0670  LR: 2.59e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 96/300  Batch     3/15  Loss: 1.1196  LR: 2.59e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 96/300  Batch     4/15  Loss: 1.0991  LR: 2.59e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 96/300  Batch     5/15  Loss: 1.0992  LR: 2.59e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 96/300  Batch     6/15  Loss: 1.0733  LR: 2.59e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 96/300  Batch     7/15  Loss: 1.0923  LR: 2.59e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 96/300  Batch     8/15  Loss: 1.0785  LR: 2.58e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 96/300  Batch     9/15  Loss: 1.0600  LR: 2.58e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 96/300  Batch    10/15  Loss: 1.0424  LR: 2.58e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 96/300  Batch    11/15  Loss: 1.0403  LR: 2.58e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 96/300  Batch    12/15  Loss: 1.0364  LR: 2.58e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 96/300  Batch    13/15  Loss: 1.0253  LR: 2.58e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 96/300  Batch    14/15  Loss: 1.0281  LR: 2.58e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 96/300  Batch    15/15  Loss: 1.0309  LR: 2.58e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 96/300 DONE — Train: 1.0309, Val: 1.1879, Acc: 85.3%
+  Epoch time: 20.4s | Stage ETA: 69.2min | LR: 2.58e-04
+  [memorize-v3] Epoch 97/300  Batch     1/15  Loss: 1.1260  LR: 2.58e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 97/300  Batch     2/15  Loss: 1.0419  LR: 2.58e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 97/300  Batch     3/15  Loss: 1.0722  LR: 2.58e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 97/300  Batch     4/15  Loss: 1.0774  LR: 2.58e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 97/300  Batch     5/15  Loss: 1.0893  LR: 2.57e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 97/300  Batch     6/15  Loss: 1.1035  LR: 2.57e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 97/300  Batch     7/15  Loss: 1.0845  LR: 2.57e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 97/300  Batch     8/15  Loss: 1.0848  LR: 2.57e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 97/300  Batch     9/15  Loss: 1.0681  LR: 2.57e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 97/300  Batch    10/15  Loss: 1.0561  LR: 2.57e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 97/300  Batch    11/15  Loss: 1.0643  LR: 2.57e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 97/300  Batch    12/15  Loss: 1.0666  LR: 2.57e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 97/300  Batch    13/15  Loss: 1.0573  LR: 2.57e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 97/300  Batch    14/15  Loss: 1.0493  LR: 2.57e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 97/300  Batch    15/15  Loss: 1.0399  LR: 2.57e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 97/300 DONE — Train: 1.0399, Val: 1.0088, Acc: 89.5%
+  Epoch time: 20.4s | Stage ETA: 68.9min | LR: 2.57e-04
+  [memorize-v3] Epoch 98/300  Batch     1/15  Loss: 1.0422  LR: 2.57e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 98/300  Batch     2/15  Loss: 1.0181  LR: 2.57e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 98/300  Batch     3/15  Loss: 1.0342  LR: 2.56e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 98/300  Batch     4/15  Loss: 1.0269  LR: 2.56e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 98/300  Batch     5/15  Loss: 1.0349  LR: 2.56e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 98/300  Batch     6/15  Loss: 1.0389  LR: 2.56e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 98/300  Batch     7/15  Loss: 1.0284  LR: 2.56e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 98/300  Batch     8/15  Loss: 1.0206  LR: 2.56e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 98/300  Batch     9/15  Loss: 1.0200  LR: 2.56e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 98/300  Batch    10/15  Loss: 1.0269  LR: 2.56e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 98/300  Batch    11/15  Loss: 1.0255  LR: 2.56e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 98/300  Batch    12/15  Loss: 1.0303  LR: 2.56e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 98/300  Batch    13/15  Loss: 1.0274  LR: 2.56e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 98/300  Batch    14/15  Loss: 1.0308  LR: 2.56e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 98/300  Batch    15/15  Loss: 1.0196  LR: 2.55e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 98/300 DONE — Train: 1.0196, Val: 1.0499, Acc: 88.3%
+  Epoch time: 20.4s | Stage ETA: 68.6min | LR: 2.55e-04
+  [memorize-v3] Epoch 99/300  Batch     1/15  Loss: 1.0422  LR: 2.55e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 99/300  Batch     2/15  Loss: 0.9316  LR: 2.55e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 99/300  Batch     3/15  Loss: 0.9118  LR: 2.55e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 99/300  Batch     4/15  Loss: 0.9649  LR: 2.55e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 99/300  Batch     5/15  Loss: 0.9534  LR: 2.55e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 99/300  Batch     6/15  Loss: 0.9714  LR: 2.55e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 99/300  Batch     7/15  Loss: 1.0178  LR: 2.55e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 99/300  Batch     8/15  Loss: 1.0154  LR: 2.55e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 99/300  Batch     9/15  Loss: 1.0146  LR: 2.55e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 99/300  Batch    10/15  Loss: 1.0328  LR: 2.55e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 99/300  Batch    11/15  Loss: 1.0235  LR: 2.55e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 99/300  Batch    12/15  Loss: 1.0343  LR: 2.54e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 99/300  Batch    13/15  Loss: 1.0291  LR: 2.54e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 99/300  Batch    14/15  Loss: 1.0217  LR: 2.54e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 99/300  Batch    15/15  Loss: 1.0168  LR: 2.54e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 99/300 DONE — Train: 1.0168, Val: 0.9453, Acc: 90.4% *best*
+  Epoch time: 20.4s | Stage ETA: 68.2min | LR: 2.54e-04
+  [memorize-v3] Epoch 100/300  Batch     1/15  Loss: 1.0240  LR: 2.54e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 100/300  Batch     2/15  Loss: 1.0221  LR: 2.54e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 100/300  Batch     3/15  Loss: 0.9909  LR: 2.54e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 100/300  Batch     4/15  Loss: 0.9767  LR: 2.54e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 100/300  Batch     5/15  Loss: 0.9574  LR: 2.54e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 100/300  Batch     6/15  Loss: 0.9670  LR: 2.54e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 100/300  Batch     7/15  Loss: 0.9850  LR: 2.54e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 100/300  Batch     8/15  Loss: 0.9848  LR: 2.54e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 100/300  Batch     9/15  Loss: 1.0032  LR: 2.53e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 100/300  Batch    10/15  Loss: 1.0034  LR: 2.53e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 100/300  Batch    11/15  Loss: 0.9956  LR: 2.53e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 100/300  Batch    12/15  Loss: 0.9966  LR: 2.53e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 100/300  Batch    13/15  Loss: 0.9933  LR: 2.53e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 100/300  Batch    14/15  Loss: 0.9984  LR: 2.53e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 100/300  Batch    15/15  Loss: 0.9988  LR: 2.53e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 100/300 DONE — Train: 0.9988, Val: 0.9797, Acc: 89.6%
+  Epoch time: 20.4s | Stage ETA: 67.9min | LR: 2.53e-04
+  [memorize-v3] Epoch 101/300  Batch     1/15  Loss: 1.0937  LR: 2.53e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 101/300  Batch     2/15  Loss: 1.0120  LR: 2.53e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 101/300  Batch     3/15  Loss: 0.9911  LR: 2.53e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 101/300  Batch     4/15  Loss: 0.9989  LR: 2.53e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 101/300  Batch     5/15  Loss: 0.9785  LR: 2.53e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 101/300  Batch     6/15  Loss: 1.0190  LR: 2.52e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 101/300  Batch     7/15  Loss: 1.0293  LR: 2.52e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 101/300  Batch     8/15  Loss: 1.0218  LR: 2.52e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 101/300  Batch     9/15  Loss: 1.0146  LR: 2.52e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 101/300  Batch    10/15  Loss: 1.0142  LR: 2.52e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 101/300  Batch    11/15  Loss: 1.0261  LR: 2.52e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 101/300  Batch    12/15  Loss: 1.0221  LR: 2.52e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 101/300  Batch    13/15  Loss: 1.0135  LR: 2.52e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 101/300  Batch    14/15  Loss: 1.0089  LR: 2.52e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 101/300  Batch    15/15  Loss: 1.0209  LR: 2.52e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 101/300 DONE — Train: 1.0209, Val: 1.1736, Acc: 86.8%
+  Epoch time: 20.4s | Stage ETA: 67.5min | LR: 2.52e-04
+  [memorize-v3] Epoch 102/300  Batch     1/15  Loss: 1.0184  LR: 2.52e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 102/300  Batch     2/15  Loss: 0.9528  LR: 2.51e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 102/300  Batch     3/15  Loss: 0.9902  LR: 2.51e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 102/300  Batch     4/15  Loss: 0.9974  LR: 2.51e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 102/300  Batch     5/15  Loss: 1.0149  LR: 2.51e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 102/300  Batch     6/15  Loss: 1.0027  LR: 2.51e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 102/300  Batch     7/15  Loss: 1.0024  LR: 2.51e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 102/300  Batch     8/15  Loss: 1.0049  LR: 2.51e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 102/300  Batch     9/15  Loss: 1.0155  LR: 2.51e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 102/300  Batch    10/15  Loss: 1.0168  LR: 2.51e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 102/300  Batch    11/15  Loss: 1.0067  LR: 2.51e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 102/300  Batch    12/15  Loss: 1.0041  LR: 2.51e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 102/300  Batch    13/15  Loss: 0.9927  LR: 2.51e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 102/300  Batch    14/15  Loss: 0.9859  LR: 2.50e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 102/300  Batch    15/15  Loss: 0.9907  LR: 2.50e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 102/300 DONE — Train: 0.9907, Val: 1.0191, Acc: 90.3%
+  Epoch time: 20.3s | Stage ETA: 67.2min | LR: 2.50e-04
+  [memorize-v3] Epoch 103/300  Batch     1/15  Loss: 0.9337  LR: 2.50e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 103/300  Batch     2/15  Loss: 0.9732  LR: 2.50e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 103/300  Batch     3/15  Loss: 1.0169  LR: 2.50e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 103/300  Batch     4/15  Loss: 1.0039  LR: 2.50e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 103/300  Batch     5/15  Loss: 1.0211  LR: 2.50e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 103/300  Batch     6/15  Loss: 1.0620  LR: 2.50e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 103/300  Batch     7/15  Loss: 1.0281  LR: 2.50e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 103/300  Batch     8/15  Loss: 1.0396  LR: 2.50e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 103/300  Batch     9/15  Loss: 1.0307  LR: 2.50e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 103/300  Batch    10/15  Loss: 1.0364  LR: 2.50e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 103/300  Batch    11/15  Loss: 1.0355  LR: 2.49e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 103/300  Batch    12/15  Loss: 1.0200  LR: 2.49e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 103/300  Batch    13/15  Loss: 1.0293  LR: 2.49e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 103/300  Batch    14/15  Loss: 1.0325  LR: 2.49e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 103/300  Batch    15/15  Loss: 1.0201  LR: 2.49e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 103/300 DONE — Train: 1.0201, Val: 1.0775, Acc: 89.8%
+  Epoch time: 20.4s | Stage ETA: 66.9min | LR: 2.49e-04
+  [memorize-v3] Epoch 104/300  Batch     1/15  Loss: 0.9325  LR: 2.49e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 104/300  Batch     2/15  Loss: 0.9837  LR: 2.49e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 104/300  Batch     3/15  Loss: 1.0266  LR: 2.49e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 104/300  Batch     4/15  Loss: 1.0198  LR: 2.49e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 104/300  Batch     5/15  Loss: 0.9807  LR: 2.49e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 104/300  Batch     6/15  Loss: 0.9740  LR: 2.49e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 104/300  Batch     7/15  Loss: 0.9922  LR: 2.48e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 104/300  Batch     8/15  Loss: 0.9897  LR: 2.48e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 104/300  Batch     9/15  Loss: 0.9775  LR: 2.48e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 104/300  Batch    10/15  Loss: 0.9805  LR: 2.48e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 104/300  Batch    11/15  Loss: 0.9824  LR: 2.48e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 104/300  Batch    12/15  Loss: 0.9869  LR: 2.48e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 104/300  Batch    13/15  Loss: 0.9941  LR: 2.48e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 104/300  Batch    14/15  Loss: 1.0004  LR: 2.48e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 104/300  Batch    15/15  Loss: 1.0063  LR: 2.48e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 104/300 DONE — Train: 1.0063, Val: 1.0874, Acc: 88.7%
+  Epoch time: 20.4s | Stage ETA: 66.5min | LR: 2.48e-04
+  [memorize-v3] Epoch 105/300  Batch     1/15  Loss: 0.9888  LR: 2.48e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 105/300  Batch     2/15  Loss: 1.0106  LR: 2.48e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 105/300  Batch     3/15  Loss: 1.0805  LR: 2.47e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 105/300  Batch     4/15  Loss: 1.1004  LR: 2.47e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 105/300  Batch     5/15  Loss: 1.0609  LR: 2.47e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 105/300  Batch     6/15  Loss: 1.0420  LR: 2.47e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 105/300  Batch     7/15  Loss: 1.0429  LR: 2.47e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 105/300  Batch     8/15  Loss: 1.0360  LR: 2.47e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 105/300  Batch     9/15  Loss: 1.0339  LR: 2.47e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 105/300  Batch    10/15  Loss: 1.0403  LR: 2.47e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 105/300  Batch    11/15  Loss: 1.0470  LR: 2.47e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 105/300  Batch    12/15  Loss: 1.0360  LR: 2.47e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 105/300  Batch    13/15  Loss: 1.0179  LR: 2.47e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 105/300  Batch    14/15  Loss: 1.0028  LR: 2.47e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 105/300  Batch    15/15  Loss: 1.0055  LR: 2.46e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 105/300 DONE — Train: 1.0055, Val: 1.0710, Acc: 89.1%
+  Epoch time: 20.4s | Stage ETA: 66.2min | LR: 2.46e-04
+  [memorize-v3] Epoch 106/300  Batch     1/15  Loss: 1.0926  LR: 2.46e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 106/300  Batch     2/15  Loss: 1.0039  LR: 2.46e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 106/300  Batch     3/15  Loss: 1.0106  LR: 2.46e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 106/300  Batch     4/15  Loss: 0.9978  LR: 2.46e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 106/300  Batch     5/15  Loss: 0.9888  LR: 2.46e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 106/300  Batch     6/15  Loss: 0.9988  LR: 2.46e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 106/300  Batch     7/15  Loss: 0.9975  LR: 2.46e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 106/300  Batch     8/15  Loss: 1.0088  LR: 2.46e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 106/300  Batch     9/15  Loss: 0.9901  LR: 2.46e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 106/300  Batch    10/15  Loss: 0.9905  LR: 2.46e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 106/300  Batch    11/15  Loss: 0.9927  LR: 2.45e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 106/300  Batch    12/15  Loss: 0.9879  LR: 2.45e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 106/300  Batch    13/15  Loss: 0.9970  LR: 2.45e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 106/300  Batch    14/15  Loss: 0.9968  LR: 2.45e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 106/300  Batch    15/15  Loss: 1.0021  LR: 2.45e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 106/300 DONE — Train: 1.0021, Val: 1.0858, Acc: 89.1%
+  Epoch time: 20.4s | Stage ETA: 65.8min | LR: 2.45e-04
+  [memorize-v3] Epoch 107/300  Batch     1/15  Loss: 1.0529  LR: 2.45e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 107/300  Batch     2/15  Loss: 1.0090  LR: 2.45e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 107/300  Batch     3/15  Loss: 1.0055  LR: 2.45e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 107/300  Batch     4/15  Loss: 1.0217  LR: 2.45e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 107/300  Batch     5/15  Loss: 1.0086  LR: 2.45e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 107/300  Batch     6/15  Loss: 0.9982  LR: 2.45e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 107/300  Batch     7/15  Loss: 0.9977  LR: 2.44e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 107/300  Batch     8/15  Loss: 0.9938  LR: 2.44e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 107/300  Batch     9/15  Loss: 0.9898  LR: 2.44e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 107/300  Batch    10/15  Loss: 0.9914  LR: 2.44e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 107/300  Batch    11/15  Loss: 1.0029  LR: 2.44e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 107/300  Batch    12/15  Loss: 0.9958  LR: 2.44e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 107/300  Batch    13/15  Loss: 0.9861  LR: 2.44e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 107/300  Batch    14/15  Loss: 0.9993  LR: 2.44e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 107/300  Batch    15/15  Loss: 1.0106  LR: 2.44e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 107/300 DONE — Train: 1.0106, Val: 0.9180, Acc: 90.3% *best*
+  Epoch time: 20.3s | Stage ETA: 65.5min | LR: 2.44e-04
+  [memorize-v3] Epoch 108/300  Batch     1/15  Loss: 1.0306  LR: 2.44e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 108/300  Batch     2/15  Loss: 0.9486  LR: 2.44e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 108/300  Batch     3/15  Loss: 0.8989  LR: 2.43e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 108/300  Batch     4/15  Loss: 0.9113  LR: 2.43e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 108/300  Batch     5/15  Loss: 0.9214  LR: 2.43e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 108/300  Batch     6/15  Loss: 0.9466  LR: 2.43e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 108/300  Batch     7/15  Loss: 0.9512  LR: 2.43e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 108/300  Batch     8/15  Loss: 0.9581  LR: 2.43e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 108/300  Batch     9/15  Loss: 0.9536  LR: 2.43e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 108/300  Batch    10/15  Loss: 0.9674  LR: 2.43e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 108/300  Batch    11/15  Loss: 0.9819  LR: 2.43e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 108/300  Batch    12/15  Loss: 0.9735  LR: 2.43e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 108/300  Batch    13/15  Loss: 0.9789  LR: 2.43e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 108/300  Batch    14/15  Loss: 0.9831  LR: 2.42e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 108/300  Batch    15/15  Loss: 0.9944  LR: 2.42e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 108/300 DONE — Train: 0.9944, Val: 1.1145, Acc: 88.5%
+  Epoch time: 20.4s | Stage ETA: 65.2min | LR: 2.42e-04
+  [memorize-v3] Epoch 109/300  Batch     1/15  Loss: 1.0029  LR: 2.42e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 109/300  Batch     2/15  Loss: 0.9721  LR: 2.42e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 109/300  Batch     3/15  Loss: 0.9925  LR: 2.42e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 109/300  Batch     4/15  Loss: 0.9912  LR: 2.42e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 109/300  Batch     5/15  Loss: 1.0006  LR: 2.42e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 109/300  Batch     6/15  Loss: 0.9871  LR: 2.42e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 109/300  Batch     7/15  Loss: 0.9869  LR: 2.42e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 109/300  Batch     8/15  Loss: 0.9965  LR: 2.42e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 109/300  Batch     9/15  Loss: 1.0044  LR: 2.42e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 109/300  Batch    10/15  Loss: 1.0164  LR: 2.41e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 109/300  Batch    11/15  Loss: 1.0168  LR: 2.41e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 109/300  Batch    12/15  Loss: 1.0217  LR: 2.41e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 109/300  Batch    13/15  Loss: 1.0106  LR: 2.41e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 109/300  Batch    14/15  Loss: 1.0166  LR: 2.41e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 109/300  Batch    15/15  Loss: 1.0103  LR: 2.41e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 109/300 DONE — Train: 1.0103, Val: 1.0673, Acc: 88.7%
+  Epoch time: 20.3s | Stage ETA: 64.8min | LR: 2.41e-04
+  [memorize-v3] Epoch 110/300  Batch     1/15  Loss: 1.0699  LR: 2.41e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 110/300  Batch     2/15  Loss: 1.0860  LR: 2.41e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 110/300  Batch     3/15  Loss: 1.1109  LR: 2.41e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 110/300  Batch     4/15  Loss: 1.0852  LR: 2.41e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 110/300  Batch     5/15  Loss: 1.0892  LR: 2.41e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 110/300  Batch     6/15  Loss: 1.0611  LR: 2.40e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 110/300  Batch     7/15  Loss: 1.0334  LR: 2.40e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 110/300  Batch     8/15  Loss: 1.0136  LR: 2.40e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 110/300  Batch     9/15  Loss: 1.0060  LR: 2.40e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 110/300  Batch    10/15  Loss: 0.9992  LR: 2.40e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 110/300  Batch    11/15  Loss: 0.9945  LR: 2.40e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 110/300  Batch    12/15  Loss: 1.0035  LR: 2.40e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 110/300  Batch    13/15  Loss: 1.0026  LR: 2.40e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 110/300  Batch    14/15  Loss: 1.0021  LR: 2.40e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 110/300  Batch    15/15  Loss: 0.9853  LR: 2.40e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 110/300 DONE — Train: 0.9853, Val: 1.1545, Acc: 88.2%
+  Epoch time: 20.4s | Stage ETA: 64.5min | LR: 2.40e-04
+  [memorize-v3] Epoch 111/300  Batch     1/15  Loss: 0.8991  LR: 2.39e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 111/300  Batch     2/15  Loss: 1.0145  LR: 2.39e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 111/300  Batch     3/15  Loss: 0.9773  LR: 2.39e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 111/300  Batch     4/15  Loss: 0.9819  LR: 2.39e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 111/300  Batch     5/15  Loss: 0.9899  LR: 2.39e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 111/300  Batch     6/15  Loss: 0.9910  LR: 2.39e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 111/300  Batch     7/15  Loss: 0.9936  LR: 2.39e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 111/300  Batch     8/15  Loss: 1.0134  LR: 2.39e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 111/300  Batch     9/15  Loss: 1.0012  LR: 2.39e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 111/300  Batch    10/15  Loss: 0.9883  LR: 2.39e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 111/300  Batch    11/15  Loss: 0.9785  LR: 2.39e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 111/300  Batch    12/15  Loss: 0.9747  LR: 2.38e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 111/300  Batch    13/15  Loss: 0.9768  LR: 2.38e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 111/300  Batch    14/15  Loss: 0.9813  LR: 2.38e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 111/300  Batch    15/15  Loss: 0.9815  LR: 2.38e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 111/300 DONE — Train: 0.9815, Val: 1.0613, Acc: 89.4%
+  Epoch time: 20.4s | Stage ETA: 64.1min | LR: 2.38e-04
+  [memorize-v3] Epoch 112/300  Batch     1/15  Loss: 1.0007  LR: 2.38e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 112/300  Batch     2/15  Loss: 1.0507  LR: 2.38e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 112/300  Batch     3/15  Loss: 0.9827  LR: 2.38e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 112/300  Batch     4/15  Loss: 0.9739  LR: 2.38e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 112/300  Batch     5/15  Loss: 0.9680  LR: 2.38e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 112/300  Batch     6/15  Loss: 0.9493  LR: 2.38e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 112/300  Batch     7/15  Loss: 0.9600  LR: 2.38e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 112/300  Batch     8/15  Loss: 0.9802  LR: 2.37e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 112/300  Batch     9/15  Loss: 0.9762  LR: 2.37e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 112/300  Batch    10/15  Loss: 0.9770  LR: 2.37e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 112/300  Batch    11/15  Loss: 0.9773  LR: 2.37e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 112/300  Batch    12/15  Loss: 0.9698  LR: 2.37e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 112/300  Batch    13/15  Loss: 0.9651  LR: 2.37e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 112/300  Batch    14/15  Loss: 0.9550  LR: 2.37e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 112/300  Batch    15/15  Loss: 0.9686  LR: 2.37e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 112/300 DONE — Train: 0.9686, Val: 0.9564, Acc: 89.6%
+  Epoch time: 20.4s | Stage ETA: 63.8min | LR: 2.37e-04
+  [memorize-v3] Epoch 113/300  Batch     1/15  Loss: 0.8458  LR: 2.37e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 113/300  Batch     2/15  Loss: 0.8416  LR: 2.37e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 113/300  Batch     3/15  Loss: 0.9390  LR: 2.36e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 113/300  Batch     4/15  Loss: 0.9502  LR: 2.36e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 113/300  Batch     5/15  Loss: 0.9536  LR: 2.36e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 113/300  Batch     6/15  Loss: 0.9703  LR: 2.36e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 113/300  Batch     7/15  Loss: 0.9907  LR: 2.36e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 113/300  Batch     8/15  Loss: 0.9976  LR: 2.36e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 113/300  Batch     9/15  Loss: 1.0015  LR: 2.36e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 113/300  Batch    10/15  Loss: 0.9827  LR: 2.36e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 113/300  Batch    11/15  Loss: 0.9812  LR: 2.36e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 113/300  Batch    12/15  Loss: 0.9969  LR: 2.36e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 113/300  Batch    13/15  Loss: 0.9850  LR: 2.36e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 113/300  Batch    14/15  Loss: 0.9784  LR: 2.35e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 113/300  Batch    15/15  Loss: 0.9832  LR: 2.35e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 113/300 DONE — Train: 0.9832, Val: 1.0855, Acc: 89.0%
+  Epoch time: 20.4s | Stage ETA: 63.5min | LR: 2.35e-04
+  [memorize-v3] Epoch 114/300  Batch     1/15  Loss: 1.1837  LR: 2.35e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 114/300  Batch     2/15  Loss: 1.0344  LR: 2.35e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 114/300  Batch     3/15  Loss: 1.0037  LR: 2.35e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 114/300  Batch     4/15  Loss: 0.9685  LR: 2.35e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 114/300  Batch     5/15  Loss: 0.9711  LR: 2.35e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 114/300  Batch     6/15  Loss: 0.9879  LR: 2.35e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 114/300  Batch     7/15  Loss: 0.9758  LR: 2.35e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 114/300  Batch     8/15  Loss: 0.9569  LR: 2.35e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 114/300  Batch     9/15  Loss: 0.9609  LR: 2.34e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 114/300  Batch    10/15  Loss: 0.9666  LR: 2.34e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 114/300  Batch    11/15  Loss: 0.9732  LR: 2.34e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 114/300  Batch    12/15  Loss: 0.9750  LR: 2.34e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 114/300  Batch    13/15  Loss: 0.9781  LR: 2.34e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 114/300  Batch    14/15  Loss: 0.9751  LR: 2.34e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 114/300  Batch    15/15  Loss: 0.9691  LR: 2.34e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 114/300 DONE — Train: 0.9691, Val: 1.0474, Acc: 89.5%
+  Epoch time: 20.4s | Stage ETA: 63.1min | LR: 2.34e-04
+  [memorize-v3] Epoch 115/300  Batch     1/15  Loss: 0.8856  LR: 2.34e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 115/300  Batch     2/15  Loss: 0.8759  LR: 2.34e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 115/300  Batch     3/15  Loss: 0.9409  LR: 2.34e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 115/300  Batch     4/15  Loss: 0.9145  LR: 2.33e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 115/300  Batch     5/15  Loss: 0.9381  LR: 2.33e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 115/300  Batch     6/15  Loss: 0.9264  LR: 2.33e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 115/300  Batch     7/15  Loss: 0.9306  LR: 2.33e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 115/300  Batch     8/15  Loss: 0.9351  LR: 2.33e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 115/300  Batch     9/15  Loss: 0.9627  LR: 2.33e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 115/300  Batch    10/15  Loss: 0.9583  LR: 2.33e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 115/300  Batch    11/15  Loss: 0.9543  LR: 2.33e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 115/300  Batch    12/15  Loss: 0.9545  LR: 2.33e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 115/300  Batch    13/15  Loss: 0.9614  LR: 2.33e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 115/300  Batch    14/15  Loss: 0.9636  LR: 2.33e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 115/300  Batch    15/15  Loss: 0.9728  LR: 2.32e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 115/300 DONE — Train: 0.9728, Val: 1.1781, Acc: 88.1%
+  Epoch time: 20.4s | Stage ETA: 62.8min | LR: 2.32e-04
+  [memorize-v3] Epoch 116/300  Batch     1/15  Loss: 0.8632  LR: 2.32e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 116/300  Batch     2/15  Loss: 0.9367  LR: 2.32e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 116/300  Batch     3/15  Loss: 0.9161  LR: 2.32e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 116/300  Batch     4/15  Loss: 0.9390  LR: 2.32e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 116/300  Batch     5/15  Loss: 0.9506  LR: 2.32e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 116/300  Batch     6/15  Loss: 0.9562  LR: 2.32e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 116/300  Batch     7/15  Loss: 0.9655  LR: 2.32e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 116/300  Batch     8/15  Loss: 0.9674  LR: 2.32e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 116/300  Batch     9/15  Loss: 0.9642  LR: 2.32e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 116/300  Batch    10/15  Loss: 0.9629  LR: 2.31e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 116/300  Batch    11/15  Loss: 0.9757  LR: 2.31e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 116/300  Batch    12/15  Loss: 0.9815  LR: 2.31e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 116/300  Batch    13/15  Loss: 0.9780  LR: 2.31e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 116/300  Batch    14/15  Loss: 0.9812  LR: 2.31e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 116/300  Batch    15/15  Loss: 0.9827  LR: 2.31e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 116/300 DONE — Train: 0.9827, Val: 1.0178, Acc: 89.6%
+  Epoch time: 20.4s | Stage ETA: 62.5min | LR: 2.31e-04
+  [memorize-v3] Epoch 117/300  Batch     1/15  Loss: 0.9341  LR: 2.31e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 117/300  Batch     2/15  Loss: 0.9500  LR: 2.31e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 117/300  Batch     3/15  Loss: 1.0102  LR: 2.31e-04  0.8 batch/s  ETA 15s
+  [memorize-v3] Epoch 117/300  Batch     4/15  Loss: 0.9906  LR: 2.31e-04  0.8 batch/s  ETA 14s
+  [memorize-v3] Epoch 117/300  Batch     5/15  Loss: 0.9792  LR: 2.30e-04  0.8 batch/s  ETA 13s
+  [memorize-v3] Epoch 117/300  Batch     6/15  Loss: 0.9898  LR: 2.30e-04  0.8 batch/s  ETA 12s
+  [memorize-v3] Epoch 117/300  Batch     7/15  Loss: 0.9918  LR: 2.30e-04  0.8 batch/s  ETA 10s
+  [memorize-v3] Epoch 117/300  Batch     8/15  Loss: 1.0129  LR: 2.30e-04  0.8 batch/s  ETA 9s
+  [memorize-v3] Epoch 117/300  Batch     9/15  Loss: 1.0197  LR: 2.30e-04  0.8 batch/s  ETA 8s
+  [memorize-v3] Epoch 117/300  Batch    10/15  Loss: 1.0269  LR: 2.30e-04  0.8 batch/s  ETA 7s
+  [memorize-v3] Epoch 117/300  Batch    11/15  Loss: 1.0087  LR: 2.30e-04  0.8 batch/s  ETA 5s
+  [memorize-v3] Epoch 117/300  Batch    12/15  Loss: 0.9967  LR: 2.30e-04  0.8 batch/s  ETA 4s
+  [memorize-v3] Epoch 117/300  Batch    13/15  Loss: 0.9927  LR: 2.30e-04  0.8 batch/s  ETA 3s
+  [memorize-v3] Epoch 117/300  Batch    14/15  Loss: 0.9849  LR: 2.30e-04  0.8 batch/s  ETA 1s
+  [memorize-v3] Epoch 117/300  Batch    15/15  Loss: 0.9781  LR: 2.29e-04  0.8 batch/s  ETA 0s
+
+[memorize-v3] Epoch 117/300 DONE — Train: 0.9781, Val: 1.0836, Acc: 89.1%
+  Epoch time: 20.4s | Stage ETA: 62.1min | LR: 2.29e-04
+  [memorize-v3] Epoch 118/300  Batch     1/15  Loss: 1.1288  LR: 2.29e-04  1.1 batch/s  ETA 13s
+  [memorize-v3] Epoch 118/300  Batch     2/15  Loss: 0.9951  LR: 2.29e-04  0.9 batch/s  ETA 15s
+  [memorize-v3] Epoch 118/300  Batch     3/15  Loss: 0.9906  LR: 2.29e-04  0.8 batch/s  ETA 15s

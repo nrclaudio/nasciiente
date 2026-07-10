@@ -1,0 +1,2921 @@
+Loading black-forest-labs/FLUX.1-schnell on cuda ...
+[transformers] `Siglip2ImageProcessorFast` is deprecated. The `Fast` suffix for image processors has been removed; use `Siglip2ImageProcessor` instead.
+/venv/main/lib/python3.12/site-packages/huggingface_hub/utils/_validators.py:205: UserWarning: The `local_dir_use_symlinks` argument is deprecated and ignored in `hf_hub_download`. Downloading to a local directory does not use symlinks anymore.
+  warnings.warn(
+Loading pipeline components...:   0%|          | 0/7 [00:00<?, ?it/s]
+Loading weights:   0%|          | 0/196 [00:00<?, ?it/s][ALoading weights: 100%|██████████| 196/196 [00:00<00:00, 2207.06it/s]
+Loading pipeline components...:  14%|█▍        | 1/7 [00:00<00:01,  3.39it/s]Loading pipeline components...:  43%|████▎     | 3/7 [00:00<00:00,  8.44it/s]
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s][A
+Loading checkpoint shards:  33%|███▎      | 1/3 [00:00<00:00,  3.64it/s][A
+Loading checkpoint shards:  67%|██████▋   | 2/3 [00:00<00:00,  3.89it/s][A
+Loading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00,  5.40it/s][ALoading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00,  4.84it/s]
+Loading pipeline components...:  71%|███████▏  | 5/7 [00:01<00:00,  4.15it/s]
+Loading weights:   0%|          | 0/219 [00:00<?, ?it/s][A
+Loading weights:  20%|██        | 44/219 [00:00<00:00, 438.63it/s][A
+Loading weights:  44%|████▍     | 97/219 [00:00<00:00, 477.97it/s][A
+Loading weights:  66%|██████▌   | 145/219 [00:00<00:00, 451.48it/s][ALoading weights: 100%|██████████| 219/219 [00:00<00:00, 526.50it/s]
+Loading pipeline components...: 100%|██████████| 7/7 [00:01<00:00,  4.18it/s]Loading pipeline components...: 100%|██████████| 7/7 [00:01<00:00,  4.39it/s]
+Pipeline: CPU offload enabled (large model)
+  Font: /usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf
+  Glyph render size: 19x23 -> downscaled to 8x12
+  Shape ramp (95 chars):  _`,.-'~;:"^!\)](|/*[j+l<}?>r{L7yv=ciJ1FzTsxS2YC%f3Iun5tZVPwEohk9geqG$6p4HUaXdK&bARQO80@DmBWMN#
+  Shape vector range: [0.000, 1.000]
+Prompt bank: 3,000,064 captions (e.g. ['three satellite dishes', 'a birdhouse', 'three bridges'])
+Style mix: ALL — every image converted as filled + outline + tonal (3 samples per generation)
+Conversion pool: 62 workers (GPU generates while CPUs convert)
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]Loading weights: 100%|██████████| 398/398 [00:00<00:00, 61728.84it/s]
+  60/1,000,000 kept (rejected: 0 too blank, 0 too dense, 0 off-prompt)  0.9 img/s  ETA 308.4h
+  598/1,000,000 kept (rejected: 0 too blank, 2 too dense, 0 off-prompt)  2.5 img/s  ETA 109.9h
+  1,129/1,000,000 kept (rejected: 0 too blank, 5 too dense, 2 off-prompt)  2.8 img/s  ETA 97.6h
+  1,667/1,000,000 kept (rejected: 0 too blank, 7 too dense, 2 off-prompt)  3.0 img/s  ETA 93.3h
+  2,205/1,000,000 kept (rejected: 0 too blank, 9 too dense, 2 off-prompt)  3.0 img/s  ETA 91.4h
+  2,742/1,000,000 kept (rejected: 0 too blank, 12 too dense, 2 off-prompt)  3.1 img/s  ETA 90.2h
+  3,278/1,000,000 kept (rejected: 1 too blank, 15 too dense, 2 off-prompt)  3.1 img/s  ETA 89.4h
+  3,815/1,000,000 kept (rejected: 1 too blank, 18 too dense, 2 off-prompt)  3.1 img/s  ETA 88.8h
+  4,355/1,000,000 kept (rejected: 1 too blank, 18 too dense, 2 off-prompt)  3.1 img/s  ETA 88.3h
+  4,894/1,000,000 kept (rejected: 1 too blank, 19 too dense, 2 off-prompt)  3.1 img/s  ETA 87.9h
+  [checkpointed 5,014 samples to data/synthetic_v3.pt]
+  5,433/1,000,000 kept (rejected: 1 too blank, 20 too dense, 2 off-prompt)  3.2 img/s  ETA 87.6h
+  5,967/1,000,000 kept (rejected: 2 too blank, 25 too dense, 2 off-prompt)  3.2 img/s  ETA 87.4h
+  6,505/1,000,000 kept (rejected: 2 too blank, 27 too dense, 2 off-prompt)  3.2 img/s  ETA 87.2h
+  7,038/1,000,000 kept (rejected: 2 too blank, 34 too dense, 2 off-prompt)  3.2 img/s  ETA 87.1h
+  7,576/1,000,000 kept (rejected: 2 too blank, 36 too dense, 2 off-prompt)  3.2 img/s  ETA 86.9h
+  8,112/1,000,000 kept (rejected: 2 too blank, 40 too dense, 2 off-prompt)  3.2 img/s  ETA 86.8h
+  8,645/1,000,000 kept (rejected: 6 too blank, 43 too dense, 2 off-prompt)  3.2 img/s  ETA 86.7h
+  9,183/1,000,000 kept (rejected: 6 too blank, 45 too dense, 2 off-prompt)  3.2 img/s  ETA 86.6h
+  9,719/1,000,000 kept (rejected: 6 too blank, 49 too dense, 2 off-prompt)  3.2 img/s  ETA 86.5h
+  [checkpointed 10,019 samples to data/synthetic_v3.pt]
+  10,259/1,000,000 kept (rejected: 6 too blank, 49 too dense, 2 off-prompt)  3.2 img/s  ETA 86.4h
+  10,795/1,000,000 kept (rejected: 9 too blank, 50 too dense, 2 off-prompt)  3.2 img/s  ETA 86.3h
+  11,329/1,000,000 kept (rejected: 13 too blank, 52 too dense, 2 off-prompt)  3.2 img/s  ETA 86.3h
+  11,869/1,000,000 kept (rejected: 13 too blank, 52 too dense, 2 off-prompt)  3.2 img/s  ETA 86.2h
+  12,409/1,000,000 kept (rejected: 13 too blank, 52 too dense, 2 off-prompt)  3.2 img/s  ETA 86.0h
+  12,945/1,000,000 kept (rejected: 14 too blank, 52 too dense, 3 off-prompt)  3.2 img/s  ETA 86.0h
+  13,485/1,000,000 kept (rejected: 14 too blank, 52 too dense, 3 off-prompt)  3.2 img/s  ETA 85.9h
+  14,024/1,000,000 kept (rejected: 14 too blank, 53 too dense, 4 off-prompt)  3.2 img/s  ETA 85.8h
+  14,560/1,000,000 kept (rejected: 14 too blank, 54 too dense, 4 off-prompt)  3.2 img/s  ETA 85.7h
+  [checkpointed 15,036 samples to data/synthetic_v3.pt]
+  15,096/1,000,000 kept (rejected: 17 too blank, 55 too dense, 4 off-prompt)  3.2 img/s  ETA 85.7h
+  15,630/1,000,000 kept (rejected: 18 too blank, 57 too dense, 5 off-prompt)  3.2 img/s  ETA 85.6h
+  16,163/1,000,000 kept (rejected: 18 too blank, 61 too dense, 6 off-prompt)  3.2 img/s  ETA 85.6h
+  16,702/1,000,000 kept (rejected: 18 too blank, 62 too dense, 6 off-prompt)  3.2 img/s  ETA 85.5h
+  17,239/1,000,000 kept (rejected: 19 too blank, 64 too dense, 6 off-prompt)  3.2 img/s  ETA 85.4h
+  17,776/1,000,000 kept (rejected: 19 too blank, 64 too dense, 7 off-prompt)  3.2 img/s  ETA 85.3h
+  18,313/1,000,000 kept (rejected: 20 too blank, 66 too dense, 7 off-prompt)  3.2 img/s  ETA 85.3h
+  18,850/1,000,000 kept (rejected: 21 too blank, 68 too dense, 7 off-prompt)  3.2 img/s  ETA 85.2h
+  19,390/1,000,000 kept (rejected: 21 too blank, 68 too dense, 7 off-prompt)  3.2 img/s  ETA 85.1h
+  19,929/1,000,000 kept (rejected: 21 too blank, 69 too dense, 7 off-prompt)  3.2 img/s  ETA 85.1h
+  [checkpointed 20,049 samples to data/synthetic_v3.pt]
+  20,468/1,000,000 kept (rejected: 21 too blank, 70 too dense, 7 off-prompt)  3.2 img/s  ETA 85.0h
+  21,003/1,000,000 kept (rejected: 21 too blank, 72 too dense, 8 off-prompt)  3.2 img/s  ETA 84.9h
+  21,535/1,000,000 kept (rejected: 23 too blank, 75 too dense, 9 off-prompt)  3.2 img/s  ETA 84.9h
+  22,070/1,000,000 kept (rejected: 23 too blank, 77 too dense, 10 off-prompt)  3.2 img/s  ETA 84.8h
+  22,606/1,000,000 kept (rejected: 23 too blank, 78 too dense, 11 off-prompt)  3.2 img/s  ETA 84.7h
+  23,138/1,000,000 kept (rejected: 26 too blank, 80 too dense, 12 off-prompt)  3.2 img/s  ETA 84.7h
+  23,677/1,000,000 kept (rejected: 26 too blank, 81 too dense, 12 off-prompt)  3.2 img/s  ETA 84.7h
+  24,214/1,000,000 kept (rejected: 26 too blank, 84 too dense, 12 off-prompt)  3.2 img/s  ETA 84.6h
+  24,751/1,000,000 kept (rejected: 27 too blank, 86 too dense, 12 off-prompt)  3.2 img/s  ETA 84.5h
+  [checkpointed 25,050 samples to data/synthetic_v3.pt]
+  25,286/1,000,000 kept (rejected: 28 too blank, 87 too dense, 13 off-prompt)  3.2 img/s  ETA 84.5h
+  25,824/1,000,000 kept (rejected: 30 too blank, 87 too dense, 13 off-prompt)  3.2 img/s  ETA 84.4h
+  26,363/1,000,000 kept (rejected: 30 too blank, 88 too dense, 13 off-prompt)  3.2 img/s  ETA 84.4h
+  26,901/1,000,000 kept (rejected: 30 too blank, 90 too dense, 13 off-prompt)  3.2 img/s  ETA 84.3h
+  27,438/1,000,000 kept (rejected: 30 too blank, 93 too dense, 13 off-prompt)  3.2 img/s  ETA 84.2h
+  27,977/1,000,000 kept (rejected: 30 too blank, 94 too dense, 13 off-prompt)  3.2 img/s  ETA 84.2h
+  28,516/1,000,000 kept (rejected: 30 too blank, 95 too dense, 13 off-prompt)  3.2 img/s  ETA 84.1h
+  29,053/1,000,000 kept (rejected: 30 too blank, 98 too dense, 13 off-prompt)  3.2 img/s  ETA 84.0h
+  29,590/1,000,000 kept (rejected: 30 too blank, 101 too dense, 13 off-prompt)  3.2 img/s  ETA 84.0h
+  [checkpointed 30,062 samples to data/synthetic_v3.pt]
+  30,122/1,000,000 kept (rejected: 34 too blank, 105 too dense, 13 off-prompt)  3.2 img/s  ETA 83.9h
+  30,661/1,000,000 kept (rejected: 34 too blank, 106 too dense, 13 off-prompt)  3.2 img/s  ETA 83.9h
+  31,195/1,000,000 kept (rejected: 34 too blank, 109 too dense, 14 off-prompt)  3.2 img/s  ETA 83.8h
+  31,730/1,000,000 kept (rejected: 34 too blank, 111 too dense, 15 off-prompt)  3.2 img/s  ETA 83.8h
+  32,269/1,000,000 kept (rejected: 34 too blank, 112 too dense, 15 off-prompt)  3.2 img/s  ETA 83.7h
+  32,801/1,000,000 kept (rejected: 37 too blank, 114 too dense, 16 off-prompt)  3.2 img/s  ETA 83.7h
+  33,335/1,000,000 kept (rejected: 37 too blank, 117 too dense, 17 off-prompt)  3.2 img/s  ETA 83.7h
+  33,873/1,000,000 kept (rejected: 37 too blank, 119 too dense, 17 off-prompt)  3.2 img/s  ETA 83.6h
+  34,406/1,000,000 kept (rejected: 37 too blank, 123 too dense, 18 off-prompt)  3.2 img/s  ETA 83.6h
+  34,945/1,000,000 kept (rejected: 37 too blank, 124 too dense, 18 off-prompt)  3.2 img/s  ETA 83.5h
+  [checkpointed 35,064 samples to data/synthetic_v3.pt]
+  35,484/1,000,000 kept (rejected: 37 too blank, 125 too dense, 18 off-prompt)  3.2 img/s  ETA 83.4h
+  36,022/1,000,000 kept (rejected: 37 too blank, 127 too dense, 18 off-prompt)  3.2 img/s  ETA 83.4h
+  36,558/1,000,000 kept (rejected: 40 too blank, 128 too dense, 18 off-prompt)  3.2 img/s  ETA 83.3h
+  37,096/1,000,000 kept (rejected: 40 too blank, 130 too dense, 18 off-prompt)  3.2 img/s  ETA 83.3h
+  37,636/1,000,000 kept (rejected: 40 too blank, 130 too dense, 18 off-prompt)  3.2 img/s  ETA 83.2h
+  38,174/1,000,000 kept (rejected: 40 too blank, 132 too dense, 18 off-prompt)  3.2 img/s  ETA 83.2h
+  38,710/1,000,000 kept (rejected: 41 too blank, 135 too dense, 18 off-prompt)  3.2 img/s  ETA 83.1h
+  39,246/1,000,000 kept (rejected: 41 too blank, 139 too dense, 18 off-prompt)  3.2 img/s  ETA 83.1h
+  39,783/1,000,000 kept (rejected: 41 too blank, 142 too dense, 18 off-prompt)  3.2 img/s  ETA 83.1h
+  [checkpointed 40,079 samples to data/synthetic_v3.pt]
+  40,317/1,000,000 kept (rejected: 43 too blank, 143 too dense, 19 off-prompt)  3.2 img/s  ETA 83.0h
+  40,855/1,000,000 kept (rejected: 43 too blank, 145 too dense, 19 off-prompt)  3.2 img/s  ETA 83.0h
+  41,394/1,000,000 kept (rejected: 44 too blank, 145 too dense, 19 off-prompt)  3.2 img/s  ETA 82.9h
+  41,927/1,000,000 kept (rejected: 45 too blank, 148 too dense, 20 off-prompt)  3.2 img/s  ETA 82.9h
+  42,457/1,000,000 kept (rejected: 45 too blank, 149 too dense, 23 off-prompt)  3.2 img/s  ETA 82.8h
+  42,993/1,000,000 kept (rejected: 45 too blank, 153 too dense, 23 off-prompt)  3.2 img/s  ETA 82.8h
+  43,531/1,000,000 kept (rejected: 45 too blank, 155 too dense, 23 off-prompt)  3.2 img/s  ETA 82.7h
+  44,069/1,000,000 kept (rejected: 46 too blank, 156 too dense, 23 off-prompt)  3.2 img/s  ETA 82.7h
+  44,607/1,000,000 kept (rejected: 46 too blank, 158 too dense, 23 off-prompt)  3.2 img/s  ETA 82.6h
+  45,138/1,000,000 kept (rejected: 46 too blank, 164 too dense, 24 off-prompt)  3.2 img/s  ETA 82.6h
+  [checkpointed 45,138 samples to data/synthetic_v3.pt]
+  45,671/1,000,000 kept (rejected: 48 too blank, 166 too dense, 25 off-prompt)  3.2 img/s  ETA 82.5h
+  46,207/1,000,000 kept (rejected: 48 too blank, 167 too dense, 26 off-prompt)  3.2 img/s  ETA 82.5h
+  46,744/1,000,000 kept (rejected: 49 too blank, 169 too dense, 26 off-prompt)  3.2 img/s  ETA 82.4h
+  47,282/1,000,000 kept (rejected: 50 too blank, 170 too dense, 26 off-prompt)  3.2 img/s  ETA 82.4h
+  47,819/1,000,000 kept (rejected: 51 too blank, 172 too dense, 26 off-prompt)  3.2 img/s  ETA 82.3h
+  48,359/1,000,000 kept (rejected: 51 too blank, 172 too dense, 26 off-prompt)  3.2 img/s  ETA 82.3h
+  48,898/1,000,000 kept (rejected: 51 too blank, 173 too dense, 26 off-prompt)  3.2 img/s  ETA 82.2h
+  49,438/1,000,000 kept (rejected: 51 too blank, 173 too dense, 26 off-prompt)  3.2 img/s  ETA 82.2h
+  49,976/1,000,000 kept (rejected: 52 too blank, 174 too dense, 26 off-prompt)  3.2 img/s  ETA 82.1h
+  [checkpointed 50,156 samples to data/synthetic_v3.pt]
+  50,516/1,000,000 kept (rejected: 52 too blank, 174 too dense, 26 off-prompt)  3.2 img/s  ETA 82.1h
+  51,056/1,000,000 kept (rejected: 52 too blank, 174 too dense, 26 off-prompt)  3.2 img/s  ETA 82.0h
+  51,593/1,000,000 kept (rejected: 52 too blank, 177 too dense, 26 off-prompt)  3.2 img/s  ETA 82.0h
+  52,131/1,000,000 kept (rejected: 52 too blank, 179 too dense, 26 off-prompt)  3.2 img/s  ETA 81.9h
+  52,668/1,000,000 kept (rejected: 52 too blank, 182 too dense, 26 off-prompt)  3.2 img/s  ETA 81.9h
+  53,206/1,000,000 kept (rejected: 52 too blank, 184 too dense, 26 off-prompt)  3.2 img/s  ETA 81.8h
+  53,737/1,000,000 kept (rejected: 58 too blank, 187 too dense, 26 off-prompt)  3.2 img/s  ETA 81.8h
+  54,276/1,000,000 kept (rejected: 58 too blank, 188 too dense, 26 off-prompt)  3.2 img/s  ETA 81.7h
+  54,814/1,000,000 kept (rejected: 59 too blank, 189 too dense, 26 off-prompt)  3.2 img/s  ETA 81.7h
+  [checkpointed 55,173 samples to data/synthetic_v3.pt]
+  55,352/1,000,000 kept (rejected: 59 too blank, 191 too dense, 26 off-prompt)  3.2 img/s  ETA 81.6h
+  55,891/1,000,000 kept (rejected: 59 too blank, 192 too dense, 26 off-prompt)  3.2 img/s  ETA 81.6h
+  56,428/1,000,000 kept (rejected: 62 too blank, 192 too dense, 26 off-prompt)  3.2 img/s  ETA 81.5h
+  56,968/1,000,000 kept (rejected: 62 too blank, 192 too dense, 26 off-prompt)  3.2 img/s  ETA 81.5h
+  57,505/1,000,000 kept (rejected: 62 too blank, 195 too dense, 26 off-prompt)  3.2 img/s  ETA 81.4h
+  58,042/1,000,000 kept (rejected: 63 too blank, 197 too dense, 26 off-prompt)  3.2 img/s  ETA 81.4h
+  58,579/1,000,000 kept (rejected: 63 too blank, 200 too dense, 26 off-prompt)  3.2 img/s  ETA 81.3h
+  59,114/1,000,000 kept (rejected: 63 too blank, 205 too dense, 26 off-prompt)  3.2 img/s  ETA 81.3h
+  59,651/1,000,000 kept (rejected: 63 too blank, 208 too dense, 26 off-prompt)  3.2 img/s  ETA 81.2h
+  60,186/1,000,000 kept (rejected: 63 too blank, 210 too dense, 27 off-prompt)  3.2 img/s  ETA 81.2h
+  [checkpointed 60,186 samples to data/synthetic_v3.pt]
+  60,714/1,000,000 kept (rejected: 69 too blank, 213 too dense, 28 off-prompt)  3.2 img/s  ETA 81.1h
+  61,254/1,000,000 kept (rejected: 69 too blank, 213 too dense, 28 off-prompt)  3.2 img/s  ETA 81.1h
+  61,792/1,000,000 kept (rejected: 69 too blank, 215 too dense, 28 off-prompt)  3.2 img/s  ETA 81.0h
+  62,328/1,000,000 kept (rejected: 70 too blank, 218 too dense, 28 off-prompt)  3.2 img/s  ETA 81.0h
+  62,865/1,000,000 kept (rejected: 70 too blank, 221 too dense, 28 off-prompt)  3.2 img/s  ETA 81.0h
+  63,396/1,000,000 kept (rejected: 73 too blank, 224 too dense, 29 off-prompt)  3.2 img/s  ETA 80.9h
+  63,934/1,000,000 kept (rejected: 73 too blank, 226 too dense, 29 off-prompt)  3.2 img/s  ETA 80.9h
+  64,469/1,000,000 kept (rejected: 74 too blank, 227 too dense, 30 off-prompt)  3.2 img/s  ETA 80.8h
+  65,002/1,000,000 kept (rejected: 78 too blank, 230 too dense, 30 off-prompt)  3.2 img/s  ETA 80.8h
+  [checkpointed 65,241 samples to data/synthetic_v3.pt]
+  65,538/1,000,000 kept (rejected: 78 too blank, 234 too dense, 30 off-prompt)  3.2 img/s  ETA 80.8h
+  66,076/1,000,000 kept (rejected: 78 too blank, 236 too dense, 30 off-prompt)  3.2 img/s  ETA 80.7h
+  66,609/1,000,000 kept (rejected: 79 too blank, 242 too dense, 30 off-prompt)  3.2 img/s  ETA 80.7h
+  67,144/1,000,000 kept (rejected: 80 too blank, 246 too dense, 30 off-prompt)  3.2 img/s  ETA 80.6h
+  67,683/1,000,000 kept (rejected: 80 too blank, 247 too dense, 30 off-prompt)  3.2 img/s  ETA 80.6h
+  68,217/1,000,000 kept (rejected: 81 too blank, 252 too dense, 30 off-prompt)  3.2 img/s  ETA 80.5h
+  68,748/1,000,000 kept (rejected: 88 too blank, 254 too dense, 30 off-prompt)  3.2 img/s  ETA 80.5h
+  69,287/1,000,000 kept (rejected: 88 too blank, 255 too dense, 30 off-prompt)  3.2 img/s  ETA 80.5h
+  69,822/1,000,000 kept (rejected: 90 too blank, 255 too dense, 31 off-prompt)  3.2 img/s  ETA 80.4h
+  [checkpointed 70,290 samples to data/synthetic_v3.pt]
+  70,349/1,000,000 kept (rejected: 90 too blank, 259 too dense, 34 off-prompt)  3.2 img/s  ETA 80.4h
+  70,888/1,000,000 kept (rejected: 90 too blank, 260 too dense, 34 off-prompt)  3.2 img/s  ETA 80.3h
+  71,425/1,000,000 kept (rejected: 90 too blank, 263 too dense, 34 off-prompt)  3.2 img/s  ETA 80.3h
+  71,960/1,000,000 kept (rejected: 90 too blank, 265 too dense, 35 off-prompt)  3.2 img/s  ETA 80.2h
+  72,497/1,000,000 kept (rejected: 90 too blank, 268 too dense, 35 off-prompt)  3.2 img/s  ETA 80.2h
+  73,032/1,000,000 kept (rejected: 91 too blank, 269 too dense, 36 off-prompt)  3.2 img/s  ETA 80.2h
+  73,563/1,000,000 kept (rejected: 92 too blank, 274 too dense, 37 off-prompt)  3.2 img/s  ETA 80.1h
+  74,101/1,000,000 kept (rejected: 92 too blank, 276 too dense, 37 off-prompt)  3.2 img/s  ETA 80.1h
+  74,641/1,000,000 kept (rejected: 92 too blank, 276 too dense, 37 off-prompt)  3.2 img/s  ETA 80.0h
+  75,174/1,000,000 kept (rejected: 92 too blank, 280 too dense, 38 off-prompt)  3.2 img/s  ETA 80.0h
+  [checkpointed 75,293 samples to data/synthetic_v3.pt]
+  75,710/1,000,000 kept (rejected: 92 too blank, 281 too dense, 39 off-prompt)  3.2 img/s  ETA 79.9h
+  76,249/1,000,000 kept (rejected: 92 too blank, 282 too dense, 40 off-prompt)  3.2 img/s  ETA 79.9h
+  76,780/1,000,000 kept (rejected: 93 too blank, 284 too dense, 41 off-prompt)  3.2 img/s  ETA 79.8h
+  77,318/1,000,000 kept (rejected: 93 too blank, 286 too dense, 41 off-prompt)  3.2 img/s  ETA 79.8h
+  77,858/1,000,000 kept (rejected: 93 too blank, 286 too dense, 41 off-prompt)  3.2 img/s  ETA 79.7h
+  78,395/1,000,000 kept (rejected: 95 too blank, 287 too dense, 42 off-prompt)  3.2 img/s  ETA 79.7h
+  78,930/1,000,000 kept (rejected: 95 too blank, 289 too dense, 42 off-prompt)  3.2 img/s  ETA 79.6h
+  79,468/1,000,000 kept (rejected: 95 too blank, 291 too dense, 42 off-prompt)  3.2 img/s  ETA 79.6h
+  80,005/1,000,000 kept (rejected: 95 too blank, 294 too dense, 42 off-prompt)  3.2 img/s  ETA 79.6h
+  [checkpointed 80,305 samples to data/synthetic_v3.pt]
+  80,545/1,000,000 kept (rejected: 95 too blank, 294 too dense, 42 off-prompt)  3.2 img/s  ETA 79.5h
+  81,083/1,000,000 kept (rejected: 96 too blank, 295 too dense, 42 off-prompt)  3.2 img/s  ETA 79.5h
+  81,619/1,000,000 kept (rejected: 96 too blank, 299 too dense, 42 off-prompt)  3.2 img/s  ETA 79.4h
+  82,152/1,000,000 kept (rejected: 100 too blank, 302 too dense, 42 off-prompt)  3.2 img/s  ETA 79.4h
+  82,691/1,000,000 kept (rejected: 100 too blank, 303 too dense, 43 off-prompt)  3.2 img/s  ETA 79.3h
+  83,228/1,000,000 kept (rejected: 100 too blank, 303 too dense, 43 off-prompt)  3.2 img/s  ETA 79.3h
+  83,766/1,000,000 kept (rejected: 100 too blank, 305 too dense, 43 off-prompt)  3.2 img/s  ETA 79.2h
+  84,301/1,000,000 kept (rejected: 100 too blank, 307 too dense, 44 off-prompt)  3.2 img/s  ETA 79.2h
+  84,838/1,000,000 kept (rejected: 101 too blank, 309 too dense, 44 off-prompt)  3.2 img/s  ETA 79.1h
+  [checkpointed 85,315 samples to data/synthetic_v3.pt]
+  85,375/1,000,000 kept (rejected: 101 too blank, 312 too dense, 44 off-prompt)  3.2 img/s  ETA 79.0h
+  85,915/1,000,000 kept (rejected: 101 too blank, 312 too dense, 44 off-prompt)  3.2 img/s  ETA 79.0h
+  86,452/1,000,000 kept (rejected: 102 too blank, 314 too dense, 44 off-prompt)  3.2 img/s  ETA 79.0h
+  86,989/1,000,000 kept (rejected: 102 too blank, 317 too dense, 44 off-prompt)  3.2 img/s  ETA 78.9h
+  87,528/1,000,000 kept (rejected: 102 too blank, 318 too dense, 44 off-prompt)  3.2 img/s  ETA 78.9h
+  88,064/1,000,000 kept (rejected: 105 too blank, 319 too dense, 44 off-prompt)  3.2 img/s  ETA 78.8h
+  88,599/1,000,000 kept (rejected: 107 too blank, 322 too dense, 44 off-prompt)  3.2 img/s  ETA 78.8h
+  89,138/1,000,000 kept (rejected: 107 too blank, 323 too dense, 44 off-prompt)  3.2 img/s  ETA 78.8h
+  89,673/1,000,000 kept (rejected: 107 too blank, 328 too dense, 44 off-prompt)  3.2 img/s  ETA 78.7h
+  90,208/1,000,000 kept (rejected: 107 too blank, 330 too dense, 45 off-prompt)  3.2 img/s  ETA 78.7h
+  [checkpointed 90,327 samples to data/synthetic_v3.pt]
+  90,745/1,000,000 kept (rejected: 107 too blank, 333 too dense, 45 off-prompt)  3.2 img/s  ETA 78.6h
+  91,280/1,000,000 kept (rejected: 110 too blank, 335 too dense, 45 off-prompt)  3.2 img/s  ETA 78.6h
+  91,814/1,000,000 kept (rejected: 110 too blank, 341 too dense, 45 off-prompt)  3.2 img/s  ETA 78.5h
+  92,349/1,000,000 kept (rejected: 110 too blank, 346 too dense, 45 off-prompt)  3.2 img/s  ETA 78.5h
+  92,887/1,000,000 kept (rejected: 111 too blank, 347 too dense, 45 off-prompt)  3.2 img/s  ETA 78.4h
+  93,420/1,000,000 kept (rejected: 111 too blank, 348 too dense, 47 off-prompt)  3.2 img/s  ETA 78.4h
+  93,956/1,000,000 kept (rejected: 112 too blank, 351 too dense, 47 off-prompt)  3.2 img/s  ETA 78.3h
+  94,486/1,000,000 kept (rejected: 115 too blank, 352 too dense, 49 off-prompt)  3.2 img/s  ETA 78.3h
+  95,019/1,000,000 kept (rejected: 118 too blank, 356 too dense, 49 off-prompt)  3.2 img/s  ETA 78.3h
+  [checkpointed 95,379 samples to data/synthetic_v3.pt]
+  95,553/1,000,000 kept (rejected: 124 too blank, 356 too dense, 49 off-prompt)  3.2 img/s  ETA 78.2h
+  96,085/1,000,000 kept (rejected: 128 too blank, 357 too dense, 50 off-prompt)  3.2 img/s  ETA 78.2h
+  96,619/1,000,000 kept (rejected: 129 too blank, 359 too dense, 51 off-prompt)  3.2 img/s  ETA 78.1h
+  97,156/1,000,000 kept (rejected: 132 too blank, 359 too dense, 51 off-prompt)  3.2 img/s  ETA 78.1h
+  97,696/1,000,000 kept (rejected: 132 too blank, 359 too dense, 51 off-prompt)  3.2 img/s  ETA 78.0h
+  98,231/1,000,000 kept (rejected: 135 too blank, 361 too dense, 51 off-prompt)  3.2 img/s  ETA 78.0h
+  98,767/1,000,000 kept (rejected: 135 too blank, 362 too dense, 52 off-prompt)  3.2 img/s  ETA 77.9h
+  99,305/1,000,000 kept (rejected: 135 too blank, 364 too dense, 52 off-prompt)  3.2 img/s  ETA 77.9h
+  99,842/1,000,000 kept (rejected: 136 too blank, 366 too dense, 52 off-prompt)  3.2 img/s  ETA 77.8h
+  100,381/1,000,000 kept (rejected: 136 too blank, 367 too dense, 52 off-prompt)  3.2 img/s  ETA 77.8h
+  [checkpointed 100,381 samples to data/synthetic_v3.pt]
+  100,918/1,000,000 kept (rejected: 137 too blank, 369 too dense, 52 off-prompt)  3.2 img/s  ETA 77.8h
+  101,455/1,000,000 kept (rejected: 137 too blank, 372 too dense, 52 off-prompt)  3.2 img/s  ETA 77.7h
+  101,994/1,000,000 kept (rejected: 137 too blank, 373 too dense, 52 off-prompt)  3.2 img/s  ETA 77.7h
+  102,533/1,000,000 kept (rejected: 138 too blank, 373 too dense, 52 off-prompt)  3.2 img/s  ETA 77.6h
+  103,071/1,000,000 kept (rejected: 140 too blank, 373 too dense, 52 off-prompt)  3.2 img/s  ETA 77.6h
+  103,608/1,000,000 kept (rejected: 140 too blank, 373 too dense, 53 off-prompt)  3.2 img/s  ETA 77.5h
+  104,145/1,000,000 kept (rejected: 140 too blank, 376 too dense, 53 off-prompt)  3.2 img/s  ETA 77.5h
+  104,680/1,000,000 kept (rejected: 143 too blank, 378 too dense, 53 off-prompt)  3.2 img/s  ETA 77.4h
+  105,220/1,000,000 kept (rejected: 143 too blank, 378 too dense, 53 off-prompt)  3.2 img/s  ETA 77.4h
+  [checkpointed 105,400 samples to data/synthetic_v3.pt]
+  105,758/1,000,000 kept (rejected: 143 too blank, 380 too dense, 53 off-prompt)  3.2 img/s  ETA 77.3h
+  106,297/1,000,000 kept (rejected: 143 too blank, 381 too dense, 53 off-prompt)  3.2 img/s  ETA 77.3h
+  106,832/1,000,000 kept (rejected: 144 too blank, 382 too dense, 54 off-prompt)  3.2 img/s  ETA 77.2h
+  107,372/1,000,000 kept (rejected: 144 too blank, 382 too dense, 54 off-prompt)  3.2 img/s  ETA 77.2h
+  107,908/1,000,000 kept (rejected: 144 too blank, 386 too dense, 54 off-prompt)  3.2 img/s  ETA 77.1h
+  108,442/1,000,000 kept (rejected: 145 too blank, 388 too dense, 55 off-prompt)  3.2 img/s  ETA 77.1h
+  108,980/1,000,000 kept (rejected: 145 too blank, 390 too dense, 55 off-prompt)  3.2 img/s  ETA 77.0h
+  109,513/1,000,000 kept (rejected: 151 too blank, 391 too dense, 55 off-prompt)  3.2 img/s  ETA 77.0h
+  110,039/1,000,000 kept (rejected: 155 too blank, 392 too dense, 58 off-prompt)  3.2 img/s  ETA 76.9h
+  [checkpointed 110,455 samples to data/synthetic_v3.pt]
+  110,574/1,000,000 kept (rejected: 156 too blank, 396 too dense, 58 off-prompt)  3.2 img/s  ETA 76.9h
+  111,108/1,000,000 kept (rejected: 157 too blank, 401 too dense, 58 off-prompt)  3.2 img/s  ETA 76.9h
+  111,646/1,000,000 kept (rejected: 157 too blank, 403 too dense, 58 off-prompt)  3.2 img/s  ETA 76.8h
+  112,180/1,000,000 kept (rejected: 157 too blank, 406 too dense, 59 off-prompt)  3.2 img/s  ETA 76.8h
+  112,716/1,000,000 kept (rejected: 157 too blank, 410 too dense, 59 off-prompt)  3.2 img/s  ETA 76.7h
+  113,247/1,000,000 kept (rejected: 160 too blank, 413 too dense, 60 off-prompt)  3.2 img/s  ETA 76.7h
+  113,783/1,000,000 kept (rejected: 164 too blank, 413 too dense, 60 off-prompt)  3.2 img/s  ETA 76.6h
+  114,319/1,000,000 kept (rejected: 164 too blank, 417 too dense, 60 off-prompt)  3.2 img/s  ETA 76.6h
+  114,853/1,000,000 kept (rejected: 165 too blank, 422 too dense, 60 off-prompt)  3.2 img/s  ETA 76.5h
+  115,390/1,000,000 kept (rejected: 168 too blank, 422 too dense, 60 off-prompt)  3.2 img/s  ETA 76.5h
+  [checkpointed 115,506 samples to data/synthetic_v3.pt]
+  115,923/1,000,000 kept (rejected: 170 too blank, 424 too dense, 61 off-prompt)  3.2 img/s  ETA 76.4h
+  116,463/1,000,000 kept (rejected: 170 too blank, 424 too dense, 61 off-prompt)  3.2 img/s  ETA 76.4h
+  117,002/1,000,000 kept (rejected: 170 too blank, 425 too dense, 61 off-prompt)  3.2 img/s  ETA 76.3h
+  117,540/1,000,000 kept (rejected: 170 too blank, 427 too dense, 61 off-prompt)  3.2 img/s  ETA 76.3h
+  118,078/1,000,000 kept (rejected: 170 too blank, 429 too dense, 61 off-prompt)  3.2 img/s  ETA 76.2h
+  118,613/1,000,000 kept (rejected: 171 too blank, 433 too dense, 61 off-prompt)  3.2 img/s  ETA 76.2h
+  119,150/1,000,000 kept (rejected: 171 too blank, 436 too dense, 61 off-prompt)  3.2 img/s  ETA 76.1h
+  119,689/1,000,000 kept (rejected: 172 too blank, 436 too dense, 61 off-prompt)  3.2 img/s  ETA 76.1h
+  120,225/1,000,000 kept (rejected: 172 too blank, 437 too dense, 62 off-prompt)  3.2 img/s  ETA 76.0h
+  [checkpointed 120,523 samples to data/synthetic_v3.pt]
+  120,762/1,000,000 kept (rejected: 172 too blank, 440 too dense, 62 off-prompt)  3.2 img/s  ETA 76.0h
+  121,300/1,000,000 kept (rejected: 173 too blank, 441 too dense, 62 off-prompt)  3.2 img/s  ETA 75.9h
+  121,839/1,000,000 kept (rejected: 173 too blank, 442 too dense, 62 off-prompt)  3.2 img/s  ETA 75.9h
+  122,376/1,000,000 kept (rejected: 175 too blank, 443 too dense, 62 off-prompt)  3.2 img/s  ETA 75.8h
+  122,912/1,000,000 kept (rejected: 175 too blank, 444 too dense, 63 off-prompt)  3.2 img/s  ETA 75.8h
+  123,448/1,000,000 kept (rejected: 179 too blank, 444 too dense, 63 off-prompt)  3.2 img/s  ETA 75.7h
+  123,987/1,000,000 kept (rejected: 179 too blank, 445 too dense, 63 off-prompt)  3.2 img/s  ETA 75.7h
+  124,523/1,000,000 kept (rejected: 179 too blank, 449 too dense, 63 off-prompt)  3.2 img/s  ETA 75.6h
+  125,059/1,000,000 kept (rejected: 181 too blank, 451 too dense, 63 off-prompt)  3.2 img/s  ETA 75.6h
+  [checkpointed 125,537 samples to data/synthetic_v3.pt]
+  125,597/1,000,000 kept (rejected: 181 too blank, 453 too dense, 63 off-prompt)  3.2 img/s  ETA 75.5h
+  126,136/1,000,000 kept (rejected: 181 too blank, 454 too dense, 63 off-prompt)  3.2 img/s  ETA 75.5h
+  126,673/1,000,000 kept (rejected: 182 too blank, 456 too dense, 63 off-prompt)  3.2 img/s  ETA 75.4h
+  127,210/1,000,000 kept (rejected: 183 too blank, 458 too dense, 63 off-prompt)  3.2 img/s  ETA 75.4h
+  127,747/1,000,000 kept (rejected: 183 too blank, 461 too dense, 63 off-prompt)  3.2 img/s  ETA 75.3h
+  128,284/1,000,000 kept (rejected: 184 too blank, 463 too dense, 63 off-prompt)  3.2 img/s  ETA 75.3h
+  128,814/1,000,000 kept (rejected: 191 too blank, 466 too dense, 63 off-prompt)  3.2 img/s  ETA 75.2h
+  129,352/1,000,000 kept (rejected: 191 too blank, 468 too dense, 63 off-prompt)  3.2 img/s  ETA 75.2h
+  129,890/1,000,000 kept (rejected: 191 too blank, 470 too dense, 63 off-prompt)  3.2 img/s  ETA 75.1h
+  130,429/1,000,000 kept (rejected: 191 too blank, 471 too dense, 63 off-prompt)  3.2 img/s  ETA 75.1h
+  [checkpointed 130,549 samples to data/synthetic_v3.pt]
+  130,967/1,000,000 kept (rejected: 191 too blank, 473 too dense, 63 off-prompt)  3.2 img/s  ETA 75.0h
+  131,504/1,000,000 kept (rejected: 191 too blank, 473 too dense, 64 off-prompt)  3.2 img/s  ETA 75.0h
+  132,038/1,000,000 kept (rejected: 192 too blank, 475 too dense, 65 off-prompt)  3.2 img/s  ETA 74.9h
+  132,574/1,000,000 kept (rejected: 192 too blank, 476 too dense, 66 off-prompt)  3.2 img/s  ETA 74.9h
+  133,109/1,000,000 kept (rejected: 192 too blank, 478 too dense, 67 off-prompt)  3.2 img/s  ETA 74.8h
+  133,645/1,000,000 kept (rejected: 193 too blank, 481 too dense, 67 off-prompt)  3.2 img/s  ETA 74.8h
+  134,181/1,000,000 kept (rejected: 196 too blank, 482 too dense, 67 off-prompt)  3.2 img/s  ETA 74.7h
+  134,719/1,000,000 kept (rejected: 196 too blank, 484 too dense, 67 off-prompt)  3.2 img/s  ETA 74.7h
+  135,254/1,000,000 kept (rejected: 198 too blank, 487 too dense, 67 off-prompt)  3.2 img/s  ETA 74.7h
+  [checkpointed 135,552 samples to data/synthetic_v3.pt]
+  135,792/1,000,000 kept (rejected: 198 too blank, 489 too dense, 67 off-prompt)  3.2 img/s  ETA 74.6h
+  136,329/1,000,000 kept (rejected: 198 too blank, 492 too dense, 67 off-prompt)  3.2 img/s  ETA 74.6h
+  136,868/1,000,000 kept (rejected: 199 too blank, 492 too dense, 67 off-prompt)  3.2 img/s  ETA 74.5h
+  137,406/1,000,000 kept (rejected: 199 too blank, 494 too dense, 67 off-prompt)  3.2 img/s  ETA 74.5h
+  137,945/1,000,000 kept (rejected: 199 too blank, 495 too dense, 67 off-prompt)  3.2 img/s  ETA 74.4h
+  138,480/1,000,000 kept (rejected: 199 too blank, 497 too dense, 68 off-prompt)  3.2 img/s  ETA 74.4h
+  139,014/1,000,000 kept (rejected: 199 too blank, 500 too dense, 70 off-prompt)  3.2 img/s  ETA 74.3h
+  139,546/1,000,000 kept (rejected: 200 too blank, 501 too dense, 71 off-prompt)  3.2 img/s  ETA 74.3h
+  140,082/1,000,000 kept (rejected: 200 too blank, 502 too dense, 72 off-prompt)  3.2 img/s  ETA 74.2h
+  [checkpointed 140,560 samples to data/synthetic_v3.pt]
+  140,620/1,000,000 kept (rejected: 200 too blank, 504 too dense, 72 off-prompt)  3.2 img/s  ETA 74.1h
+  141,159/1,000,000 kept (rejected: 200 too blank, 505 too dense, 72 off-prompt)  3.2 img/s  ETA 74.1h
+  141,699/1,000,000 kept (rejected: 200 too blank, 505 too dense, 72 off-prompt)  3.2 img/s  ETA 74.1h
+  142,236/1,000,000 kept (rejected: 200 too blank, 505 too dense, 73 off-prompt)  3.2 img/s  ETA 74.0h
+  142,773/1,000,000 kept (rejected: 200 too blank, 508 too dense, 73 off-prompt)  3.2 img/s  ETA 74.0h
+  143,313/1,000,000 kept (rejected: 200 too blank, 508 too dense, 73 off-prompt)  3.2 img/s  ETA 73.9h
+  143,850/1,000,000 kept (rejected: 201 too blank, 510 too dense, 73 off-prompt)  3.2 img/s  ETA 73.9h
+  144,387/1,000,000 kept (rejected: 201 too blank, 513 too dense, 73 off-prompt)  3.2 img/s  ETA 73.8h
+  144,925/1,000,000 kept (rejected: 202 too blank, 514 too dense, 73 off-prompt)  3.2 img/s  ETA 73.8h
+  145,459/1,000,000 kept (rejected: 202 too blank, 517 too dense, 74 off-prompt)  3.2 img/s  ETA 73.7h
+  [checkpointed 145,579 samples to data/synthetic_v3.pt]
+  145,999/1,000,000 kept (rejected: 202 too blank, 517 too dense, 74 off-prompt)  3.2 img/s  ETA 73.7h
+  146,532/1,000,000 kept (rejected: 206 too blank, 517 too dense, 75 off-prompt)  3.2 img/s  ETA 73.6h
+  147,071/1,000,000 kept (rejected: 206 too blank, 518 too dense, 75 off-prompt)  3.2 img/s  ETA 73.6h
+  147,611/1,000,000 kept (rejected: 206 too blank, 518 too dense, 75 off-prompt)  3.2 img/s  ETA 73.5h
+  148,149/1,000,000 kept (rejected: 206 too blank, 520 too dense, 75 off-prompt)  3.2 img/s  ETA 73.5h
+  148,683/1,000,000 kept (rejected: 207 too blank, 522 too dense, 76 off-prompt)  3.2 img/s  ETA 73.4h
+  149,216/1,000,000 kept (rejected: 207 too blank, 526 too dense, 77 off-prompt)  3.2 img/s  ETA 73.4h
+  149,752/1,000,000 kept (rejected: 210 too blank, 527 too dense, 77 off-prompt)  3.2 img/s  ETA 73.3h
+  150,291/1,000,000 kept (rejected: 210 too blank, 528 too dense, 77 off-prompt)  3.2 img/s  ETA 73.3h
+  [checkpointed 150,589 samples to data/synthetic_v3.pt]
+  150,828/1,000,000 kept (rejected: 210 too blank, 531 too dense, 77 off-prompt)  3.2 img/s  ETA 73.2h
+  151,366/1,000,000 kept (rejected: 211 too blank, 532 too dense, 77 off-prompt)  3.2 img/s  ETA 73.2h
+  151,905/1,000,000 kept (rejected: 211 too blank, 533 too dense, 77 off-prompt)  3.2 img/s  ETA 73.1h
+  152,444/1,000,000 kept (rejected: 211 too blank, 534 too dense, 77 off-prompt)  3.2 img/s  ETA 73.1h
+  152,984/1,000,000 kept (rejected: 211 too blank, 534 too dense, 77 off-prompt)  3.2 img/s  ETA 73.0h
+  153,522/1,000,000 kept (rejected: 211 too blank, 536 too dense, 77 off-prompt)  3.2 img/s  ETA 73.0h
+  154,054/1,000,000 kept (rejected: 214 too blank, 538 too dense, 78 off-prompt)  3.2 img/s  ETA 73.0h
+  154,591/1,000,000 kept (rejected: 215 too blank, 540 too dense, 78 off-prompt)  3.2 img/s  ETA 72.9h
+  155,130/1,000,000 kept (rejected: 215 too blank, 541 too dense, 79 off-prompt)  3.2 img/s  ETA 72.9h
+  [checkpointed 155,602 samples to data/synthetic_v3.pt]
+  155,662/1,000,000 kept (rejected: 220 too blank, 541 too dense, 79 off-prompt)  3.2 img/s  ETA 72.8h
+  156,201/1,000,000 kept (rejected: 220 too blank, 542 too dense, 79 off-prompt)  3.2 img/s  ETA 72.8h
+  156,737/1,000,000 kept (rejected: 221 too blank, 542 too dense, 80 off-prompt)  3.2 img/s  ETA 72.7h
+  157,272/1,000,000 kept (rejected: 221 too blank, 547 too dense, 80 off-prompt)  3.2 img/s  ETA 72.7h
+  157,810/1,000,000 kept (rejected: 221 too blank, 549 too dense, 80 off-prompt)  3.2 img/s  ETA 72.6h
+  158,346/1,000,000 kept (rejected: 221 too blank, 553 too dense, 80 off-prompt)  3.2 img/s  ETA 72.6h
+  158,886/1,000,000 kept (rejected: 221 too blank, 553 too dense, 80 off-prompt)  3.2 img/s  ETA 72.5h
+  159,422/1,000,000 kept (rejected: 221 too blank, 554 too dense, 81 off-prompt)  3.2 img/s  ETA 72.5h
+  159,958/1,000,000 kept (rejected: 222 too blank, 557 too dense, 81 off-prompt)  3.2 img/s  ETA 72.4h
+  160,495/1,000,000 kept (rejected: 222 too blank, 560 too dense, 81 off-prompt)  3.2 img/s  ETA 72.4h
+  [checkpointed 160,615 samples to data/synthetic_v3.pt]
+  161,032/1,000,000 kept (rejected: 222 too blank, 560 too dense, 82 off-prompt)  3.2 img/s  ETA 72.3h
+  161,570/1,000,000 kept (rejected: 222 too blank, 562 too dense, 82 off-prompt)  3.2 img/s  ETA 72.3h
+  162,110/1,000,000 kept (rejected: 222 too blank, 562 too dense, 82 off-prompt)  3.2 img/s  ETA 72.2h
+  162,648/1,000,000 kept (rejected: 222 too blank, 564 too dense, 82 off-prompt)  3.2 img/s  ETA 72.2h
+  163,186/1,000,000 kept (rejected: 222 too blank, 566 too dense, 82 off-prompt)  3.2 img/s  ETA 72.1h
+  163,725/1,000,000 kept (rejected: 222 too blank, 567 too dense, 82 off-prompt)  3.2 img/s  ETA 72.1h
+  164,260/1,000,000 kept (rejected: 225 too blank, 569 too dense, 82 off-prompt)  3.2 img/s  ETA 72.0h
+  164,794/1,000,000 kept (rejected: 225 too blank, 572 too dense, 83 off-prompt)  3.2 img/s  ETA 72.0h
+  165,332/1,000,000 kept (rejected: 226 too blank, 573 too dense, 83 off-prompt)  3.2 img/s  ETA 71.9h
+  [checkpointed 165,626 samples to data/synthetic_v3.pt]
+  165,866/1,000,000 kept (rejected: 226 too blank, 576 too dense, 84 off-prompt)  3.2 img/s  ETA 71.9h
+  166,405/1,000,000 kept (rejected: 226 too blank, 577 too dense, 84 off-prompt)  3.2 img/s  ETA 71.9h
+  166,942/1,000,000 kept (rejected: 226 too blank, 580 too dense, 84 off-prompt)  3.2 img/s  ETA 71.8h
+  167,482/1,000,000 kept (rejected: 226 too blank, 580 too dense, 84 off-prompt)  3.2 img/s  ETA 71.8h
+  168,018/1,000,000 kept (rejected: 227 too blank, 583 too dense, 84 off-prompt)  3.2 img/s  ETA 71.7h
+  168,556/1,000,000 kept (rejected: 227 too blank, 585 too dense, 84 off-prompt)  3.2 img/s  ETA 71.7h
+  169,095/1,000,000 kept (rejected: 227 too blank, 586 too dense, 84 off-prompt)  3.2 img/s  ETA 71.6h
+  169,627/1,000,000 kept (rejected: 234 too blank, 587 too dense, 84 off-prompt)  3.2 img/s  ETA 71.6h
+  170,165/1,000,000 kept (rejected: 235 too blank, 588 too dense, 84 off-prompt)  3.2 img/s  ETA 71.5h
+  [checkpointed 170,637 samples to data/synthetic_v3.pt]
+  170,697/1,000,000 kept (rejected: 236 too blank, 592 too dense, 85 off-prompt)  3.2 img/s  ETA 71.4h
+  171,235/1,000,000 kept (rejected: 236 too blank, 594 too dense, 85 off-prompt)  3.2 img/s  ETA 71.4h
+  171,773/1,000,000 kept (rejected: 236 too blank, 596 too dense, 85 off-prompt)  3.2 img/s  ETA 71.4h
+  172,308/1,000,000 kept (rejected: 238 too blank, 599 too dense, 85 off-prompt)  3.2 img/s  ETA 71.3h
+  172,842/1,000,000 kept (rejected: 239 too blank, 604 too dense, 85 off-prompt)  3.2 img/s  ETA 71.3h
+  173,373/1,000,000 kept (rejected: 243 too blank, 606 too dense, 86 off-prompt)  3.2 img/s  ETA 71.2h
+  173,911/1,000,000 kept (rejected: 243 too blank, 608 too dense, 86 off-prompt)  3.2 img/s  ETA 71.2h
+  174,447/1,000,000 kept (rejected: 244 too blank, 611 too dense, 86 off-prompt)  3.2 img/s  ETA 71.1h
+  174,981/1,000,000 kept (rejected: 244 too blank, 614 too dense, 87 off-prompt)  3.2 img/s  ETA 71.1h
+  175,517/1,000,000 kept (rejected: 244 too blank, 618 too dense, 87 off-prompt)  3.2 img/s  ETA 71.0h
+  [checkpointed 175,637 samples to data/synthetic_v3.pt]
+  176,054/1,000,000 kept (rejected: 244 too blank, 618 too dense, 88 off-prompt)  3.2 img/s  ETA 71.0h
+  176,586/1,000,000 kept (rejected: 245 too blank, 622 too dense, 89 off-prompt)  3.2 img/s  ETA 71.0h
+  177,123/1,000,000 kept (rejected: 246 too blank, 624 too dense, 89 off-prompt)  3.2 img/s  ETA 70.9h
+Process SpawnPoolWorker-37:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-13:
+Process SpawnPoolWorker-42:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-53:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-36:
+Process SpawnPoolWorker-33:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+Process SpawnPoolWorker-47:
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+Process SpawnPoolWorker-45:
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-57:
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-32:
+Traceback (most recent call last):
+Process SpawnPoolWorker-44:
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-27:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-5:
+Traceback (most recent call last):
+Process SpawnPoolWorker-59:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-9:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-51:
+Process SpawnPoolWorker-10:
+Process SpawnPoolWorker-34:
+Traceback (most recent call last):
+Process SpawnPoolWorker-22:
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-29:
+Process SpawnPoolWorker-25:
+Traceback (most recent call last):
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-16:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-11:
+Process SpawnPoolWorker-1:
+Traceback (most recent call last):
+Process SpawnPoolWorker-46:
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+Process SpawnPoolWorker-19:
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-20:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-6:
+Process SpawnPoolWorker-3:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-24:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-15:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-2:
+Process SpawnPoolWorker-52:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-49:
+Process SpawnPoolWorker-61:
+Process SpawnPoolWorker-35:
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+Process SpawnPoolWorker-39:
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-38:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-14:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+Process SpawnPoolWorker-23:
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-7:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-50:
+Process SpawnPoolWorker-26:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-8:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-54:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-62:
+Process SpawnPoolWorker-30:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-58:
+Process SpawnPoolWorker-43:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-40:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-56:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-55:
+Process SpawnPoolWorker-48:
+Traceback (most recent call last):
+Process SpawnPoolWorker-18:
+Process SpawnPoolWorker-31:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+Process SpawnPoolWorker-21:
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+Process SpawnPoolWorker-12:
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-4:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-17:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+Process SpawnPoolWorker-28:
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 131, in worker
+    put((job, i, result))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 314, in _bootstrap
+    self.run()
+  File "/venv/main/lib/python3.12/multiprocessing/process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "/venv/main/lib/python3.12/multiprocessing/pool.py", line 136, in worker
+    put((job, i, (False, wrapped)))
+  File "/venv/main/lib/python3.12/multiprocessing/queues.py", line 399, in put
+    self._writer.send_bytes(obj)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 427, in _send_bytes
+    self._send(header + buf)
+  File "/venv/main/lib/python3.12/multiprocessing/connection.py", line 384, in _send
+    n = write(self._handle, buf)
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+BrokenPipeError: [Errno 32] Broken pipe
+/venv/main/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 6 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+Loading black-forest-labs/FLUX.1-schnell on cuda ...
+[transformers] `Siglip2ImageProcessorFast` is deprecated. The `Fast` suffix for image processors has been removed; use `Siglip2ImageProcessor` instead.
+/venv/main/lib/python3.12/site-packages/huggingface_hub/utils/_validators.py:205: UserWarning: The `local_dir_use_symlinks` argument is deprecated and ignored in `hf_hub_download`. Downloading to a local directory does not use symlinks anymore.
+  warnings.warn(
+Loading pipeline components...:   0%|          | 0/7 [00:00<?, ?it/s]
+Loading weights:   0%|          | 0/196 [00:00<?, ?it/s][ALoading weights: 100%|██████████| 196/196 [00:00<00:00, 2727.85it/s]
+Loading pipeline components...:  14%|█▍        | 1/7 [00:00<00:01,  3.61it/s]
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s][A
+Loading checkpoint shards:  33%|███▎      | 1/3 [00:00<00:00,  3.74it/s][A
+Loading checkpoint shards:  67%|██████▋   | 2/3 [00:00<00:00,  4.04it/s][ALoading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00,  5.04it/s]
+Loading pipeline components...:  29%|██▊       | 2/7 [00:00<00:02,  2.08it/s]
+Loading weights:   0%|          | 0/219 [00:00<?, ?it/s][A
+Loading weights:  30%|███       | 66/219 [00:00<00:00, 612.11it/s][A
+Loading weights:  58%|█████▊    | 128/219 [00:00<00:00, 560.91it/s][A
+Loading weights:  91%|█████████ | 199/219 [00:00<00:00, 610.34it/s][ALoading weights: 100%|██████████| 219/219 [00:00<00:00, 627.60it/s]
+Loading pipeline components...:  57%|█████▋    | 4/7 [00:01<00:00,  3.09it/s]Loading pipeline components...:  86%|████████▌ | 6/7 [00:01<00:00,  5.03it/s]Loading pipeline components...: 100%|██████████| 7/7 [00:01<00:00,  4.72it/s]
+Pipeline: CPU offload enabled (large model)
+  Font: /usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf
+  Glyph render size: 19x23 -> downscaled to 8x12
+  Shape ramp (95 chars):  _`,.-'~;:"^!\)](|/*[j+l<}?>r{L7yv=ciJ1FzTsxS2YC%f3Iun5tZVPwEohk9geqG$6p4HUaXdK&bARQO80@DmBWMN#
+  Shape vector range: [0.000, 1.000]
+Prompt bank: 3,000,064 captions (e.g. ['a flying bridge', 'a rhinoceros', 'a dancing zeppelin'])
+Will merge 175,637 samples from data/synthetic_v3_part1.pt
+Style mix: ALL — every image converted as filled + outline + tonal (3 samples per generation)
+Conversion pool: 16 workers (GPU generates while CPUs convert)
+Loading black-forest-labs/FLUX.1-schnell on cuda ...
+[transformers] `Siglip2ImageProcessorFast` is deprecated. The `Fast` suffix for image processors has been removed; use `Siglip2ImageProcessor` instead.
+/venv/main/lib/python3.12/site-packages/huggingface_hub/utils/_validators.py:205: UserWarning: The `local_dir_use_symlinks` argument is deprecated and ignored in `hf_hub_download`. Downloading to a local directory does not use symlinks anymore.
+  warnings.warn(
+Loading pipeline components...:   0%|          | 0/7 [00:00<?, ?it/s]
+Loading weights:   0%|          | 0/219 [00:00<?, ?it/s][ALoading weights: 100%|██████████| 219/219 [00:00<00:00, 12109.32it/s]
+Loading pipeline components...:  14%|█▍        | 1/7 [00:00<00:01,  5.80it/s]
+Loading weights:   0%|          | 0/196 [00:00<?, ?it/s][ALoading weights: 100%|██████████| 196/196 [00:00<00:00, 12653.28it/s]
+Loading pipeline components...:  57%|█████▋    | 4/7 [00:00<00:00, 16.48it/s]
+Loading checkpoint shards:   0%|          | 0/3 [00:00<?, ?it/s][ALoading checkpoint shards: 100%|██████████| 3/3 [00:00<00:00, 98.26it/s]
+Loading pipeline components...: 100%|██████████| 7/7 [00:00<00:00, 19.74it/s]Loading pipeline components...: 100%|██████████| 7/7 [00:00<00:00, 17.40it/s]
+Pipeline: CPU offload enabled (large model)
+  Font: /usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf
+  Glyph render size: 19x23 -> downscaled to 8x12
+  Shape ramp (95 chars):  _`,.-'~;:"^!\)](|/*[j+l<}?>r{L7yv=ciJ1FzTsxS2YC%f3Iun5tZVPwEohk9geqG$6p4HUaXdK&bARQO80@DmBWMN#
+  Shape vector range: [0.000, 1.000]
+Prompt bank: 3,000,064 captions (e.g. ['a dancing gondola', 'a geometric blender', 'a bellows and a watchtower'])
+Will merge 175,637 samples from data/synthetic_v3_part1.pt
+Style mix: ALL — every image converted as filled + outline + tonal (3 samples per generation)
+Conversion pool: 16 workers (GPU generates while CPUs convert)
+Loading weights:   0%|          | 0/398 [00:00<?, ?it/s]Loading weights: 100%|██████████| 398/398 [00:00<00:00, 69987.13it/s]
+  59/1,000,000 kept (rejected: 0 too blank, 1 too dense, 0 off-prompt)  1.1 img/s  ETA 250.3h
+  594/1,000,000 kept (rejected: 3 too blank, 3 too dense, 0 off-prompt)  2.8 img/s  ETA 100.9h
+  1,130/1,000,000 kept (rejected: 4 too blank, 6 too dense, 0 off-prompt)  3.0 img/s  ETA 91.2h
+  1,663/1,000,000 kept (rejected: 6 too blank, 8 too dense, 2 off-prompt)  3.1 img/s  ETA 88.4h
+  2,198/1,000,000 kept (rejected: 6 too blank, 10 too dense, 2 off-prompt)  3.2 img/s  ETA 87.1h
+  2,728/1,000,000 kept (rejected: 6 too blank, 17 too dense, 3 off-prompt)  3.2 img/s  ETA 86.6h
+  3,267/1,000,000 kept (rejected: 6 too blank, 18 too dense, 3 off-prompt)  3.2 img/s  ETA 86.0h
+  3,803/1,000,000 kept (rejected: 8 too blank, 20 too dense, 3 off-prompt)  3.2 img/s  ETA 85.6h
+  4,341/1,000,000 kept (rejected: 8 too blank, 22 too dense, 3 off-prompt)  3.2 img/s  ETA 85.3h
+  4,880/1,000,000 kept (rejected: 8 too blank, 23 too dense, 3 off-prompt)  3.3 img/s  ETA 85.0h
+  [checkpointed 180,695 samples to data/synthetic_v3.pt]
+  5,412/1,000,000 kept (rejected: 8 too blank, 28 too dense, 4 off-prompt)  3.3 img/s  ETA 84.9h
+  5,951/1,000,000 kept (rejected: 8 too blank, 29 too dense, 4 off-prompt)  3.3 img/s  ETA 84.7h
+  6,489/1,000,000 kept (rejected: 9 too blank, 30 too dense, 4 off-prompt)  3.3 img/s  ETA 84.5h
+  7,028/1,000,000 kept (rejected: 9 too blank, 31 too dense, 4 off-prompt)  3.3 img/s  ETA 84.3h
+  7,567/1,000,000 kept (rejected: 9 too blank, 32 too dense, 4 off-prompt)  3.3 img/s  ETA 84.1h
+  8,100/1,000,000 kept (rejected: 9 too blank, 39 too dense, 4 off-prompt)  3.3 img/s  ETA 84.1h
+  8,636/1,000,000 kept (rejected: 13 too blank, 39 too dense, 4 off-prompt)  3.3 img/s  ETA 84.0h
+  9,175/1,000,000 kept (rejected: 13 too blank, 40 too dense, 4 off-prompt)  3.3 img/s  ETA 83.9h
+  9,708/1,000,000 kept (rejected: 13 too blank, 41 too dense, 6 off-prompt)  3.3 img/s  ETA 83.7h
+  [checkpointed 185,695 samples to data/synthetic_v3.pt]
+  10,237/1,000,000 kept (rejected: 16 too blank, 43 too dense, 9 off-prompt)  3.3 img/s  ETA 83.7h
+  10,766/1,000,000 kept (rejected: 16 too blank, 48 too dense, 10 off-prompt)  3.3 img/s  ETA 83.7h
+  11,303/1,000,000 kept (rejected: 16 too blank, 51 too dense, 10 off-prompt)  3.3 img/s  ETA 83.5h
+  11,835/1,000,000 kept (rejected: 16 too blank, 53 too dense, 12 off-prompt)  3.3 img/s  ETA 83.4h
+  12,370/1,000,000 kept (rejected: 16 too blank, 55 too dense, 13 off-prompt)  3.3 img/s  ETA 83.4h
+  12,907/1,000,000 kept (rejected: 17 too blank, 57 too dense, 13 off-prompt)  3.3 img/s  ETA 83.3h
+  13,441/1,000,000 kept (rejected: 18 too blank, 62 too dense, 13 off-prompt)  3.3 img/s  ETA 83.2h
+  13,977/1,000,000 kept (rejected: 20 too blank, 64 too dense, 13 off-prompt)  3.3 img/s  ETA 83.1h
+  14,508/1,000,000 kept (rejected: 20 too blank, 67 too dense, 15 off-prompt)  3.3 img/s  ETA 83.1h
+  15,045/1,000,000 kept (rejected: 20 too blank, 70 too dense, 15 off-prompt)  3.3 img/s  ETA 83.0h
+  [checkpointed 190,742 samples to data/synthetic_v3.pt]
+  15,583/1,000,000 kept (rejected: 20 too blank, 72 too dense, 15 off-prompt)  3.3 img/s  ETA 82.9h
+  16,121/1,000,000 kept (rejected: 20 too blank, 74 too dense, 15 off-prompt)  3.3 img/s  ETA 82.8h
+  16,656/1,000,000 kept (rejected: 23 too blank, 76 too dense, 15 off-prompt)  3.3 img/s  ETA 82.8h
+  17,190/1,000,000 kept (rejected: 23 too blank, 79 too dense, 16 off-prompt)  3.3 img/s  ETA 82.7h
+  17,722/1,000,000 kept (rejected: 29 too blank, 81 too dense, 16 off-prompt)  3.3 img/s  ETA 82.7h
+  18,255/1,000,000 kept (rejected: 32 too blank, 85 too dense, 16 off-prompt)  3.3 img/s  ETA 82.6h
+  18,792/1,000,000 kept (rejected: 33 too blank, 87 too dense, 16 off-prompt)  3.3 img/s  ETA 82.6h
+  19,325/1,000,000 kept (rejected: 33 too blank, 88 too dense, 18 off-prompt)  3.3 img/s  ETA 82.5h
+  19,862/1,000,000 kept (rejected: 33 too blank, 91 too dense, 18 off-prompt)  3.3 img/s  ETA 82.4h
+  [checkpointed 195,795 samples to data/synthetic_v3.pt]
+  20,398/1,000,000 kept (rejected: 34 too blank, 94 too dense, 18 off-prompt)  3.3 img/s  ETA 82.4h
+  20,933/1,000,000 kept (rejected: 35 too blank, 95 too dense, 20 off-prompt)  3.3 img/s  ETA 82.3h
+  21,468/1,000,000 kept (rejected: 35 too blank, 97 too dense, 20 off-prompt)  3.3 img/s  ETA 82.3h
+  22,006/1,000,000 kept (rejected: 35 too blank, 99 too dense, 20 off-prompt)  3.3 img/s  ETA 82.2h
+  22,535/1,000,000 kept (rejected: 38 too blank, 104 too dense, 23 off-prompt)  3.3 img/s  ETA 82.2h
+  23,063/1,000,000 kept (rejected: 40 too blank, 108 too dense, 23 off-prompt)  3.3 img/s  ETA 82.1h
+  23,590/1,000,000 kept (rejected: 40 too blank, 112 too dense, 26 off-prompt)  3.3 img/s  ETA 82.1h
+  24,130/1,000,000 kept (rejected: 40 too blank, 112 too dense, 26 off-prompt)  3.3 img/s  ETA 82.0h
+  24,665/1,000,000 kept (rejected: 40 too blank, 114 too dense, 27 off-prompt)  3.3 img/s  ETA 82.0h
+  25,203/1,000,000 kept (rejected: 40 too blank, 116 too dense, 27 off-prompt)  3.3 img/s  ETA 81.9h
+  [checkpointed 200,840 samples to data/synthetic_v3.pt]
+  25,734/1,000,000 kept (rejected: 43 too blank, 119 too dense, 28 off-prompt)  3.3 img/s  ETA 81.9h
+  26,273/1,000,000 kept (rejected: 44 too blank, 119 too dense, 28 off-prompt)  3.3 img/s  ETA 81.8h
+  26,806/1,000,000 kept (rejected: 45 too blank, 122 too dense, 29 off-prompt)  3.3 img/s  ETA 81.8h
+  27,340/1,000,000 kept (rejected: 45 too blank, 125 too dense, 30 off-prompt)  3.3 img/s  ETA 81.7h
+  27,879/1,000,000 kept (rejected: 45 too blank, 126 too dense, 30 off-prompt)  3.3 img/s  ETA 81.7h
+  28,411/1,000,000 kept (rejected: 48 too blank, 128 too dense, 31 off-prompt)  3.3 img/s  ETA 81.6h
+  28,944/1,000,000 kept (rejected: 51 too blank, 129 too dense, 32 off-prompt)  3.3 img/s  ETA 81.6h
+  29,478/1,000,000 kept (rejected: 51 too blank, 132 too dense, 33 off-prompt)  3.3 img/s  ETA 81.5h
+  30,008/1,000,000 kept (rejected: 58 too blank, 135 too dense, 33 off-prompt)  3.3 img/s  ETA 81.5h
+  [checkpointed 205,884 samples to data/synthetic_v3.pt]
+  30,545/1,000,000 kept (rejected: 58 too blank, 138 too dense, 33 off-prompt)  3.3 img/s  ETA 81.4h
+  31,079/1,000,000 kept (rejected: 62 too blank, 140 too dense, 33 off-prompt)  3.3 img/s  ETA 81.4h
+  31,614/1,000,000 kept (rejected: 62 too blank, 142 too dense, 35 off-prompt)  3.3 img/s  ETA 81.4h
+  32,145/1,000,000 kept (rejected: 63 too blank, 144 too dense, 36 off-prompt)  3.3 img/s  ETA 81.3h
+  32,676/1,000,000 kept (rejected: 68 too blank, 148 too dense, 36 off-prompt)  3.3 img/s  ETA 81.3h
+  33,208/1,000,000 kept (rejected: 69 too blank, 149 too dense, 38 off-prompt)  3.3 img/s  ETA 81.2h
+  33,741/1,000,000 kept (rejected: 69 too blank, 153 too dense, 39 off-prompt)  3.3 img/s  ETA 81.2h
+  34,277/1,000,000 kept (rejected: 69 too blank, 157 too dense, 39 off-prompt)  3.3 img/s  ETA 81.1h
+  34,817/1,000,000 kept (rejected: 69 too blank, 157 too dense, 40 off-prompt)  3.3 img/s  ETA 81.1h
+  [checkpointed 210,927 samples to data/synthetic_v3.pt]
+  35,350/1,000,000 kept (rejected: 69 too blank, 158 too dense, 41 off-prompt)  3.3 img/s  ETA 81.0h
+  35,885/1,000,000 kept (rejected: 71 too blank, 158 too dense, 42 off-prompt)  3.3 img/s  ETA 81.0h
+  36,424/1,000,000 kept (rejected: 71 too blank, 159 too dense, 42 off-prompt)  3.3 img/s  ETA 80.9h
+  36,956/1,000,000 kept (rejected: 71 too blank, 164 too dense, 44 off-prompt)  3.3 img/s  ETA 80.9h
+  37,484/1,000,000 kept (rejected: 75 too blank, 166 too dense, 45 off-prompt)  3.3 img/s  ETA 80.8h
+  38,018/1,000,000 kept (rejected: 75 too blank, 169 too dense, 46 off-prompt)  3.3 img/s  ETA 80.8h
+  38,555/1,000,000 kept (rejected: 75 too blank, 172 too dense, 46 off-prompt)  3.3 img/s  ETA 80.7h
+  39,092/1,000,000 kept (rejected: 75 too blank, 175 too dense, 46 off-prompt)  3.3 img/s  ETA 80.7h
+  39,630/1,000,000 kept (rejected: 76 too blank, 176 too dense, 46 off-prompt)  3.3 img/s  ETA 80.6h
+  40,168/1,000,000 kept (rejected: 77 too blank, 177 too dense, 46 off-prompt)  3.3 img/s  ETA 80.5h
+  [checkpointed 215,984 samples to data/synthetic_v3.pt]
+  40,705/1,000,000 kept (rejected: 77 too blank, 180 too dense, 46 off-prompt)  3.3 img/s  ETA 80.5h
+  41,238/1,000,000 kept (rejected: 77 too blank, 184 too dense, 47 off-prompt)  3.3 img/s  ETA 80.4h
+  41,774/1,000,000 kept (rejected: 78 too blank, 187 too dense, 47 off-prompt)  3.3 img/s  ETA 80.4h
+  42,313/1,000,000 kept (rejected: 78 too blank, 188 too dense, 47 off-prompt)  3.3 img/s  ETA 80.3h
+  42,841/1,000,000 kept (rejected: 81 too blank, 191 too dense, 49 off-prompt)  3.3 img/s  ETA 80.3h
+  43,378/1,000,000 kept (rejected: 81 too blank, 194 too dense, 49 off-prompt)  3.3 img/s  ETA 80.2h
+  43,913/1,000,000 kept (rejected: 81 too blank, 199 too dense, 50 off-prompt)  3.3 img/s  ETA 80.2h
+  44,446/1,000,000 kept (rejected: 81 too blank, 200 too dense, 51 off-prompt)  3.3 img/s  ETA 80.1h
+  44,980/1,000,000 kept (rejected: 83 too blank, 204 too dense, 51 off-prompt)  3.3 img/s  ETA 80.1h
+  [checkpointed 221,035 samples to data/synthetic_v3.pt]
+  45,518/1,000,000 kept (rejected: 83 too blank, 206 too dense, 51 off-prompt)  3.3 img/s  ETA 80.0h
+  46,048/1,000,000 kept (rejected: 89 too blank, 210 too dense, 51 off-prompt)  3.3 img/s  ETA 80.0h
+  46,587/1,000,000 kept (rejected: 89 too blank, 211 too dense, 51 off-prompt)  3.3 img/s  ETA 79.9h
+  47,123/1,000,000 kept (rejected: 89 too blank, 215 too dense, 51 off-prompt)  3.3 img/s  ETA 79.9h
+  47,658/1,000,000 kept (rejected: 91 too blank, 218 too dense, 51 off-prompt)  3.3 img/s  ETA 79.8h
+  48,190/1,000,000 kept (rejected: 91 too blank, 223 too dense, 52 off-prompt)  3.3 img/s  ETA 79.8h
+  48,729/1,000,000 kept (rejected: 91 too blank, 224 too dense, 52 off-prompt)  3.3 img/s  ETA 79.7h
+  49,264/1,000,000 kept (rejected: 91 too blank, 226 too dense, 53 off-prompt)  3.3 img/s  ETA 79.7h
+  49,800/1,000,000 kept (rejected: 91 too blank, 230 too dense, 53 off-prompt)  3.3 img/s  ETA 79.6h
+  50,338/1,000,000 kept (rejected: 91 too blank, 232 too dense, 53 off-prompt)  3.3 img/s  ETA 79.6h
+  [checkpointed 226,093 samples to data/synthetic_v3.pt]
+  50,873/1,000,000 kept (rejected: 91 too blank, 234 too dense, 54 off-prompt)  3.3 img/s  ETA 79.5h
+  51,409/1,000,000 kept (rejected: 91 too blank, 238 too dense, 54 off-prompt)  3.3 img/s  ETA 79.5h
+  51,943/1,000,000 kept (rejected: 92 too blank, 243 too dense, 54 off-prompt)  3.3 img/s  ETA 79.4h
+  52,468/1,000,000 kept (rejected: 98 too blank, 246 too dense, 56 off-prompt)  3.3 img/s  ETA 79.4h
+  53,004/1,000,000 kept (rejected: 98 too blank, 247 too dense, 57 off-prompt)  3.3 img/s  ETA 79.3h
+  53,543/1,000,000 kept (rejected: 98 too blank, 248 too dense, 57 off-prompt)  3.3 img/s  ETA 79.3h
+  54,081/1,000,000 kept (rejected: 99 too blank, 249 too dense, 57 off-prompt)  3.3 img/s  ETA 79.2h
+  54,616/1,000,000 kept (rejected: 99 too blank, 251 too dense, 58 off-prompt)  3.3 img/s  ETA 79.2h
+  55,152/1,000,000 kept (rejected: 99 too blank, 255 too dense, 58 off-prompt)  3.3 img/s  ETA 79.1h
+  [checkpointed 231,140 samples to data/synthetic_v3.pt]
+  55,679/1,000,000 kept (rejected: 104 too blank, 260 too dense, 59 off-prompt)  3.3 img/s  ETA 79.1h
+  56,216/1,000,000 kept (rejected: 104 too blank, 263 too dense, 59 off-prompt)  3.3 img/s  ETA 79.1h
+  56,747/1,000,000 kept (rejected: 107 too blank, 266 too dense, 60 off-prompt)  3.3 img/s  ETA 79.0h
+  57,280/1,000,000 kept (rejected: 109 too blank, 268 too dense, 61 off-prompt)  3.3 img/s  ETA 79.0h
+  57,814/1,000,000 kept (rejected: 109 too blank, 271 too dense, 62 off-prompt)  3.3 img/s  ETA 78.9h
+  58,353/1,000,000 kept (rejected: 109 too blank, 272 too dense, 62 off-prompt)  3.3 img/s  ETA 78.9h
+  58,890/1,000,000 kept (rejected: 110 too blank, 274 too dense, 62 off-prompt)  3.3 img/s  ETA 78.8h
+  59,422/1,000,000 kept (rejected: 110 too blank, 276 too dense, 64 off-prompt)  3.3 img/s  ETA 78.8h
+  59,957/1,000,000 kept (rejected: 110 too blank, 281 too dense, 64 off-prompt)  3.3 img/s  ETA 78.7h
+  60,494/1,000,000 kept (rejected: 112 too blank, 282 too dense, 64 off-prompt)  3.3 img/s  ETA 78.7h
+  [checkpointed 236,191 samples to data/synthetic_v3.pt]
+  61,030/1,000,000 kept (rejected: 112 too blank, 283 too dense, 65 off-prompt)  3.3 img/s  ETA 78.6h
+  61,566/1,000,000 kept (rejected: 112 too blank, 287 too dense, 65 off-prompt)  3.3 img/s  ETA 78.6h
+  62,106/1,000,000 kept (rejected: 112 too blank, 287 too dense, 65 off-prompt)  3.3 img/s  ETA 78.5h
+  62,640/1,000,000 kept (rejected: 112 too blank, 290 too dense, 67 off-prompt)  3.3 img/s  ETA 78.5h
+  63,176/1,000,000 kept (rejected: 112 too blank, 291 too dense, 67 off-prompt)  3.3 img/s  ETA 78.4h
+  63,713/1,000,000 kept (rejected: 112 too blank, 291 too dense, 68 off-prompt)  3.3 img/s  ETA 78.4h
+  64,252/1,000,000 kept (rejected: 112 too blank, 292 too dense, 68 off-prompt)  3.3 img/s  ETA 78.3h
+  64,788/1,000,000 kept (rejected: 112 too blank, 293 too dense, 69 off-prompt)  3.3 img/s  ETA 78.3h
+  65,322/1,000,000 kept (rejected: 112 too blank, 296 too dense, 70 off-prompt)  3.3 img/s  ETA 78.2h
+  [checkpointed 241,197 samples to data/synthetic_v3.pt]
+  65,854/1,000,000 kept (rejected: 115 too blank, 301 too dense, 70 off-prompt)  3.3 img/s  ETA 78.2h
+  66,394/1,000,000 kept (rejected: 115 too blank, 301 too dense, 70 off-prompt)  3.3 img/s  ETA 78.1h
+  66,926/1,000,000 kept (rejected: 115 too blank, 303 too dense, 72 off-prompt)  3.3 img/s  ETA 78.1h
+  67,463/1,000,000 kept (rejected: 115 too blank, 306 too dense, 72 off-prompt)  3.3 img/s  ETA 78.0h
+  68,002/1,000,000 kept (rejected: 115 too blank, 307 too dense, 72 off-prompt)  3.3 img/s  ETA 78.0h
+  68,539/1,000,000 kept (rejected: 116 too blank, 309 too dense, 73 off-prompt)  3.3 img/s  ETA 77.9h
+  69,074/1,000,000 kept (rejected: 117 too blank, 310 too dense, 73 off-prompt)  3.3 img/s  ETA 77.9h
+  69,608/1,000,000 kept (rejected: 117 too blank, 316 too dense, 73 off-prompt)  3.3 img/s  ETA 77.8h
+  70,144/1,000,000 kept (rejected: 117 too blank, 320 too dense, 73 off-prompt)  3.3 img/s  ETA 77.8h
+  [checkpointed 246,199 samples to data/synthetic_v3.pt]
+  70,682/1,000,000 kept (rejected: 118 too blank, 321 too dense, 73 off-prompt)  3.3 img/s  ETA 77.8h
+  71,217/1,000,000 kept (rejected: 118 too blank, 323 too dense, 74 off-prompt)  3.3 img/s  ETA 77.7h
+  71,749/1,000,000 kept (rejected: 119 too blank, 327 too dense, 75 off-prompt)  3.3 img/s  ETA 77.7h
+  72,276/1,000,000 kept (rejected: 123 too blank, 327 too dense, 78 off-prompt)  3.3 img/s  ETA 77.6h
+  72,809/1,000,000 kept (rejected: 123 too blank, 328 too dense, 80 off-prompt)  3.3 img/s  ETA 77.6h
+  73,348/1,000,000 kept (rejected: 123 too blank, 329 too dense, 80 off-prompt)  3.3 img/s  ETA 77.5h
+  73,886/1,000,000 kept (rejected: 123 too blank, 331 too dense, 80 off-prompt)  3.3 img/s  ETA 77.5h
+  74,424/1,000,000 kept (rejected: 123 too blank, 333 too dense, 80 off-prompt)  3.3 img/s  ETA 77.4h
+  74,963/1,000,000 kept (rejected: 123 too blank, 334 too dense, 81 off-prompt)  3.3 img/s  ETA 77.4h
+  75,495/1,000,000 kept (rejected: 123 too blank, 339 too dense, 81 off-prompt)  3.3 img/s  ETA 77.4h
+  [checkpointed 251,252 samples to data/synthetic_v3.pt]
+  76,030/1,000,000 kept (rejected: 126 too blank, 341 too dense, 82 off-prompt)  3.3 img/s  ETA 77.3h
+  76,564/1,000,000 kept (rejected: 126 too blank, 341 too dense, 84 off-prompt)  3.3 img/s  ETA 77.3h
+  77,095/1,000,000 kept (rejected: 126 too blank, 344 too dense, 85 off-prompt)  3.3 img/s  ETA 77.2h
+  77,630/1,000,000 kept (rejected: 126 too blank, 346 too dense, 86 off-prompt)  3.3 img/s  ETA 77.2h
+  78,162/1,000,000 kept (rejected: 127 too blank, 350 too dense, 87 off-prompt)  3.3 img/s  ETA 77.1h
+  78,695/1,000,000 kept (rejected: 127 too blank, 351 too dense, 89 off-prompt)  3.3 img/s  ETA 77.1h
+  79,232/1,000,000 kept (rejected: 128 too blank, 353 too dense, 89 off-prompt)  3.3 img/s  ETA 77.0h
+  79,769/1,000,000 kept (rejected: 128 too blank, 356 too dense, 89 off-prompt)  3.3 img/s  ETA 77.0h
+  80,303/1,000,000 kept (rejected: 128 too blank, 356 too dense, 91 off-prompt)  3.3 img/s  ETA 77.0h
+  [checkpointed 256,298 samples to data/synthetic_v3.pt]
+  80,837/1,000,000 kept (rejected: 128 too blank, 359 too dense, 92 off-prompt)  3.3 img/s  ETA 76.9h
+  81,376/1,000,000 kept (rejected: 128 too blank, 360 too dense, 92 off-prompt)  3.3 img/s  ETA 76.9h
+  81,912/1,000,000 kept (rejected: 128 too blank, 361 too dense, 93 off-prompt)  3.3 img/s  ETA 76.8h
+  82,443/1,000,000 kept (rejected: 128 too blank, 364 too dense, 95 off-prompt)  3.3 img/s  ETA 76.8h
+  82,978/1,000,000 kept (rejected: 128 too blank, 369 too dense, 95 off-prompt)  3.3 img/s  ETA 76.7h
+  83,517/1,000,000 kept (rejected: 129 too blank, 369 too dense, 95 off-prompt)  3.3 img/s  ETA 76.7h
+  84,053/1,000,000 kept (rejected: 131 too blank, 371 too dense, 95 off-prompt)  3.3 img/s  ETA 76.6h
+  84,583/1,000,000 kept (rejected: 138 too blank, 371 too dense, 96 off-prompt)  3.3 img/s  ETA 76.6h
+  85,116/1,000,000 kept (rejected: 138 too blank, 372 too dense, 98 off-prompt)  3.3 img/s  ETA 76.6h
+  85,653/1,000,000 kept (rejected: 138 too blank, 375 too dense, 98 off-prompt)  3.3 img/s  ETA 76.5h
+  [checkpointed 261,349 samples to data/synthetic_v3.pt]
+  86,191/1,000,000 kept (rejected: 138 too blank, 377 too dense, 98 off-prompt)  3.3 img/s  ETA 76.5h
+  86,726/1,000,000 kept (rejected: 138 too blank, 379 too dense, 99 off-prompt)  3.3 img/s  ETA 76.4h
+  87,261/1,000,000 kept (rejected: 138 too blank, 384 too dense, 99 off-prompt)  3.3 img/s  ETA 76.4h
+  87,796/1,000,000 kept (rejected: 140 too blank, 387 too dense, 99 off-prompt)  3.3 img/s  ETA 76.3h
+  88,330/1,000,000 kept (rejected: 140 too blank, 390 too dense, 100 off-prompt)  3.3 img/s  ETA 76.3h
+  88,866/1,000,000 kept (rejected: 141 too blank, 390 too dense, 101 off-prompt)  3.3 img/s  ETA 76.2h
+  89,405/1,000,000 kept (rejected: 142 too blank, 390 too dense, 101 off-prompt)  3.3 img/s  ETA 76.2h
+  89,941/1,000,000 kept (rejected: 142 too blank, 391 too dense, 102 off-prompt)  3.3 img/s  ETA 76.2h
+  90,479/1,000,000 kept (rejected: 142 too blank, 393 too dense, 102 off-prompt)  3.3 img/s  ETA 76.1h
+  [checkpointed 266,355 samples to data/synthetic_v3.pt]
+  91,015/1,000,000 kept (rejected: 144 too blank, 395 too dense, 102 off-prompt)  3.3 img/s  ETA 76.1h
+  91,553/1,000,000 kept (rejected: 144 too blank, 397 too dense, 102 off-prompt)  3.3 img/s  ETA 76.0h
+  92,088/1,000,000 kept (rejected: 149 too blank, 397 too dense, 102 off-prompt)  3.3 img/s  ETA 76.0h
+  92,625/1,000,000 kept (rejected: 149 too blank, 400 too dense, 102 off-prompt)  3.3 img/s  ETA 75.9h
+  93,161/1,000,000 kept (rejected: 150 too blank, 403 too dense, 102 off-prompt)  3.3 img/s  ETA 75.9h
+  93,696/1,000,000 kept (rejected: 150 too blank, 405 too dense, 103 off-prompt)  3.3 img/s  ETA 75.8h
+  94,230/1,000,000 kept (rejected: 150 too blank, 408 too dense, 104 off-prompt)  3.3 img/s  ETA 75.8h
+  94,767/1,000,000 kept (rejected: 150 too blank, 411 too dense, 105 off-prompt)  3.3 img/s  ETA 75.8h
+  95,297/1,000,000 kept (rejected: 150 too blank, 415 too dense, 106 off-prompt)  3.3 img/s  ETA 75.7h
+  [checkpointed 271,413 samples to data/synthetic_v3.pt]
+  95,836/1,000,000 kept (rejected: 150 too blank, 416 too dense, 106 off-prompt)  3.3 img/s  ETA 75.6h
+  96,364/1,000,000 kept (rejected: 157 too blank, 421 too dense, 106 off-prompt)  3.3 img/s  ETA 75.6h
+  96,897/1,000,000 kept (rejected: 158 too blank, 424 too dense, 107 off-prompt)  3.3 img/s  ETA 75.6h
+  97,436/1,000,000 kept (rejected: 158 too blank, 425 too dense, 107 off-prompt)  3.3 img/s  ETA 75.5h
+  97,967/1,000,000 kept (rejected: 161 too blank, 428 too dense, 108 off-prompt)  3.3 img/s  ETA 75.5h
+  98,502/1,000,000 kept (rejected: 164 too blank, 430 too dense, 108 off-prompt)  3.3 img/s  ETA 75.5h
+  99,041/1,000,000 kept (rejected: 164 too blank, 431 too dense, 108 off-prompt)  3.3 img/s  ETA 75.4h
+  99,571/1,000,000 kept (rejected: 165 too blank, 437 too dense, 109 off-prompt)  3.3 img/s  ETA 75.4h
+  100,108/1,000,000 kept (rejected: 165 too blank, 437 too dense, 110 off-prompt)  3.3 img/s  ETA 75.3h
+  100,642/1,000,000 kept (rejected: 165 too blank, 440 too dense, 111 off-prompt)  3.3 img/s  ETA 75.3h
+  [checkpointed 276,456 samples to data/synthetic_v3.pt]
+  101,177/1,000,000 kept (rejected: 168 too blank, 442 too dense, 111 off-prompt)  3.3 img/s  ETA 75.2h
+  101,712/1,000,000 kept (rejected: 169 too blank, 446 too dense, 111 off-prompt)  3.3 img/s  ETA 75.2h
+  102,249/1,000,000 kept (rejected: 169 too blank, 449 too dense, 111 off-prompt)  3.3 img/s  ETA 75.1h
+  102,781/1,000,000 kept (rejected: 169 too blank, 454 too dense, 112 off-prompt)  3.3 img/s  ETA 75.1h
+  103,315/1,000,000 kept (rejected: 169 too blank, 457 too dense, 113 off-prompt)  3.3 img/s  ETA 75.1h
+  103,848/1,000,000 kept (rejected: 169 too blank, 461 too dense, 114 off-prompt)  3.3 img/s  ETA 75.0h
+  104,385/1,000,000 kept (rejected: 169 too blank, 464 too dense, 114 off-prompt)  3.3 img/s  ETA 75.0h
+  104,913/1,000,000 kept (rejected: 172 too blank, 467 too dense, 116 off-prompt)  3.3 img/s  ETA 74.9h
+  105,444/1,000,000 kept (rejected: 173 too blank, 469 too dense, 118 off-prompt)  3.3 img/s  ETA 74.9h
+  [checkpointed 281,492 samples to data/synthetic_v3.pt]
+  105,969/1,000,000 kept (rejected: 178 too blank, 473 too dense, 122 off-prompt)  3.3 img/s  ETA 74.9h
+  106,493/1,000,000 kept (rejected: 184 too blank, 477 too dense, 122 off-prompt)  3.3 img/s  ETA 74.8h
+  107,031/1,000,000 kept (rejected: 184 too blank, 479 too dense, 122 off-prompt)  3.3 img/s  ETA 74.8h
+  107,570/1,000,000 kept (rejected: 184 too blank, 480 too dense, 122 off-prompt)  3.3 img/s  ETA 74.7h
+  108,106/1,000,000 kept (rejected: 185 too blank, 483 too dense, 122 off-prompt)  3.3 img/s  ETA 74.7h
+  108,643/1,000,000 kept (rejected: 185 too blank, 483 too dense, 123 off-prompt)  3.3 img/s  ETA 74.6h
+  109,181/1,000,000 kept (rejected: 185 too blank, 485 too dense, 123 off-prompt)  3.3 img/s  ETA 74.6h
+  109,717/1,000,000 kept (rejected: 185 too blank, 489 too dense, 123 off-prompt)  3.3 img/s  ETA 74.6h
+  110,253/1,000,000 kept (rejected: 185 too blank, 490 too dense, 125 off-prompt)  3.3 img/s  ETA 74.5h
+  110,786/1,000,000 kept (rejected: 185 too blank, 491 too dense, 126 off-prompt)  3.3 img/s  ETA 74.5h
+  [checkpointed 286,543 samples to data/synthetic_v3.pt]
+  111,323/1,000,000 kept (rejected: 185 too blank, 491 too dense, 127 off-prompt)  3.3 img/s  ETA 74.4h
+  111,857/1,000,000 kept (rejected: 187 too blank, 492 too dense, 128 off-prompt)  3.3 img/s  ETA 74.4h
+  112,390/1,000,000 kept (rejected: 190 too blank, 493 too dense, 129 off-prompt)  3.3 img/s  ETA 74.3h
+  112,929/1,000,000 kept (rejected: 190 too blank, 494 too dense, 129 off-prompt)  3.3 img/s  ETA 74.3h
+  113,467/1,000,000 kept (rejected: 190 too blank, 496 too dense, 129 off-prompt)  3.3 img/s  ETA 74.2h
+  113,999/1,000,000 kept (rejected: 190 too blank, 501 too dense, 130 off-prompt)  3.3 img/s  ETA 74.2h
+  114,538/1,000,000 kept (rejected: 190 too blank, 502 too dense, 130 off-prompt)  3.3 img/s  ETA 74.1h
+  115,075/1,000,000 kept (rejected: 190 too blank, 505 too dense, 130 off-prompt)  3.3 img/s  ETA 74.1h
+  115,610/1,000,000 kept (rejected: 190 too blank, 507 too dense, 131 off-prompt)  3.3 img/s  ETA 74.1h
+  [checkpointed 291,545 samples to data/synthetic_v3.pt]
+  116,147/1,000,000 kept (rejected: 192 too blank, 508 too dense, 131 off-prompt)  3.3 img/s  ETA 74.0h
+  116,680/1,000,000 kept (rejected: 195 too blank, 512 too dense, 132 off-prompt)  3.3 img/s  ETA 74.0h
+  117,214/1,000,000 kept (rejected: 195 too blank, 515 too dense, 132 off-prompt)  3.3 img/s  ETA 73.9h
+  117,750/1,000,000 kept (rejected: 195 too blank, 519 too dense, 132 off-prompt)  3.3 img/s  ETA 73.9h
+  118,285/1,000,000 kept (rejected: 195 too blank, 521 too dense, 133 off-prompt)  3.3 img/s  ETA 73.8h
+  118,819/1,000,000 kept (rejected: 195 too blank, 524 too dense, 134 off-prompt)  3.3 img/s  ETA 73.8h
+  119,357/1,000,000 kept (rejected: 195 too blank, 526 too dense, 134 off-prompt)  3.3 img/s  ETA 73.7h
+  119,890/1,000,000 kept (rejected: 196 too blank, 529 too dense, 135 off-prompt)  3.3 img/s  ETA 73.7h
+  120,428/1,000,000 kept (rejected: 196 too blank, 531 too dense, 135 off-prompt)  3.3 img/s  ETA 73.7h
+  [checkpointed 296,545 samples to data/synthetic_v3.pt]
+  120,968/1,000,000 kept (rejected: 196 too blank, 531 too dense, 135 off-prompt)  3.3 img/s  ETA 73.6h
+  121,502/1,000,000 kept (rejected: 199 too blank, 534 too dense, 135 off-prompt)  3.3 img/s  ETA 73.6h
+  122,036/1,000,000 kept (rejected: 202 too blank, 537 too dense, 135 off-prompt)  3.3 img/s  ETA 73.5h
+  122,574/1,000,000 kept (rejected: 202 too blank, 539 too dense, 135 off-prompt)  3.3 img/s  ETA 73.5h
+  123,112/1,000,000 kept (rejected: 202 too blank, 541 too dense, 135 off-prompt)  3.3 img/s  ETA 73.4h
+  123,651/1,000,000 kept (rejected: 202 too blank, 542 too dense, 135 off-prompt)  3.3 img/s  ETA 73.4h
+  124,187/1,000,000 kept (rejected: 203 too blank, 545 too dense, 135 off-prompt)  3.3 img/s  ETA 73.3h
+  124,723/1,000,000 kept (rejected: 203 too blank, 546 too dense, 136 off-prompt)  3.3 img/s  ETA 73.3h
+  125,257/1,000,000 kept (rejected: 203 too blank, 549 too dense, 137 off-prompt)  3.3 img/s  ETA 73.3h
+  125,795/1,000,000 kept (rejected: 203 too blank, 551 too dense, 137 off-prompt)  3.3 img/s  ETA 73.2h
+  [checkpointed 301,552 samples to data/synthetic_v3.pt]
+  126,329/1,000,000 kept (rejected: 204 too blank, 553 too dense, 138 off-prompt)  3.3 img/s  ETA 73.2h
+  126,865/1,000,000 kept (rejected: 206 too blank, 555 too dense, 138 off-prompt)  3.3 img/s  ETA 73.1h
+  127,401/1,000,000 kept (rejected: 206 too blank, 556 too dense, 139 off-prompt)  3.3 img/s  ETA 73.1h
+  127,937/1,000,000 kept (rejected: 206 too blank, 560 too dense, 139 off-prompt)  3.3 img/s  ETA 73.0h
+  128,465/1,000,000 kept (rejected: 206 too blank, 563 too dense, 142 off-prompt)  3.3 img/s  ETA 73.0h
+  129,001/1,000,000 kept (rejected: 207 too blank, 566 too dense, 142 off-prompt)  3.3 img/s  ETA 73.0h
+  129,538/1,000,000 kept (rejected: 207 too blank, 569 too dense, 142 off-prompt)  3.3 img/s  ETA 72.9h
+  130,075/1,000,000 kept (rejected: 207 too blank, 572 too dense, 142 off-prompt)  3.3 img/s  ETA 72.9h
+  130,607/1,000,000 kept (rejected: 207 too blank, 574 too dense, 144 off-prompt)  3.3 img/s  ETA 72.8h
+  [checkpointed 306,603 samples to data/synthetic_v3.pt]
+  131,146/1,000,000 kept (rejected: 207 too blank, 575 too dense, 145 off-prompt)  3.3 img/s  ETA 72.8h
+  131,681/1,000,000 kept (rejected: 207 too blank, 577 too dense, 145 off-prompt)  3.3 img/s  ETA 72.7h
+  132,219/1,000,000 kept (rejected: 208 too blank, 578 too dense, 145 off-prompt)  3.3 img/s  ETA 72.7h
+  132,756/1,000,000 kept (rejected: 209 too blank, 580 too dense, 145 off-prompt)  3.3 img/s  ETA 72.7h
+  133,291/1,000,000 kept (rejected: 209 too blank, 585 too dense, 145 off-prompt)  3.3 img/s  ETA 72.6h
+  133,827/1,000,000 kept (rejected: 211 too blank, 587 too dense, 146 off-prompt)  3.3 img/s  ETA 72.6h
+  134,364/1,000,000 kept (rejected: 211 too blank, 587 too dense, 146 off-prompt)  3.3 img/s  ETA 72.5h
+  134,899/1,000,000 kept (rejected: 211 too blank, 592 too dense, 146 off-prompt)  3.3 img/s  ETA 72.5h
+  135,433/1,000,000 kept (rejected: 212 too blank, 594 too dense, 147 off-prompt)  3.3 img/s  ETA 72.4h
+  135,970/1,000,000 kept (rejected: 213 too blank, 596 too dense, 147 off-prompt)  3.3 img/s  ETA 72.4h
+  [checkpointed 311,607 samples to data/synthetic_v3.pt]
+  136,505/1,000,000 kept (rejected: 214 too blank, 597 too dense, 148 off-prompt)  3.3 img/s  ETA 72.4h
+  137,042/1,000,000 kept (rejected: 215 too blank, 599 too dense, 148 off-prompt)  3.3 img/s  ETA 72.3h
+  137,574/1,000,000 kept (rejected: 215 too blank, 604 too dense, 149 off-prompt)  3.3 img/s  ETA 72.3h
+  138,110/1,000,000 kept (rejected: 216 too blank, 607 too dense, 150 off-prompt)  3.3 img/s  ETA 72.2h
+  138,646/1,000,000 kept (rejected: 217 too blank, 607 too dense, 150 off-prompt)  3.3 img/s  ETA 72.2h
+  139,183/1,000,000 kept (rejected: 217 too blank, 610 too dense, 150 off-prompt)  3.3 img/s  ETA 72.2h
+  139,721/1,000,000 kept (rejected: 217 too blank, 612 too dense, 150 off-prompt)  3.3 img/s  ETA 72.1h
+  140,258/1,000,000 kept (rejected: 217 too blank, 615 too dense, 150 off-prompt)  3.3 img/s  ETA 72.1h
+  140,795/1,000,000 kept (rejected: 217 too blank, 618 too dense, 150 off-prompt)  3.3 img/s  ETA 72.0h
+  [checkpointed 316,610 samples to data/synthetic_v3.pt]
+  141,329/1,000,000 kept (rejected: 219 too blank, 622 too dense, 150 off-prompt)  3.3 img/s  ETA 72.0h
+  141,869/1,000,000 kept (rejected: 219 too blank, 622 too dense, 150 off-prompt)  3.3 img/s  ETA 71.9h
+  142,406/1,000,000 kept (rejected: 219 too blank, 625 too dense, 150 off-prompt)  3.3 img/s  ETA 71.9h
+  142,942/1,000,000 kept (rejected: 219 too blank, 626 too dense, 151 off-prompt)  3.3 img/s  ETA 71.9h
+  143,478/1,000,000 kept (rejected: 219 too blank, 627 too dense, 152 off-prompt)  3.3 img/s  ETA 71.8h
+  144,013/1,000,000 kept (rejected: 219 too blank, 632 too dense, 152 off-prompt)  3.3 img/s  ETA 71.8h
+  144,546/1,000,000 kept (rejected: 220 too blank, 635 too dense, 153 off-prompt)  3.3 img/s  ETA 71.7h
+  145,074/1,000,000 kept (rejected: 220 too blank, 638 too dense, 156 off-prompt)  3.3 img/s  ETA 71.7h
+  145,610/1,000,000 kept (rejected: 221 too blank, 641 too dense, 156 off-prompt)  3.3 img/s  ETA 71.7h
+  [checkpointed 321,665 samples to data/synthetic_v3.pt]
+  146,148/1,000,000 kept (rejected: 222 too blank, 642 too dense, 156 off-prompt)  3.3 img/s  ETA 71.6h
+  146,684/1,000,000 kept (rejected: 225 too blank, 643 too dense, 156 off-prompt)  3.3 img/s  ETA 71.6h
+  147,216/1,000,000 kept (rejected: 225 too blank, 645 too dense, 158 off-prompt)  3.3 img/s  ETA 71.6h
+  147,749/1,000,000 kept (rejected: 225 too blank, 646 too dense, 160 off-prompt)  3.3 img/s  ETA 71.5h
+  148,280/1,000,000 kept (rejected: 225 too blank, 649 too dense, 162 off-prompt)  3.3 img/s  ETA 71.5h
+  148,810/1,000,000 kept (rejected: 226 too blank, 655 too dense, 164 off-prompt)  3.3 img/s  ETA 71.4h
+  149,341/1,000,000 kept (rejected: 231 too blank, 656 too dense, 164 off-prompt)  3.3 img/s  ETA 71.4h
+  149,874/1,000,000 kept (rejected: 234 too blank, 660 too dense, 164 off-prompt)  3.3 img/s  ETA 71.4h
+  150,406/1,000,000 kept (rejected: 235 too blank, 664 too dense, 165 off-prompt)  3.3 img/s  ETA 71.3h
+  150,945/1,000,000 kept (rejected: 235 too blank, 665 too dense, 165 off-prompt)  3.3 img/s  ETA 71.3h
+  [checkpointed 326,700 samples to data/synthetic_v3.pt]
+  151,480/1,000,000 kept (rejected: 235 too blank, 670 too dense, 165 off-prompt)  3.3 img/s  ETA 71.3h
+  152,019/1,000,000 kept (rejected: 235 too blank, 671 too dense, 165 off-prompt)  3.3 img/s  ETA 71.2h
+  152,557/1,000,000 kept (rejected: 235 too blank, 673 too dense, 165 off-prompt)  3.3 img/s  ETA 71.2h
+  153,094/1,000,000 kept (rejected: 235 too blank, 676 too dense, 165 off-prompt)  3.3 img/s  ETA 71.1h
+  153,625/1,000,000 kept (rejected: 238 too blank, 679 too dense, 166 off-prompt)  3.3 img/s  ETA 71.1h
+  154,165/1,000,000 kept (rejected: 238 too blank, 679 too dense, 166 off-prompt)  3.3 img/s  ETA 71.1h
+  154,699/1,000,000 kept (rejected: 238 too blank, 682 too dense, 167 off-prompt)  3.3 img/s  ETA 71.0h
+  155,235/1,000,000 kept (rejected: 238 too blank, 683 too dense, 168 off-prompt)  3.3 img/s  ETA 71.0h
+  155,773/1,000,000 kept (rejected: 240 too blank, 683 too dense, 168 off-prompt)  3.3 img/s  ETA 70.9h
+  [checkpointed 331,710 samples to data/synthetic_v3.pt]
+  156,312/1,000,000 kept (rejected: 240 too blank, 684 too dense, 168 off-prompt)  3.3 img/s  ETA 70.9h
+  156,852/1,000,000 kept (rejected: 240 too blank, 684 too dense, 168 off-prompt)  3.3 img/s  ETA 70.9h
+  157,388/1,000,000 kept (rejected: 241 too blank, 684 too dense, 170 off-prompt)  3.3 img/s  ETA 70.8h
+  157,921/1,000,000 kept (rejected: 241 too blank, 685 too dense, 172 off-prompt)  3.3 img/s  ETA 70.8h
+  158,455/1,000,000 kept (rejected: 243 too blank, 686 too dense, 172 off-prompt)  3.3 img/s  ETA 70.7h
+  158,989/1,000,000 kept (rejected: 243 too blank, 686 too dense, 174 off-prompt)  3.3 img/s  ETA 70.7h
+  159,526/1,000,000 kept (rejected: 243 too blank, 689 too dense, 174 off-prompt)  3.3 img/s  ETA 70.7h
+  160,061/1,000,000 kept (rejected: 244 too blank, 690 too dense, 175 off-prompt)  3.3 img/s  ETA 70.6h
+  160,591/1,000,000 kept (rejected: 246 too blank, 695 too dense, 176 off-prompt)  3.3 img/s  ETA 70.6h
+  161,128/1,000,000 kept (rejected: 246 too blank, 698 too dense, 176 off-prompt)  3.3 img/s  ETA 70.5h
+  [checkpointed 336,765 samples to data/synthetic_v3.pt]
+  161,663/1,000,000 kept (rejected: 247 too blank, 702 too dense, 176 off-prompt)  3.3 img/s  ETA 70.5h
+  162,197/1,000,000 kept (rejected: 248 too blank, 704 too dense, 177 off-prompt)  3.3 img/s  ETA 70.5h
+  162,736/1,000,000 kept (rejected: 249 too blank, 704 too dense, 177 off-prompt)  3.3 img/s  ETA 70.4h
+  163,273/1,000,000 kept (rejected: 249 too blank, 707 too dense, 177 off-prompt)  3.3 img/s  ETA 70.4h
+  163,810/1,000,000 kept (rejected: 249 too blank, 710 too dense, 177 off-prompt)  3.3 img/s  ETA 70.3h
+  164,346/1,000,000 kept (rejected: 249 too blank, 711 too dense, 178 off-prompt)  3.3 img/s  ETA 70.3h
+  164,883/1,000,000 kept (rejected: 249 too blank, 714 too dense, 178 off-prompt)  3.3 img/s  ETA 70.3h
+  165,423/1,000,000 kept (rejected: 249 too blank, 714 too dense, 178 off-prompt)  3.3 img/s  ETA 70.2h
+  165,958/1,000,000 kept (rejected: 250 too blank, 715 too dense, 179 off-prompt)  3.3 img/s  ETA 70.2h
+  [checkpointed 341,773 samples to data/synthetic_v3.pt]
+  166,495/1,000,000 kept (rejected: 250 too blank, 718 too dense, 179 off-prompt)  3.3 img/s  ETA 70.2h
+  167,033/1,000,000 kept (rejected: 251 too blank, 719 too dense, 179 off-prompt)  3.3 img/s  ETA 70.1h
+  167,568/1,000,000 kept (rejected: 251 too blank, 721 too dense, 180 off-prompt)  3.3 img/s  ETA 70.1h
+  168,100/1,000,000 kept (rejected: 252 too blank, 722 too dense, 182 off-prompt)  3.3 img/s  ETA 70.0h
+  168,636/1,000,000 kept (rejected: 252 too blank, 726 too dense, 182 off-prompt)  3.3 img/s  ETA 70.0h
+  169,172/1,000,000 kept (rejected: 252 too blank, 730 too dense, 182 off-prompt)  3.3 img/s  ETA 70.0h
+  169,709/1,000,000 kept (rejected: 254 too blank, 731 too dense, 182 off-prompt)  3.3 img/s  ETA 69.9h
+  170,238/1,000,000 kept (rejected: 254 too blank, 736 too dense, 184 off-prompt)  3.3 img/s  ETA 69.9h
+  170,773/1,000,000 kept (rejected: 255 too blank, 740 too dense, 184 off-prompt)  3.3 img/s  ETA 69.8h
+  [checkpointed 346,827 samples to data/synthetic_v3.pt]
+  171,310/1,000,000 kept (rejected: 258 too blank, 740 too dense, 184 off-prompt)  3.3 img/s  ETA 69.8h
+  171,845/1,000,000 kept (rejected: 258 too blank, 745 too dense, 184 off-prompt)  3.3 img/s  ETA 69.8h
+  172,381/1,000,000 kept (rejected: 259 too blank, 745 too dense, 185 off-prompt)  3.3 img/s  ETA 69.7h
+  172,908/1,000,000 kept (rejected: 260 too blank, 748 too dense, 188 off-prompt)  3.3 img/s  ETA 69.7h
+  173,438/1,000,000 kept (rejected: 263 too blank, 749 too dense, 190 off-prompt)  3.3 img/s  ETA 69.7h
+  173,968/1,000,000 kept (rejected: 264 too blank, 752 too dense, 192 off-prompt)  3.3 img/s  ETA 69.6h
+  174,503/1,000,000 kept (rejected: 264 too blank, 754 too dense, 193 off-prompt)  3.3 img/s  ETA 69.6h
+  175,040/1,000,000 kept (rejected: 264 too blank, 757 too dense, 193 off-prompt)  3.3 img/s  ETA 69.5h
+  175,569/1,000,000 kept (rejected: 264 too blank, 762 too dense, 195 off-prompt)  3.3 img/s  ETA 69.5h
+  176,106/1,000,000 kept (rejected: 264 too blank, 765 too dense, 195 off-prompt)  3.3 img/s  ETA 69.5h
+  [checkpointed 351,863 samples to data/synthetic_v3.pt]
+  176,643/1,000,000 kept (rejected: 264 too blank, 768 too dense, 195 off-prompt)  3.3 img/s  ETA 69.4h
+  177,177/1,000,000 kept (rejected: 269 too blank, 769 too dense, 195 off-prompt)  3.3 img/s  ETA 69.4h
+  177,712/1,000,000 kept (rejected: 271 too blank, 769 too dense, 196 off-prompt)  3.3 img/s  ETA 69.3h
+  178,245/1,000,000 kept (rejected: 274 too blank, 773 too dense, 196 off-prompt)  3.3 img/s  ETA 69.3h
+  178,778/1,000,000 kept (rejected: 274 too blank, 777 too dense, 197 off-prompt)  3.3 img/s  ETA 69.3h
+  179,318/1,000,000 kept (rejected: 274 too blank, 777 too dense, 197 off-prompt)  3.3 img/s  ETA 69.2h
+  179,853/1,000,000 kept (rejected: 274 too blank, 779 too dense, 198 off-prompt)  3.3 img/s  ETA 69.2h
+  180,390/1,000,000 kept (rejected: 275 too blank, 781 too dense, 198 off-prompt)  3.3 img/s  ETA 69.1h
+  180,929/1,000,000 kept (rejected: 275 too blank, 782 too dense, 198 off-prompt)  3.3 img/s  ETA 69.1h
+  [checkpointed 356,865 samples to data/synthetic_v3.pt]
+  181,468/1,000,000 kept (rejected: 275 too blank, 783 too dense, 198 off-prompt)  3.3 img/s  ETA 69.1h
+  182,004/1,000,000 kept (rejected: 275 too blank, 784 too dense, 199 off-prompt)  3.3 img/s  ETA 69.0h
+  182,542/1,000,000 kept (rejected: 276 too blank, 785 too dense, 199 off-prompt)  3.3 img/s  ETA 69.0h
+  183,080/1,000,000 kept (rejected: 277 too blank, 786 too dense, 199 off-prompt)  3.3 img/s  ETA 68.9h
+  183,617/1,000,000 kept (rejected: 277 too blank, 789 too dense, 199 off-prompt)  3.3 img/s  ETA 68.9h
+  184,152/1,000,000 kept (rejected: 278 too blank, 790 too dense, 200 off-prompt)  3.3 img/s  ETA 68.8h
+  184,686/1,000,000 kept (rejected: 281 too blank, 793 too dense, 200 off-prompt)  3.3 img/s  ETA 68.8h
+  185,221/1,000,000 kept (rejected: 281 too blank, 795 too dense, 201 off-prompt)  3.3 img/s  ETA 68.8h
+  185,756/1,000,000 kept (rejected: 281 too blank, 797 too dense, 202 off-prompt)  3.3 img/s  ETA 68.7h
+  [checkpointed 361,873 samples to data/synthetic_v3.pt]
+  186,296/1,000,000 kept (rejected: 281 too blank, 797 too dense, 202 off-prompt)  3.3 img/s  ETA 68.7h
+  186,823/1,000,000 kept (rejected: 288 too blank, 800 too dense, 203 off-prompt)  3.3 img/s  ETA 68.6h
+  187,355/1,000,000 kept (rejected: 291 too blank, 805 too dense, 203 off-prompt)  3.3 img/s  ETA 68.6h
+  187,894/1,000,000 kept (rejected: 292 too blank, 805 too dense, 203 off-prompt)  3.3 img/s  ETA 68.6h
+  188,424/1,000,000 kept (rejected: 295 too blank, 809 too dense, 204 off-prompt)  3.3 img/s  ETA 68.5h
+  188,963/1,000,000 kept (rejected: 295 too blank, 810 too dense, 204 off-prompt)  3.3 img/s  ETA 68.5h
+  189,499/1,000,000 kept (rejected: 295 too blank, 814 too dense, 204 off-prompt)  3.3 img/s  ETA 68.4h
+  190,035/1,000,000 kept (rejected: 295 too blank, 818 too dense, 204 off-prompt)  3.3 img/s  ETA 68.4h
+  190,571/1,000,000 kept (rejected: 295 too blank, 819 too dense, 205 off-prompt)  3.3 img/s  ETA 68.4h
+  191,104/1,000,000 kept (rejected: 295 too blank, 823 too dense, 206 off-prompt)  3.3 img/s  ETA 68.3h
+  [checkpointed 366,919 samples to data/synthetic_v3.pt]
+  191,641/1,000,000 kept (rejected: 295 too blank, 826 too dense, 206 off-prompt)  3.3 img/s  ETA 68.3h
+  192,176/1,000,000 kept (rejected: 295 too blank, 828 too dense, 207 off-prompt)  3.3 img/s  ETA 68.2h
+  192,713/1,000,000 kept (rejected: 295 too blank, 828 too dense, 208 off-prompt)  3.3 img/s  ETA 68.2h
+  193,245/1,000,000 kept (rejected: 295 too blank, 833 too dense, 209 off-prompt)  3.3 img/s  ETA 68.2h
+  193,784/1,000,000 kept (rejected: 295 too blank, 834 too dense, 209 off-prompt)  3.3 img/s  ETA 68.1h
+  194,319/1,000,000 kept (rejected: 299 too blank, 835 too dense, 209 off-prompt)  3.3 img/s  ETA 68.1h
+  194,854/1,000,000 kept (rejected: 299 too blank, 840 too dense, 209 off-prompt)  3.3 img/s  ETA 68.0h
+  195,387/1,000,000 kept (rejected: 299 too blank, 844 too dense, 210 off-prompt)  3.3 img/s  ETA 68.0h
+  195,922/1,000,000 kept (rejected: 299 too blank, 846 too dense, 211 off-prompt)  3.3 img/s  ETA 67.9h
+  [checkpointed 371,974 samples to data/synthetic_v3.pt]
+  196,457/1,000,000 kept (rejected: 299 too blank, 848 too dense, 212 off-prompt)  3.3 img/s  ETA 67.9h
+  196,995/1,000,000 kept (rejected: 299 too blank, 850 too dense, 212 off-prompt)  3.3 img/s  ETA 67.9h
+  197,529/1,000,000 kept (rejected: 300 too blank, 852 too dense, 213 off-prompt)  3.3 img/s  ETA 67.8h
+  198,065/1,000,000 kept (rejected: 300 too blank, 856 too dense, 213 off-prompt)  3.3 img/s  ETA 67.8h
+  198,603/1,000,000 kept (rejected: 300 too blank, 858 too dense, 213 off-prompt)  3.3 img/s  ETA 67.7h
+  199,143/1,000,000 kept (rejected: 300 too blank, 858 too dense, 213 off-prompt)  3.3 img/s  ETA 67.7h
+  199,674/1,000,000 kept (rejected: 300 too blank, 861 too dense, 215 off-prompt)  3.3 img/s  ETA 67.7h
+  200,210/1,000,000 kept (rejected: 300 too blank, 862 too dense, 216 off-prompt)  3.3 img/s  ETA 67.6h
+  200,750/1,000,000 kept (rejected: 300 too blank, 862 too dense, 216 off-prompt)  3.3 img/s  ETA 67.6h
+  201,286/1,000,000 kept (rejected: 302 too blank, 864 too dense, 216 off-prompt)  3.3 img/s  ETA 67.5h
+  [checkpointed 376,983 samples to data/synthetic_v3.pt]
+  201,821/1,000,000 kept (rejected: 302 too blank, 866 too dense, 217 off-prompt)  3.3 img/s  ETA 67.5h
+  202,360/1,000,000 kept (rejected: 302 too blank, 867 too dense, 217 off-prompt)  3.3 img/s  ETA 67.5h
+  202,893/1,000,000 kept (rejected: 302 too blank, 868 too dense, 220 off-prompt)  3.3 img/s  ETA 67.4h
+  203,425/1,000,000 kept (rejected: 302 too blank, 873 too dense, 220 off-prompt)  3.3 img/s  ETA 67.4h
+  203,965/1,000,000 kept (rejected: 302 too blank, 873 too dense, 220 off-prompt)  3.3 img/s  ETA 67.3h
+  204,504/1,000,000 kept (rejected: 302 too blank, 874 too dense, 220 off-prompt)  3.3 img/s  ETA 67.3h
+  205,043/1,000,000 kept (rejected: 302 too blank, 875 too dense, 220 off-prompt)  3.3 img/s  ETA 67.2h
+  205,581/1,000,000 kept (rejected: 303 too blank, 876 too dense, 220 off-prompt)  3.3 img/s  ETA 67.2h
+  206,116/1,000,000 kept (rejected: 303 too blank, 878 too dense, 221 off-prompt)  3.3 img/s  ETA 67.2h
+  [checkpointed 381,992 samples to data/synthetic_v3.pt]
+  206,654/1,000,000 kept (rejected: 303 too blank, 880 too dense, 221 off-prompt)  3.3 img/s  ETA 67.1h
+  207,189/1,000,000 kept (rejected: 303 too blank, 885 too dense, 221 off-prompt)  3.3 img/s  ETA 67.1h
+  207,721/1,000,000 kept (rejected: 305 too blank, 891 too dense, 221 off-prompt)  3.3 img/s  ETA 67.0h
+  208,256/1,000,000 kept (rejected: 305 too blank, 893 too dense, 222 off-prompt)  3.3 img/s  ETA 67.0h
+  208,793/1,000,000 kept (rejected: 306 too blank, 895 too dense, 222 off-prompt)  3.3 img/s  ETA 66.9h
+  209,329/1,000,000 kept (rejected: 306 too blank, 899 too dense, 223 off-prompt)  3.3 img/s  ETA 66.9h
+  209,865/1,000,000 kept (rejected: 306 too blank, 900 too dense, 223 off-prompt)  3.3 img/s  ETA 66.9h
+  210,402/1,000,000 kept (rejected: 306 too blank, 903 too dense, 223 off-prompt)  3.3 img/s  ETA 66.8h
+  210,939/1,000,000 kept (rejected: 306 too blank, 906 too dense, 223 off-prompt)  3.3 img/s  ETA 66.8h
+  [checkpointed 386,993 samples to data/synthetic_v3.pt]
+  211,476/1,000,000 kept (rejected: 306 too blank, 909 too dense, 223 off-prompt)  3.3 img/s  ETA 66.7h
+  212,015/1,000,000 kept (rejected: 307 too blank, 909 too dense, 223 off-prompt)  3.3 img/s  ETA 66.7h
+  212,543/1,000,000 kept (rejected: 309 too blank, 916 too dense, 224 off-prompt)  3.3 img/s  ETA 66.6h
+  213,075/1,000,000 kept (rejected: 310 too blank, 920 too dense, 225 off-prompt)  3.3 img/s  ETA 66.6h
