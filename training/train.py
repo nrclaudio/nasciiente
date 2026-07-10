@@ -211,18 +211,28 @@ def _autocast(device):
 def self_context_corrupt(model, masked_grid, mask, ratio,
                          cond_tokens, cond_mask, drop, device):
     """Rebuild a batch so part of the visible context is the model's OWN
-    sampled predictions (unrolled denoising / scheduled sampling).
+    sampled predictions (unrolled denoising, SUNDAE-style).
 
     A no-grad pass predicts the batch; a random fraction of each
-    sample's masked cells is "committed" with the model's samples; the
-    loss then trains the remaining masked cells against ground truth.
-    The model learns to complete coherently from — and repair — its own
-    imperfect commits instead of blindly extending them, which is what
-    it faces at every decode step but never sees under ground-truth-only
-    context (the cause of the nested-edge "echo" artifact).
+    sample's masked cells is "committed" with the model's samples. The
+    loss keeps scoring ALL originally-masked cells against ground truth
+    — including the self-committed ones. That inclusion is the teeth:
+    a wrong commit sits visible in the input while its target says
+    otherwise, so the model is trained to contradict (flag and
+    overwrite) its own mistakes rather than extend them. The v1 of
+    this dropped committed cells from the loss, which taught the
+    opposite lesson — the model's own duplicated edges became
+    legitimate context to complete around, and the nested-edge echo
+    got WORSE at geometry_last (diamond collapsed to thatch, cross
+    grew parallel arms). Supervising visible-but-wrong cells is also
+    what arms the revision passes: revision re-masks the committed
+    cells the model is least confident about, and that confidence is
+    only meaningful if the output head is trained at visible positions.
 
-    Returns (masked_grid, mask, ratio) rebuilt; targets are unchanged —
-    truth stays the objective no matter how the context was built.
+    Returns (masked_grid, loss_mask, ratio): the grid with commits
+    revealed, the UNCHANGED loss mask, and the mask-ratio conditioning
+    recomputed from the cells still literally [MASK] (what the model
+    actually sees, matching inference).
     """
     with torch.no_grad(), _autocast(device):
         logits = unwrap(model)(masked_grid, cond_tokens=cond_tokens,
@@ -239,18 +249,14 @@ def self_context_corrupt(model, masked_grid, mask, ratio,
 
     # Per-sample commit fraction ~ U(0.25, 0.75) of the masked cells —
     # covers early decode (little self-context) through late (mostly
-    # self-context) without ever leaving a sample lossless
+    # self-context)
     frac = torch.rand(mask.shape[0], 1, 1, device=mask.device) * 0.5 + 0.25
     reveal = mask & (torch.rand(mask.shape, device=mask.device) < frac)
     still = mask & ~reveal
-    lossless = ~still.flatten(1).any(dim=1)
-    if lossless.any():
-        reveal[lossless] = False
-        still = mask & ~reveal
 
     new_grid = torch.where(reveal, sampled, masked_grid)
     new_ratio = still.flatten(1).float().mean(dim=1)
-    return new_grid, still, new_ratio
+    return new_grid, mask, new_ratio
 
 
 def train_epoch(model, loader, optimizer, scheduler, device, epoch, stage_name,
