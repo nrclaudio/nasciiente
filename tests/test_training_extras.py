@@ -287,16 +287,19 @@ def test_self_context_corrupt():
         model, masked.clone(), mask, ratio,
         cond_tokens, cond_mask, drop, device)
 
-    # Loss mask only shrinks, and never leaves a sample lossless
-    assert (new_mask & ~mask).sum() == 0
-    assert new_mask.flatten(1).any(dim=1).all()
+    # Loss mask is UNCHANGED: self-committed cells stay supervised
+    # (targets = truth), so wrong commits get a corrective gradient
+    # instead of becoming legitimate context
+    assert torch.equal(new_mask, mask)
     # Ground-truth visible cells are untouched
     assert torch.equal(new_grid[~mask], masked[~mask])
-    # Still-masked cells stay [MASK]; revealed cells are real glyphs
-    assert (new_grid[new_mask] == MASK_TOKEN).all()
-    revealed = mask & ~new_mask
+    # Committed cells carry real glyphs (never specials); the rest of
+    # the masked cells stay [MASK]
+    revealed = mask & (new_grid != MASK_TOKEN)
     assert revealed.any()               # something actually got committed
-    assert (new_grid[revealed] != MASK_TOKEN).all()
     assert (new_grid[revealed] != PAD_TOKEN).all()
-    # Ratio conditioning tracks the rebuilt mask
-    assert torch.allclose(new_ratio, new_mask.flatten(1).float().mean(dim=1))
+    still = mask & ~revealed
+    assert (new_grid[still] == MASK_TOKEN).all()
+    # Ratio conditioning tracks what the model literally sees: the
+    # cells still [MASK] after the commits — matching inference
+    assert torch.allclose(new_ratio, still.flatten(1).float().mean(dim=1))
