@@ -65,19 +65,29 @@ def _confidence(probs, sampled, cluster_confidence, threshold=0.80):
     return torch.log(conf.clamp_min(1e-9))
 
 
-def _effective_guidance(scale, mask_ratio, schedule):
+def _effective_guidance(scale, progress, schedule):
     """Per-step CFG scale under a schedule over the decode.
 
     "constant": classic CFG. "rise": start at 1 on the empty canvas and
-    grow to `scale` as cells commit (Muse's increasing schedule) — the
+    grow to `scale` across the decode (Muse's increasing schedule) — the
     empty-canvas CFG direction is essentially "add ink everywhere", so a
     full-strength scale floods early commits; details still sharpen
     under full guidance late. "fall" is the mirror, for A/B probes.
+
+    `progress` is SCHEDULED-STEP progress (step/num_steps, clamped to
+    1), NOT the committed-cell fraction. Uncapped they track each other
+    (the cosine schedule ties commits to steps), but under a commit cap
+    the committed fraction crawls — keyed to it, a capped decode spent
+    hundreds of steps at guidance ~1, where the blank attractor rules,
+    and sparse tonal prompts ("a dragon") collapsed to near-empty grids
+    while the same checkpoint drew them fine uncapped. Keying the ramp
+    to planned steps restores full guidance while most cells are still
+    open.
     """
     if schedule == "rise":
-        return 1.0 + (scale - 1.0) * (1.0 - mask_ratio)
+        return 1.0 + (scale - 1.0) * progress
     if schedule == "fall":
-        return 1.0 + (scale - 1.0) * mask_ratio
+        return 1.0 + (scale - 1.0) * (1.0 - progress)
     return scale
 
 
@@ -167,7 +177,8 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
             break
 
         mask_ratio = num_masked / total
-        g = _effective_guidance(guidance_scale, mask_ratio,
+        progress = min(1.0, (step + 1) / max(1, num_steps))
+        g = _effective_guidance(guidance_scale, progress,
                                 guidance_schedule)
         logits = _model_logits(model, grid, cond, g,
                                mask_ratio)                # [H, W, V]
