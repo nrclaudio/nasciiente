@@ -200,13 +200,18 @@ def test_space_bias_breaks_blank_collapse():
 
 def test_guidance_schedule_math():
     from model.inference import _effective_guidance as eg
-    # rise: no guidance on the empty canvas, full guidance when committed
-    assert eg(3.0, 1.0, "rise") == 1.0
-    assert eg(3.0, 0.0, "rise") == 3.0
+    # Keyed to SCHEDULED-STEP progress (0 = first step, 1 = last), NOT
+    # the committed-cell fraction: under a commit cap the committed
+    # fraction crawls, and a ratio-keyed rise pinned capped decodes at
+    # guidance ~1 for hundreds of steps (blank collapse on sparse
+    # tonal prompts).
+    # rise: no guidance on the first step, full guidance by the last
+    assert eg(3.0, 0.0, "rise") == 1.0
+    assert eg(3.0, 1.0, "rise") == 3.0
     assert abs(eg(3.0, 0.5, "rise") - 2.0) < 1e-9
-    # fall is the mirror; constant ignores the ratio
-    assert eg(3.0, 1.0, "fall") == 3.0
-    assert eg(3.0, 0.0, "fall") == 1.0
+    # fall is the mirror; constant ignores progress
+    assert eg(3.0, 0.0, "fall") == 3.0
+    assert eg(3.0, 1.0, "fall") == 1.0
     assert eg(3.0, 0.42, "constant") == 3.0
 
 
