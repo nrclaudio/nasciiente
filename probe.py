@@ -95,6 +95,11 @@ def main():
                              "low-confidence tail otherwise mass-commits "
                              "incompatible hypotheses in parallel; try "
                              "8-32, costs ~cells/cap forward passes)")
+    parser.add_argument("--cap-below", type=float, default=None,
+                        help="mask-ratio threshold below which the cap "
+                             "binds (default: config DECODE_CAP_BELOW "
+                             "~0.35; 1.0 = whole decode, which blank-"
+                             "collapses sparse tonal prompts)")
     parser.add_argument("--cluster-conf", action="store_true",
                         help="rank decode commitment by visual-cluster "
                              "probability mass instead of single-glyph "
@@ -159,6 +164,8 @@ def main():
                            revision_steps=args.revision_steps,
                            revision_fraction=args.revision_fraction,
                            max_commit=args.max_commit,
+                           **({} if args.cap_below is None
+                              else dict(cap_below=args.cap_below)),
                            device=device, **kwargs)
         ink = int((grid > 2).sum())  # non-space printable cells
         chars = int(torch.unique(grid).numel())

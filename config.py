@@ -165,6 +165,15 @@ TEMPERATURE = 1.0
 # cross; rectangle 300 -> 97 ink with one clean border. Costs extra
 # forward passes (~masked_cells / cap total).
 DECODE_MAX_COMMIT = 8
+# ... but only in the decode's TAIL: the cap binds once the mask ratio
+# falls to this threshold (1.0 = whole decode). Capping the head
+# starved sparse tonal prompts into blank collapse — greedy space-
+# cascade, with exploration noise and the rise schedule both expiring
+# 6% into a ~480-step capped decode ("a dragon": 8 ink fully capped
+# vs 865 uncapped, same checkpoint). Echo is born in the mass-
+# committed ambiguous tail, not the head, so the head keeps the
+# original explore-and-rise dynamics and the tail gets sequenced.
+DECODE_CAP_BELOW = 0.35
 
 # Device
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")

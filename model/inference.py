@@ -3,6 +3,7 @@ import math
 import torch
 import torch.nn.functional as F
 
+from config import DECODE_CAP_BELOW
 from data.charset import MASK_TOKEN, char_to_idx
 
 SPACE_TOKEN = char_to_idx(" ")
@@ -134,7 +135,8 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
                     gumbel_scale, steps_out,
                     cond=None, guidance_scale=1.0, space_bias=0.0,
                     guidance_schedule="constant",
-                    cluster_confidence=False, max_commit=None):
+                    cluster_confidence=False, max_commit=None,
+                    cap_below=1.0):
     """Fill every currently-[MASK] cell of `grid` in place (MaskGIT-style).
 
     Cells that are not [MASK] on entry are never touched, so fixed/anchor
@@ -163,6 +165,18 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
     resolves that tail incrementally, each commit becoming context for
     the next decision, at the price of extra forward passes (the loop
     keeps running past num_steps until the grid is full).
+
+    cap_below gates WHEN the cap binds: only once the mask ratio drops
+    to/under this threshold (1.0 = from the first step). Capping the
+    whole decode starved sparse tonal subjects into blank collapse —
+    the head became a greedy space-cascade, and both exploration noise
+    and the rise schedule expired at num_steps, 6% into a ~480-step
+    capped decode ("a dragon": 8 ink capped vs 865 uncapped, SAME
+    checkpoint). Echo never lives in the head (confident cells commit
+    coherently there — see the inpaint probes); it is born in the
+    mass-committed ambiguous tail. So: head uncapped (layout forms
+    under exploration + rising guidance, exactly the pre-cap decode),
+    tail capped (ambiguity resolved sequentially).
     """
     n0 = int((grid == MASK_TOKEN).sum().item())
     if n0 == 0:
@@ -204,7 +218,7 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
                                     num_steps, schedule)
         num_commit = num_masked - target
         num_commit = max(1, min(num_commit, num_masked))
-        if max_commit is not None:
+        if max_commit is not None and mask_ratio <= cap_below:
             num_commit = min(num_commit, max_commit)
 
         commit_idx = conf.view(-1).topk(num_commit).indices
@@ -220,7 +234,7 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
              prompt=None, cond_tokens=None, cond_mask=None,
              guidance_scale=1.0, space_bias=0.0,
              guidance_schedule="constant", cluster_confidence=False,
-             max_commit=None):
+             max_commit=None, cap_below=DECODE_CAP_BELOW):
     """
     Generate ASCII art via iterative unmasking (MaskGIT-style).
 
@@ -270,8 +284,13 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
                     tail in its final steps, sampling incompatible
                     hypotheses in parallel (the edge-echo mechanism).
                     A cap resolves them sequentially; the fill loops
-                    past num_steps until complete, so decode cost rises
-                    to ~(masked cells / max_commit) forward passes.
+                    past num_steps until complete.
+        cap_below:  mask-ratio threshold at/below which max_commit
+                    binds (default from config, ~0.35; 1.0 = whole
+                    decode). Head runs uncapped so layout forms under
+                    exploration and rising guidance — a fully-capped
+                    decode greedy-cascades sparse tonal prompts into
+                    blank; echo is born only in the ambiguous tail.
 
     Returns:
         steps: list of [H, W] long tensors (grid at each step)
@@ -306,7 +325,8 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
     # --- Main fill ---
     _iterative_fill(model, grid, num_steps, temperature, schedule,
                     gumbel_scale, steps, cond, guidance_scale, space_bias,
-                    guidance_schedule, cluster_confidence, max_commit)
+                    guidance_schedule, cluster_confidence, max_commit,
+                    cap_below)
 
     # --- Revision passes (poor-man's Token-Critic self-correction) ---
     free = ~fixed
@@ -332,7 +352,7 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
         _iterative_fill(model, grid, refill_steps, temperature, schedule,
                         gumbel_scale, steps, cond, guidance_scale,
                         space_bias, guidance_schedule, cluster_confidence,
-                        max_commit)
+                        max_commit, cap_below)
 
     return steps, grid.cpu()
 
