@@ -358,3 +358,25 @@ def test_critic_head_and_loading():
                       text_dim=16)
     conditioned = load_compatible_state(fresh, old_state)
     assert conditioned  # conditioning keys were all present
+
+
+def test_prepare_asciibench_convert(tmp_path):
+    import json
+    from data.prepare_asciibench import convert, class_to_caption
+
+    assert class_to_caption("omega") == "an omega"
+    assert class_to_caption("sea_creature") == "a sea creature"
+
+    art_ok = "  /\\\n /  \\\n/____\\\n|####|\n|####|"  # >=20 ink chars, fits
+    art_big = "\n".join("x" * 100 for _ in range(60))  # too large
+    p = tmp_path / "bench.jsonl"
+    p.write_text("\n".join([
+        json.dumps({"class": "tent", "ascii_art": art_ok}),
+        json.dumps({"class": "wall", "ascii_art": art_big}),
+        json.dumps({"class": "tent", "ascii_art": art_ok}),
+    ]))
+    data, ids, captions, stats = convert(str(p))
+    assert stats["kept"] == 2 and stats["skipped_fit"] == 1
+    assert captions == ["a tent"]
+    assert data.shape[1:] == (48, 80)
+    assert (ids == 0).all()

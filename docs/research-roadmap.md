@@ -121,9 +121,14 @@ of Visually-Oriented Text" (arXiv 2512.04125) measured off-the-shelf CLIP
 on ASCII art
 and found cosine similarity **cannot separate most ASCII categories —
 chance-level performance** — attributing the failure to the representation
-itself. The authors release (a) fine-tuned ASCII-aware CLIP weights and
-(b) **ASCIIBench**, 5,315 human-made, class-labeled ASCII pieces.
-*(Unverified-by-panel; quote-grounded.)*
+itself. The paper describes (a) fine-tuned ASCII-aware CLIP weights and
+(b) **ASCIIBench**, ~5,135 human-made, class-labeled ASCII pieces.
+*(Unverified-by-panel — and partially borne out: as of 2026-07, the
+GitHub repo (KerryLuo/ASCIIBench, "under construction") ships the
+dataset but NOT the CLIP weights. The dataset claim checks out — it
+converts to 4,860 usable training pieces across 736 classes via
+`data/prepare_asciibench.py`. For the weights: ask the authors, or
+fine-tune CLIP on rendered ASCIIBench pieces ourselves.)*
 
 **Why it fits us.** Three of our subsystems assume CLIP understands
 rendered ASCII: the best-of-k re-ranker, the data engine's 0.2-cosine

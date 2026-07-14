@@ -23,14 +23,21 @@ next; nothing in Phase 2 starts until Phase 1's probes are read.*
       decode on the standard probe set (rectangle/diamond/cross/triangle +
       dragon/lighthouse/bonsai). If it wins BOTH regimes it replaces the
       cap AND the space-bias — simpler decode, delete knobs.
-- [ ] **ASCII-aware CLIP swap** (roadmap #4) — *plumbing landed*: set
-      `RANKER_MODEL` in config.py to the ASCIIBench paper (arXiv 2512.04125) released weights'
-      HF id (find it via the paper's project page — network was blocked
-      from the dev sandbox). Re-ranker uses it automatically; the engine's
-      image-side filter stays on vanilla CLIP. Eyeball best-of-4 rankings
-      before/after on 10 prompts.
-- [ ] **Download ASCIIBench** (5,315 labeled human pieces): stash in backup,
-      earmark as stage-3 supplement + eval set.
+- [ ] **ASCII-aware CLIP** (roadmap #4) — *plumbing landed, weights NOT
+      yet public*: github.com/KerryLuo/ASCIIBench is "under construction"
+      and ships only the dataset — the released-weights claim from the
+      research sweep was one of the unverified ones and didn't hold (yet).
+      Options: (a) email the authors (contact in their README) asking for
+      the fine-tuned CLIP; (b) fine-tune our own on rendered ASCIIBench
+      pieces (752 classes = contrastive labels; a small LoRA job); (c)
+      wait. `RANKER_MODEL` in config.py takes the HF id whenever one
+      exists.
+- [x] **ASCIIBench dataset — INGESTED**: `data/prepare_asciibench.py`
+      converts final_dataset.jsonl -> training payload (verified on the
+      real download: 4,860 pieces kept, 736 classes, 18.7 MB). Use as
+      stage-3 supplement/replay + eval set. License unstated upstream —
+      keep the data out of the public repo; regenerate with:
+      `curl -sLO https://raw.githubusercontent.com/KerryLuo/ASCIIBench/main/final_dataset.jsonl && python data/prepare_asciibench.py --jsonl final_dataset.jsonl`
 - [ ] Decide Phase 2 decode defaults from the Halton A/B result.
 
 ## Phase 2 — the next training run (one run carries five upgrades) *(prep ~3–4 days, then GPU time)*
