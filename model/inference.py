@@ -189,7 +189,7 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
                     guidance_schedule="constant",
                     cluster_confidence=False, max_commit=None,
                     cap_below=1.0, order="confidence",
-                    critic_confidence=False):
+                    critic_confidence=False, remask_eta=0.0):
     """Fill every currently-[MASK] cell of `grid` in place (MaskGIT-style).
 
     Cells that are not [MASK] on entry are never touched, so fixed/anchor
@@ -234,6 +234,9 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
     n0 = int((grid == MASK_TOKEN).sum().item())
     if n0 == 0:
         return
+
+    # Cells this fill owns; anchors/fixed context are never remasked
+    refillable = grid == MASK_TOKEN
 
     total = grid.numel()
     step = 0
@@ -290,6 +293,27 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
 
         commit_idx = conf.view(-1).topk(num_commit).indices
         grid.view(-1)[commit_idx] = sampled.view(-1)[commit_idx]
+
+        # ReMDM-style in-loop remasking (arXiv 2503.00307, inference-
+        # only): each step, re-mask the least-confident committed cells
+        # so no commitment is final until the schedule closes. The
+        # fraction anneals with scheduled-step progress (a cap/loop
+        # hybrid of the paper's eta schedules), reaching 0 at num_steps
+        # — remasks stay strictly below commits, so the fill always
+        # terminates. This is the principled, continuous version of the
+        # bolted-on revision passes (which re-roll big batches at the
+        # very end instead).
+        if remask_eta > 0:
+            frac = remask_eta * max(0.0, 1.0 - step / max(1, num_steps))
+            k = min(int(frac * num_commit), num_commit - 1)
+            if k > 0:
+                committed = refillable & (grid != MASK_TOKEN)
+                cur_conf = _confidence(probs, grid, cluster_confidence)
+                cur_conf = cur_conf.clone()
+                cur_conf[~committed] = float("inf")
+                worst = cur_conf.view(-1).topk(k, largest=False).indices
+                grid.view(-1)[worst] = MASK_TOKEN
+
         steps_out.append(grid.clone().cpu())
         step += 1
 
@@ -302,7 +326,8 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
              guidance_scale=1.0, space_bias=0.0,
              guidance_schedule="constant", cluster_confidence=False,
              max_commit=None, cap_below=DECODE_CAP_BELOW,
-             order="confidence", critic_confidence=False):
+             order="confidence", critic_confidence=False,
+             remask_eta=0.0):
     """
     Generate ASCII art via iterative unmasking (MaskGIT-style).
 
@@ -371,6 +396,13 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
                     CRITIC_LOSS_WEIGHT > 0; zero-init critics score all
                     cells 0.5 = random order). One extra forward per
                     step. Ignored when order="halton".
+        remask_eta: ReMDM-style in-loop remasking intensity (0 = off,
+                    try 0.1-0.5). Each step re-masks the least-confident
+                    committed cells at a fraction that anneals to zero by
+                    num_steps, so early commitments stay revisable while
+                    layout forms (arXiv 2503.00307 — inference-only, no
+                    retraining). The principled replacement for
+                    revision_steps; prefer one or the other, not both.
 
     Returns:
         steps: list of [H, W] long tensors (grid at each step)
@@ -406,7 +438,7 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
     _iterative_fill(model, grid, num_steps, temperature, schedule,
                     gumbel_scale, steps, cond, guidance_scale, space_bias,
                     guidance_schedule, cluster_confidence, max_commit,
-                    cap_below, order, critic_confidence)
+                    cap_below, order, critic_confidence, remask_eta)
 
     # --- Revision passes (poor-man's Token-Critic self-correction) ---
     free = ~fixed
@@ -439,7 +471,8 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
         _iterative_fill(model, grid, refill_steps, temperature, schedule,
                         gumbel_scale, steps, cond, guidance_scale,
                         space_bias, guidance_schedule, cluster_confidence,
-                        max_commit, cap_below, order, critic_confidence)
+                        max_commit, cap_below, order, critic_confidence,
+                        remask_eta)
 
     return steps, grid.cpu()
 
