@@ -9,24 +9,26 @@ encoder in text_embed.py stays lightweight for training.
 
 import torch
 
-from config import TEXT_ENCODER
+from config import TEXT_ENCODER, RANKER_MODEL
 
-_SCORER = None
+_SCORERS = {}
 
 
-def _load_scorer(device="cpu"):
-    global _SCORER
-    if _SCORER is None:
+def _load_scorer(device="cpu", model_id=None):
+    """Load (and cache) a CLIP scorer. model_id=None -> TEXT_ENCODER."""
+    model_id = model_id or TEXT_ENCODER
+    key = (model_id, device)
+    if key not in _SCORERS:
         try:
             from transformers import AutoProcessor, CLIPModel
         except ImportError as e:
             raise ImportError(
                 "CLIP ranking needs the 'transformers' package: "
                 "pip install transformers") from e
-        model = CLIPModel.from_pretrained(TEXT_ENCODER).to(device).eval()
-        processor = AutoProcessor.from_pretrained(TEXT_ENCODER)
-        _SCORER = (model, processor, device)
-    return _SCORER
+        model = CLIPModel.from_pretrained(model_id).to(device).eval()
+        processor = AutoProcessor.from_pretrained(model_id)
+        _SCORERS[key] = (model, processor, device)
+    return _SCORERS[key]
 
 
 @torch.no_grad()
@@ -56,7 +58,10 @@ def clip_scores(grids, prompt, device="cpu"):
         [len(grids)] float tensor (higher = renders more like the prompt)
     """
     from model.render import render_to_pil
-    model, processor, dev = _load_scorer(device)
+    # Rendered-ASCII scoring uses RANKER_MODEL when set: vanilla CLIP is
+    # near chance level on ASCII structure (arXiv 2503.08295), so an
+    # ASCII-aware checkpoint materially changes which candidate wins.
+    model, processor, dev = _load_scorer(device, RANKER_MODEL)
     images = [render_to_pil(g) for g in grids]
     inputs = processor(text=[prompt], images=images, return_tensors="pt",
                        padding=True, truncation=True).to(dev)

@@ -72,8 +72,8 @@ def test_clip_scores_plumbing(monkeypatch):
             return FakeInputs(n=len(images))
 
     monkeypatch.setattr(CR, "_load_scorer",
-                        lambda device="cpu": (FakeModel(), FakeProcessor(),
-                                              "cpu"))
+                        lambda device="cpu", model_id=None:
+                            (FakeModel(), FakeProcessor(), "cpu"))
     grids = [torch.full((2, 3), 2, dtype=torch.long) for _ in range(3)]
     scores = CR.clip_scores(grids, "a cat")
     assert scores.shape == (3,)
