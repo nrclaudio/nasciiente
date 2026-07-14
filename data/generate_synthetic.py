@@ -44,6 +44,27 @@ NEGATIVE = "photo, color, shading, background clutter, text, watermark"
 MIN_INK_FRAC = 0.02
 MAX_INK_FRAC = 0.55
 
+# Sparse-subject dialect routing (--mix all only). Tone-based ASCII
+# fundamentally needs resolution — tone variety scales with cell count
+# (Xu/Zhang/Wong, SIGGRAPH Asia 2010) — so a subject whose TONAL
+# conversion inks fewer than this fraction of the 48x80 grid cannot
+# carry tone and renders as scattered wisps. For those subjects the
+# UNTAGGED (default) caption is reassigned to the outline dialect —
+# the legible strategy at low ink budgets — and the tonal variant gets
+# an explicit ", shaded" tag instead. Dense subjects keep tonal as the
+# untagged flagship. 0 disables.
+SPARSE_TONAL_INK = 0.08
+
+# Quality-tier caption tag. Mixing quality levels untagged costs the
+# model usable capacity, and a source tag largely restores it (arXiv
+# 2404.05405) — so images whose CLIP-to-own-caption score clears this
+# bar get the tag appended after the dialect tag, letting the model
+# CONDITION on quality instead of averaging over it. Prompt with the
+# tag at inference for the top tier. 0 disables (and it is always off
+# when --clip-filter is off, since there is no score to tier on).
+QUALITY_TIER_CLIP = 0.28
+QUALITY_TAG = ", clean render"
+
 # Three visual dialects, chosen per batch (--mix). v1 trained only on
 # "filled": Otsu binarization reduced every image to a solid silhouette,
 # so solid silhouettes are all the model could draw. The caption carries
@@ -528,8 +549,23 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
     t0 = time.time()
     next_report, next_save = 0, save_every
 
-    def absorb(captions_batch, images, converted):
+    def absorb(captions_batch, images, converted, qtags=None):
         nonlocal processed, too_blank, too_dense, next_report, next_save
+        captions_batch = list(captions_batch)
+        # Sparse-subject routing: in --mix all, items arrive as
+        # (filled, outline, tonal) triplets per source image. If the
+        # tonal conversion is too sparse to carry tone (see
+        # SPARSE_TONAL_INK), the untagged default caption moves to the
+        # outline variant and tonal becomes an explicit ", shaded" tag.
+        if all_modes and SPARSE_TONAL_INK > 0:
+            for g0 in range(0, len(captions_batch) - 2, 3):
+                _t_grid, t_ink = converted[g0 + 2]
+                if t_ink < SPARSE_TONAL_INK:
+                    bare = captions_batch[g0 + 2]  # tonal is untagged
+                    captions_batch[g0 + 1] = bare
+                    captions_batch[g0 + 2] = bare + ", shaded"
+        if qtags:
+            captions_batch = [c + q for c, q in zip(captions_batch, qtags)]
         for caption, image, (grid, ink_frac) in zip(captions_batch, images,
                                                     converted):
             processed += 1
@@ -576,15 +612,15 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
     def drain(block=False):
         while pending and (block or len(pending) > max_pending
                            or pending[0][0].ready()):
-            res, caps, imgs = pending.popleft()
+            res, caps, imgs, qts = pending.popleft()
             converted = [(None if g is None else torch.from_numpy(g), ink)
                          for g, ink in res.get()]
-            absorb(caps, imgs, converted)
+            absorb(caps, imgs, converted, qts)
 
     while True:
         # Count in-flight images as kept (conservative) so the pool path
         # doesn't over-generate past num_samples while conversions drain
-        in_flight = sum(len(im) for _, _, im in pending)
+        in_flight = sum(len(im) for _, _, im, _ in pending)
         if len(grids) + in_flight >= num_samples or cursor >= len(prompts):
             drain(block=True)
             if len(grids) >= num_samples or cursor >= len(prompts):
@@ -612,12 +648,14 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
             height=512, width=512, generator=generator)))
         images = list(result.images)
         captions_batch = list(batch)   # bare captions: what CLIP scores
+        sims_kept = [0.0] * len(images)
         if clip_filter > 0:
             sims = clip_scorer(images, captions_batch)
             keep = [float(s) >= clip_filter for s in sims]
             off_prompt += keep.count(False)
             images = [im for im, k in zip(images, keep) if k]
             captions_batch = [c for c, k in zip(captions_batch, keep) if k]
+            sims_kept = [float(s) for s, k in zip(sims, keep) if k]
             if not images:
                 continue
         # Manufacture count/pair composites from the reservoir of recent
@@ -648,19 +686,27 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
 
         # One (caption, image, conversion-params) job per variant; the
         # stored caption carries the variant's style tag, so at
-        # inference the prompt selects the dialect ("a goat, shaded")
-        stored, expanded, jobs = [], [], []
-        for im, c in (list(zip(images, captions_batch))
-                      + [(im, c) for c, im in composed]):
+        # inference the prompt selects the dialect ("a goat, shaded").
+        # High-CLIP images additionally carry the quality tag (see
+        # QUALITY_TIER_CLIP); composites don't — they have no score.
+        stored, expanded, jobs, qtags = [], [], [], []
+        img_quality = ([QUALITY_TAG if s >= QUALITY_TIER_CLIP else ""
+                        for s in sims_kept]
+                       if clip_filter > 0 and QUALITY_TIER_CLIP > 0
+                       else [""] * len(images))
+        for (im, c), q in (list(zip(zip(images, captions_batch),
+                                    img_quality))
+                           + [((im, c), "") for c, im in composed]):
             for v in variants:
                 stored.append(c + v["tag"])
                 expanded.append(im)
+                qtags.append(q)
                 jobs.append((im, min_ink, v["max_ink"], v["binarize"],
                              v["outline"], v["flatten_bg"],
                              v["tone_soften"], v["solidify"]))
         if pool is not None:
             pending.append((pool.map_async(_worker_convert, jobs),
-                            stored, expanded))
+                            stored, expanded, qtags))
             drain()
         else:
             converted = [images_to_grids(
@@ -668,7 +714,7 @@ def generate_dataset(num_samples, out_path, model_id=DEFAULT_MODEL,
                 outline=o, flatten_bg=f, tone_soften=s, solidify=so,
                 trim=trim)[0]
                 for im, mi, ma, b, o, f, s, so in jobs]
-            absorb(stored, expanded, converted)
+            absorb(stored, expanded, converted, qtags)
 
     drain(block=True)
     if pool is not None:

@@ -37,6 +37,16 @@ TEXT_ENCODER = "openai/clip-vit-base-patch32"  # frozen; only used to embed text
 TEXT_EMB_DIM = 512                             # CLIP text hidden dim
 TEXT_COND_TOKENS = 24  # max caption tokens kept for cross-attention
 
+# CLIP model used to RE-RANK rendered ASCII grids (best-of-k). None =
+# fall back to TEXT_ENCODER. Vanilla CLIP scores ASCII art at CHANCE
+# level (arXiv 2503.08295 measured it — the representation, not the
+# art, is the problem), so the stock re-ranker picks best-of-k nearly
+# at random; that paper releases ASCII-aware fine-tuned CLIP weights —
+# set their HF id here when fetched. The data engine's consistency
+# filter is NOT affected (it scores the source *image*, where vanilla
+# CLIP is fine) — this knob only changes rendered-grid scoring.
+RANKER_MODEL = None
+
 # Classifier-free guidance (inference default)
 CFG_SCALE = 3.0
 # Probability of dropping the caption to null during training (enables CFG)
@@ -123,10 +133,17 @@ GEOMETRY_NUM_SAMPLES = 200_000
 GEOMETRY_TRAIN_SAMPLES = 200_000
 
 # Stage 2: Shading
-# 6 epochs over EVERYTHING the shading file holds. v1 set a 100k
-# truncation here that silently dropped every sample past the first
-# 100k rows of the merged synthetic+sketch payload — None uses it all.
-SHADING_EPOCHS = 6
+# Raised 6 -> 30: masked models tolerate ~100+ epochs of data repetition
+# (random masking is per-epoch augmentation; the data-constrained-scaling
+# literature places best val loss for masked objectives at 10-50x the AR
+# epoch count, with no overfitting inside budget), and rare subjects need
+# on the order of ~1000 exposures to be stored at full fidelity — at 6
+# epochs the sparse-subject tail is undertrained, which matches the
+# observed weakness. Watch val loss per epoch; the anneal spans the full
+# run, so stopping early wastes the schedule. (v1 note kept: a 100k
+# truncation once silently dropped all samples past row 100k — None uses
+# everything.)
+SHADING_EPOCHS = 30
 SHADING_NUM_SAMPLES = 100_000
 SHADING_TRAIN_SAMPLES = None
 SHADING_LR = 1e-4
@@ -151,6 +168,28 @@ HUMAN_GEOMETRY_REPLAY_SAMPLES = 10_000
 # ~300k stage (3%) and geometry prompts came out BLANK at shading_last —
 # diluted below survival. 60k (~20%) keeps primitives trainable.
 SHADING_REPLAY_SAMPLES = 60_000
+
+# Rare-caption upsampling: duplicate samples whose caption is rare so
+# their subjects approach the ~1000-exposure storage threshold instead
+# of drowning under the frequent ones. Each sample whose caption count
+# is below the median unique-caption count is duplicated by
+# ceil(median/count), capped at this factor. 1 disables. Duplication
+# happens at index level before sharding, so every DDP rank sees the
+# same expanded dataset; masking still differs per epoch, so duplicates
+# are NOT identical training examples.
+RARE_UPSAMPLE_MAX_FACTOR = 5
+
+# Weight on the Token-Critic head's BCE loss (0 disables). The critic
+# learns, per visible cell, "is this glyph correct?" — ground-truth
+# visible cells are positives; the self-context corruption's revealed
+# cells supply the negatives (model samples that missed the target) at
+# zero extra cost. At decode it replaces generator confidence for
+# commit ranking and revision re-masking (Token-Critic, arXiv
+# 2209.04439: ImageNet FID 6.56 -> 4.69 over the same MaskGIT).
+# The critic term is computed on EVERY batch (all-ones labels on plain
+# batches) so the head's parameters join every DDP backward — see the
+# conditionally-used-parameter crash, study guide 14.4.
+CRITIC_LOSS_WEIGHT = 0.1
 
 # Inference
 UNMASK_STEPS = 10
