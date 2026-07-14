@@ -22,6 +22,7 @@ import time
 import random
 
 import torch
+import torch.nn.functional as F
 import numpy as np
 from torch.utils.data import DataLoader, random_split
 from torch.utils.data.distributed import DistributedSampler
@@ -39,7 +40,7 @@ from config import (
     COND_DROPOUT, GLYPH_LABEL_SMOOTH, EMA_DECAY, USE_BF16, TEXT_ENCODER,
     CFG_SCALE, HUMAN_REPLAY_SAMPLES, SHADING_REPLAY_SAMPLES,
     HUMAN_GEOMETRY_REPLAY_SAMPLES, SPACE_LOSS_WEIGHT, SPACE_WEIGHT_AUTO,
-    SELF_CONTEXT_PROB,
+    SELF_CONTEXT_PROB, RARE_UPSAMPLE_MAX_FACTOR, CRITIC_LOSS_WEIGHT,
 )
 from model.ascii_bert import ASCIIBert
 from model.inference import generate
@@ -132,6 +133,40 @@ def _mix_replay(data, caption_ids, captions, replay_path, replay_samples):
     caption_ids = torch.cat([caption_ids.long(), r_sel_ids])
     captions = captions + r_caps
     return data, caption_ids, (captions if captions else None)
+
+
+def upsample_rare(data, caption_ids, max_factor=RARE_UPSAMPLE_MAX_FACTOR):
+    """Duplicate samples with rare captions so their subjects approach the
+    exposure count learning needs (~1000 exposures for full-fidelity
+    storage; capacity halves around ~100 — the sparse-subject weakness is
+    the undertrained tail of the caption histogram).
+
+    Each sample whose caption count is below the median unique-caption
+    count is duplicated ceil(median/count) times, capped at max_factor.
+    Runs identically on every DDP rank (pure function of the inputs), and
+    duplicates are not identical training examples — every epoch sees each
+    copy through a fresh random mask.
+
+    Returns (data, caption_ids, num_added).
+    """
+    if max_factor <= 1 or caption_ids is None:
+        return data, caption_ids, 0
+    ids = caption_ids.long()
+    captioned = ids >= 0
+    if not captioned.any():
+        return data, caption_ids, 0
+    counts = torch.bincount(ids[captioned])
+    median = counts[counts > 0].float().median()
+    per_sample = counts[ids.clamp(min=0)].float()
+    factor = torch.ceil(median / per_sample).long().clamp(1, max_factor)
+    factor[~captioned] = 1
+    extra = factor - 1
+    if int(extra.sum()) == 0:
+        return data, caption_ids, 0
+    dup_idx = torch.repeat_interleave(torch.arange(len(ids)), extra)
+    data = torch.cat([data, data[dup_idx]])
+    caption_ids = torch.cat([ids, ids[dup_idx]])
+    return data, caption_ids, int(extra.sum())
 
 
 # Filled in by setup_distributed(); defaults describe a single process.
@@ -229,10 +264,12 @@ def self_context_corrupt(model, masked_grid, mask, ratio,
     cells the model is least confident about, and that confidence is
     only meaningful if the output head is trained at visible positions.
 
-    Returns (masked_grid, loss_mask, ratio): the grid with commits
-    revealed, the UNCHANGED loss mask, and the mask-ratio conditioning
-    recomputed from the cells still literally [MASK] (what the model
-    actually sees, matching inference).
+    Returns (masked_grid, loss_mask, ratio, reveal): the grid with
+    commits revealed, the UNCHANGED loss mask, the mask-ratio
+    conditioning recomputed from the cells still literally [MASK] (what
+    the model actually sees, matching inference), and the reveal mask —
+    the cells carrying model samples, whose correct/incorrect labels
+    (sample == target) train the Token-Critic head for free.
     """
     with torch.no_grad(), _autocast(device):
         logits = unwrap(model)(masked_grid, cond_tokens=cond_tokens,
@@ -256,7 +293,7 @@ def self_context_corrupt(model, masked_grid, mask, ratio,
 
     new_grid = torch.where(reveal, sampled, masked_grid)
     new_ratio = still.flatten(1).float().mean(dim=1)
-    return new_grid, mask, new_ratio
+    return new_grid, mask, new_ratio, reveal
 
 
 def train_epoch(model, loader, optimizer, scheduler, device, epoch, stage_name,
@@ -297,19 +334,32 @@ def train_epoch(model, loader, optimizer, scheduler, device, epoch, stage_name,
         # context for the model's own predictions (see
         # self_context_corrupt) so decode-time context is in-distribution
         if SELF_CONTEXT_PROB > 0 and random.random() < SELF_CONTEXT_PROB:
-            masked_grid, mask, ratio = self_context_corrupt(
+            masked_grid, mask, ratio, _reveal = self_context_corrupt(
                 model, masked_grid, mask, ratio,
                 cond_tokens, cond_mask, drop, device)
 
         # Forward through the wrapper (DDP hooks gradient sync into
-        # backward); compute_loss lives on the raw module
+        # backward); compute_loss lives on the raw module. The critic
+        # head runs on EVERY batch (never conditionally — see the DDP
+        # reducer crash, study guide 14.4): visible cells are labeled
+        # "is this glyph correct?", which is trivially all-true on plain
+        # batches and mixed on self-context batches, where the revealed
+        # model samples supply the negatives.
         with _autocast(device):
-            logits = model(masked_grid, cond_tokens=cond_tokens,
-                           cond_mask=cond_mask, cond_drop=drop,
-                           mask_ratio=ratio)
+            logits, critic = model(masked_grid, cond_tokens=cond_tokens,
+                                   cond_mask=cond_mask, cond_drop=drop,
+                                   mask_ratio=ratio, return_critic=True)
             loss = unwrap(model).compute_loss(logits, target_grid, mask,
                                               soft_target_matrix=soft_target,
                                               space_weight=space_weight)
+            visible = masked_grid != MASK_TOKEN
+            if visible.any():
+                critic_labels = (masked_grid == target_grid).float()
+                critic_bce = F.binary_cross_entropy_with_logits(
+                    critic[visible].float(), critic_labels[visible])
+            else:  # fully-masked batch: keep the head in the graph
+                critic_bce = critic.float().sum() * 0.0
+            loss = loss + CRITIC_LOSS_WEIGHT * critic_bce
         (loss / GRAD_ACCUM_STEPS).backward()
 
         running_loss += loss.detach()
@@ -499,6 +549,11 @@ def train_stage(model, data_path, epochs, lr, stage_name, device, ckpt_dir,
                 log(f"  Replay: +{len(data) - n_before:,} samples from "
                     f"{os.path.basename(r_path)} "
                     f"(guards against forgetting)")
+    data, caption_ids, n_up = upsample_rare(data, caption_ids)
+    if n_up:
+        log(f"  Rare-caption upsampling: +{n_up:,} duplicates "
+            f"(cap {RARE_UPSAMPLE_MAX_FACTOR}x — exposure floor for the "
+            f"sparse-subject tail)")
     space_weight = (auto_space_weight(data) if SPACE_WEIGHT_AUTO
                     else SPACE_LOSS_WEIGHT)
     log(f"  Space weight: {space_weight:.3f} "
@@ -717,7 +772,9 @@ def main():
     log(f"EMA: {'decay ' + str(EMA_DECAY) if ema else 'off'} | "
         f"bf16: {USE_BF16 and device.type == 'cuda'} | "
         f"caption dropout: {COND_DROPOUT} | "
-        f"self-context: p={SELF_CONTEXT_PROB}")
+        f"self-context: p={SELF_CONTEXT_PROB} | "
+        f"critic: w={CRITIC_LOSS_WEIGHT} | "
+        f"rare-upsample: {RARE_UPSAMPLE_MAX_FACTOR}x")
 
     # Stage 1: Geometry
     geometry_path = os.path.join(data_dir, "geometry_data.pt")

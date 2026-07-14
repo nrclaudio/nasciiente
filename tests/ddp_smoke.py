@@ -54,9 +54,18 @@ def main():
         target = torch.randint(2, 98, (B, h, w))
         mask = torch.rand(B, h, w) > 0.5
         ratio = torch.rand(B)
-        logits = model(x, cond_tokens=cond_tokens, cond_mask=cond_mask,
-                       cond_drop=cond_drop, mask_ratio=ratio)
+        # Mirror the real train_epoch: the critic head joins EVERY
+        # forward/loss — this smoke caught the reducer crash when a
+        # forward without it left critic.{weight,bias} gradient-less
+        # (the 14.4 conditionally-used-parameter trap, second edition)
+        logits, critic = model(x, cond_tokens=cond_tokens,
+                               cond_mask=cond_mask, cond_drop=cond_drop,
+                               mask_ratio=ratio, return_critic=True)
         loss = model.module.compute_loss(logits, target, mask)
+        visible = torch.ones_like(x, dtype=torch.bool)
+        critic_bce = torch.nn.functional.binary_cross_entropy_with_logits(
+            critic[visible].float(), (x == target)[visible].float())
+        loss = loss + 0.1 * critic_bce
         loss.backward()
         opt.step()
         opt.zero_grad()
