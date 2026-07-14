@@ -116,7 +116,9 @@ retraining, fully reversible.
 
 ### 4. ASCII-aware CLIP — three subsystems are running on a broken metric
 
-**Evidence.** arXiv 2503.08295 measured off-the-shelf CLIP on ASCII art
+**Evidence.** "ASCIIBench: Evaluating Language-Model-Based Understanding
+of Visually-Oriented Text" (arXiv 2512.04125) measured off-the-shelf CLIP
+on ASCII art
 and found cosine similarity **cannot separate most ASCII categories —
 chance-level performance** — attributing the failure to the representation
 itself. The authors release (a) fine-tuned ASCII-aware CLIP weights and
@@ -250,7 +252,8 @@ time. Hours in the engine; free at inference.
 - **MAR-style per-token diffusion head** (arXiv 2406.11838): compelling for
   large/continuous vocabularies; our 98-glyph categorical head is not the
   bottleneck. Skip.
-- **D3PO preference tuning** (DPO for masked discrete diffusion — closed
+- **D3PO preference tuning** (arXiv 2503.08295; DPO for masked discrete
+  diffusion — closed
   form exactly in our corruption family): the theory fits perfectly and we
   log best-of-k picks already, but published validation is toy-scale.
   Revisit in six months.
@@ -289,6 +292,7 @@ Google Research discrete predictor-corrector · 2407.21243 (informed
 corrector) · VAR (OpenReview gojL67CfS8) · 2506.04421 (HMAR) · SRDD ·
 2406.11838 (MAR/Diffusion Loss) · 2212.11972 (RIN) · discrete flow
 matching · masked-diffusion-vs-AR data-constrained scaling · 2305.16264
-(data-constrained LM scaling) · 2404.05405 (knowledge capacity) · D3PO ·
-Xu/Zhang/Wong structure-based ASCII art (SIGGRAPH Asia 2010) · 2503.08295
-(ASCII-aware CLIP + ASCIIBench) · ASCII tile-classification study.
+(data-constrained LM scaling) · 2404.05405 (knowledge capacity) ·
+2503.08295 (D3PO) · Xu/Zhang/Wong structure-based ASCII art (SIGGRAPH
+Asia 2010) · 2512.04125 (ASCIIBench + ASCII-aware CLIP) · 2503.14375
+(ASCII tile-classification study).

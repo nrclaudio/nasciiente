@@ -24,7 +24,7 @@ next; nothing in Phase 2 starts until Phase 1's probes are read.*
       dragon/lighthouse/bonsai). If it wins BOTH regimes it replaces the
       cap AND the space-bias — simpler decode, delete knobs.
 - [ ] **ASCII-aware CLIP swap** (roadmap #4) — *plumbing landed*: set
-      `RANKER_MODEL` in config.py to the arXiv 2503.08295 released weights'
+      `RANKER_MODEL` in config.py to the ASCIIBench paper (arXiv 2512.04125) released weights'
       HF id (find it via the paper's project page — network was blocked
       from the dev sandbox). Re-ranker uses it automatically; the engine's
       image-side filter stays on vanilla CLIP. Eyeball best-of-4 rankings

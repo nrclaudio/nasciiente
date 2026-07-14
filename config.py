@@ -39,7 +39,7 @@ TEXT_COND_TOKENS = 24  # max caption tokens kept for cross-attention
 
 # CLIP model used to RE-RANK rendered ASCII grids (best-of-k). None =
 # fall back to TEXT_ENCODER. Vanilla CLIP scores ASCII art at CHANCE
-# level (arXiv 2503.08295 measured it — the representation, not the
+# level (ASCIIBench, arXiv 2512.04125 measured it — the representation, not the
 # art, is the problem), so the stock re-ranker picks best-of-k nearly
 # at random; that paper releases ASCII-aware fine-tuned CLIP weights —
 # set their HF id here when fetched. The data engine's consistency
