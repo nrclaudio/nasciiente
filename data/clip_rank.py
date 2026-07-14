@@ -59,8 +59,8 @@ def clip_scores(grids, prompt, device="cpu"):
     """
     from model.render import render_to_pil
     # Rendered-ASCII scoring uses RANKER_MODEL when set: vanilla CLIP is
-    # near chance level on ASCII structure (arXiv 2503.08295), so an
-    # ASCII-aware checkpoint materially changes which candidate wins.
+    # near chance level on ASCII structure (ASCIIBench, arXiv 2512.04125),
+    # so an ASCII-aware checkpoint materially changes which candidate wins.
     model, processor, dev = _load_scorer(device, RANKER_MODEL)
     images = [render_to_pil(g) for g in grids]
     inputs = processor(text=[prompt], images=images, return_tensors="pt",
