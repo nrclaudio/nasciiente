@@ -66,6 +66,47 @@ def _confidence(probs, sampled, cluster_confidence, threshold=0.80):
     return torch.log(conf.clamp_min(1e-9))
 
 
+_HALTON_CACHE = {}
+
+
+def _halton_ranks(H, W, device):
+    """Rank of every grid cell in a 2D Halton (base 2/3) low-discrepancy
+    visit order — lower rank = committed earlier.
+
+    Confidence-ordered unmasking commits spatially clustered, highly
+    correlated cells together (low information gain per step; the formal
+    version of the edge-echo and space-first-cascade pathologies — arXiv
+    2503.17076). A low-discrepancy order spreads every step's commits
+    uniformly across the canvas instead: each committed cell pins its
+    neighborhood, and no step ever commits a whole edge's worth of
+    correlated hypotheses at once. Training-free.
+    """
+    key = (H, W, str(device))
+    if key not in _HALTON_CACHE:
+        def halton(i, base):
+            f, r = 1.0, 0.0
+            while i > 0:
+                f /= base
+                r += f * (i % base)
+                i //= base
+            return r
+        ranks = torch.full((H * W,), -1, dtype=torch.long)
+        rank, i = 0, 1
+        while rank < H * W and i <= 200 * H * W:
+            r = int(halton(i, 2) * H)
+            c = int(halton(i, 3) * W)
+            i += 1
+            idx = min(r, H - 1) * W + min(c, W - 1)
+            if ranks[idx] < 0:
+                ranks[idx] = rank
+                rank += 1
+        for idx in (ranks < 0).nonzero().flatten().tolist():
+            ranks[idx] = rank  # stragglers (if any) go last, scan order
+            rank += 1
+        _HALTON_CACHE[key] = ranks.view(H, W).to(device)
+    return _HALTON_CACHE[key]
+
+
 def _effective_guidance(scale, progress, schedule):
     """Per-step CFG scale under a schedule over the decode.
 
@@ -131,12 +172,24 @@ def _model_logits(model, grid, cond, guidance_scale, mask_ratio):
     return uncond_l + guidance_scale * (cond_l - uncond_l)
 
 
+def _critic_scores(model, grid, cond, mask_ratio):
+    """Per-cell critic logits ("is this glyph correct?") for the grid as
+    it stands. Single conditional forward — no CFG extrapolation; the
+    critic is a calibrated judge, not a direction to amplify."""
+    kwargs = ({} if cond is None
+              else dict(cond_tokens=cond[0], cond_mask=cond[1]))
+    _, critic = model(grid.unsqueeze(0), mask_ratio=mask_ratio,
+                      return_critic=True, **kwargs)
+    return critic.squeeze(0)
+
+
 def _iterative_fill(model, grid, num_steps, temperature, schedule,
                     gumbel_scale, steps_out,
                     cond=None, guidance_scale=1.0, space_bias=0.0,
                     guidance_schedule="constant",
                     cluster_confidence=False, max_commit=None,
-                    cap_below=1.0):
+                    cap_below=1.0, order="confidence",
+                    critic_confidence=False):
     """Fill every currently-[MASK] cell of `grid` in place (MaskGIT-style).
 
     Cells that are not [MASK] on entry are never touched, so fixed/anchor
@@ -204,12 +257,26 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
 
         sampled = _sample_all(probs)                     # [H, W]
 
-        # Confidence with annealed Gumbel noise (0 from the last
-        # scheduled step onward)
-        conf = _confidence(probs, sampled, cluster_confidence)
-        anneal = gumbel_scale * max(0.0, 1.0 - step / max(1, num_steps))
-        if anneal > 0:
-            conf = conf + anneal * _gumbel_like(conf)
+        # Commit-order ranking. Three sources, in precedence order:
+        #   halton — position-based low-discrepancy spread (arXiv
+        #     2503.17076): ignores confidence entirely, so it neither
+        #     clusters correlated commits (echo) nor greedily commits
+        #     the safest cells first (space cascade).
+        #   critic — trained Token-Critic judges the SAMPLED candidates
+        #     in place (one extra forward on the tentatively-filled
+        #     grid), replacing generator confidence.
+        #   confidence — log P(sampled), the MaskGIT default.
+        if order == "halton":
+            conf = -_halton_ranks(*grid.shape, grid.device).float()
+        elif critic_confidence:
+            tentative = torch.where(is_masked, sampled, grid)
+            conf = _critic_scores(model, tentative, cond, mask_ratio)
+        else:
+            conf = _confidence(probs, sampled, cluster_confidence)
+            anneal = gumbel_scale * max(0.0, 1.0 - step / max(1, num_steps))
+            if anneal > 0:
+                conf = conf + anneal * _gumbel_like(conf)
+        conf = conf.clone()
         conf[~is_masked] = float("-inf")
 
         # Commit enough to reach the schedule's masked target for this
@@ -234,7 +301,8 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
              prompt=None, cond_tokens=None, cond_mask=None,
              guidance_scale=1.0, space_bias=0.0,
              guidance_schedule="constant", cluster_confidence=False,
-             max_commit=None, cap_below=DECODE_CAP_BELOW):
+             max_commit=None, cap_below=DECODE_CAP_BELOW,
+             order="confidence", critic_confidence=False):
     """
     Generate ASCII art via iterative unmasking (MaskGIT-style).
 
@@ -291,6 +359,18 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
                     exploration and rising guidance — a fully-capped
                     decode greedy-cascades sparse tonal prompts into
                     blank; echo is born only in the ambiguous tail.
+        order:      commit-order source: "confidence" (MaskGIT default,
+                    optionally gumbel-noised) or "halton" (training-free
+                    low-discrepancy positional spread, arXiv 2503.17076
+                    — commits are spatially uniform every step, attacking
+                    both clustered-commit echo and the greedy space-first
+                    cascade at once).
+        critic_confidence: rank commits and revisions by the trained
+                    Token-Critic head instead of generator confidence
+                    (requires a checkpoint trained with
+                    CRITIC_LOSS_WEIGHT > 0; zero-init critics score all
+                    cells 0.5 = random order). One extra forward per
+                    step. Ignored when order="halton".
 
     Returns:
         steps: list of [H, W] long tensors (grid at each step)
@@ -326,7 +406,7 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
     _iterative_fill(model, grid, num_steps, temperature, schedule,
                     gumbel_scale, steps, cond, guidance_scale, space_bias,
                     guidance_schedule, cluster_confidence, max_commit,
-                    cap_below)
+                    cap_below, order, critic_confidence)
 
     # --- Revision passes (poor-man's Token-Critic self-correction) ---
     free = ~fixed
@@ -335,12 +415,19 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
     for _ in range(revision_steps):
         k = max(1, int(revision_fraction * num_free))
 
-        logits = _model_logits(model, grid, cond, guidance_scale,
-                               int((grid == MASK_TOKEN).sum().item()) / total)
-        if temperature != 1.0:
-            logits = logits / temperature
-        probs = F.softmax(logits, dim=-1)
-        cur_conf = _confidence(probs, grid, cluster_confidence)  # [H, W]
+        ratio_now = int((grid == MASK_TOKEN).sum().item()) / total
+        if critic_confidence:
+            # Trained judge of committed glyphs — exactly its training
+            # distribution (visible cells, "is this correct?")
+            cur_conf = _critic_scores(model, grid, cond, ratio_now)
+        else:
+            logits = _model_logits(model, grid, cond, guidance_scale,
+                                   ratio_now)
+            if temperature != 1.0:
+                logits = logits / temperature
+            probs = F.softmax(logits, dim=-1)
+            cur_conf = _confidence(probs, grid, cluster_confidence)
+        cur_conf = cur_conf.clone()
         cur_conf[fixed] = float("inf")  # fixed cells are never re-masked
 
         # Re-mask the k least-confident free cells, then refill them
@@ -352,7 +439,7 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
         _iterative_fill(model, grid, refill_steps, temperature, schedule,
                         gumbel_scale, steps, cond, guidance_scale,
                         space_bias, guidance_schedule, cluster_confidence,
-                        max_commit, cap_below)
+                        max_commit, cap_below, order, critic_confidence)
 
     return steps, grid.cpu()
 

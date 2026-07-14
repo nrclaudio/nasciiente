@@ -100,6 +100,17 @@ def main():
                              "binds (default: config DECODE_CAP_BELOW "
                              "~0.35; 1.0 = whole decode, which blank-"
                              "collapses sparse tonal prompts)")
+    parser.add_argument("--order", default="confidence",
+                        choices=["confidence", "halton"],
+                        help="commit-order source: 'halton' spreads "
+                             "commits uniformly over the grid (training-"
+                             "free; counters both clustered-commit echo "
+                             "and the greedy space-first cascade)")
+    parser.add_argument("--critic-conf", action="store_true",
+                        help="rank commits/revisions with the trained "
+                             "Token-Critic head instead of generator "
+                             "confidence (needs a checkpoint trained "
+                             "with CRITIC_LOSS_WEIGHT > 0)")
     parser.add_argument("--cluster-conf", action="store_true",
                         help="rank decode commitment by visual-cluster "
                              "probability mass instead of single-glyph "
@@ -164,6 +175,8 @@ def main():
                            revision_steps=args.revision_steps,
                            revision_fraction=args.revision_fraction,
                            max_commit=args.max_commit,
+                           order=args.order,
+                           critic_confidence=args.critic_conf,
                            **({} if args.cap_below is None
                               else dict(cap_below=args.cap_below)),
                            device=device, **kwargs)
