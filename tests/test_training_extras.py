@@ -283,7 +283,7 @@ def test_self_context_corrupt():
     cond_mask = torch.zeros(B, 3, dtype=torch.bool)
     drop = torch.ones(B, dtype=torch.bool)
 
-    new_grid, new_mask, new_ratio = self_context_corrupt(
+    new_grid, new_mask, new_ratio, reveal_out = self_context_corrupt(
         model, masked.clone(), mask, ratio,
         cond_tokens, cond_mask, drop, device)
 
@@ -303,3 +303,58 @@ def test_self_context_corrupt():
     # Ratio conditioning tracks what the model literally sees: the
     # cells still [MASK] after the commits — matching inference
     assert torch.allclose(new_ratio, still.flatten(1).float().mean(dim=1))
+    # The returned reveal mask is exactly the committed cells — the
+    # Token-Critic's free training signal
+    assert torch.equal(reveal_out, revealed)
+
+
+def test_upsample_rare():
+    from training.train import upsample_rare
+
+    torch.manual_seed(0)
+    # counts [8,1,1]: median 1 -> nothing is below it -> no duplication
+    ids = torch.tensor([0] * 8 + [1] + [2] + [-1] * 2)
+    data = torch.arange(len(ids), dtype=torch.uint8).view(-1, 1, 1)
+    _, _, added = upsample_rare(data, ids, max_factor=5)
+    assert added == 0
+
+    ids2 = torch.tensor([0] * 9 + [1] * 4 + [2])
+    data2 = torch.arange(len(ids2), dtype=torch.uint8).view(-1, 1, 1)
+    d2, i2, added2 = upsample_rare(data2, ids2, max_factor=5)
+    # median count = 4; caption 2 (count 1) duplicated ceil(4/1)-1 = 3 extra
+    assert added2 == 3
+    assert (i2 == 2).sum() == 4
+    # duplicated rows carry the right grids
+    assert (d2[i2 == 2] == d2[len(ids2) - 1]).all()
+    # frequent captions untouched
+    assert (i2 == 0).sum() == 9
+    # disabled / uncaptioned passthrough
+    _, _, a0 = upsample_rare(data, ids, max_factor=1)
+    assert a0 == 0
+    _, _, a1 = upsample_rare(data, None, max_factor=5)
+    assert a1 == 0
+
+
+def test_critic_head_and_loading():
+    from model.ascii_bert import ASCIIBert, load_compatible_state
+
+    torch.manual_seed(0)
+    model = ASCIIBert(embed_dim=32, num_layers=2, num_heads=2, ffn_dim=64,
+                      text_dim=16)
+    x = torch.randint(2, 98, (2, 8, 10))
+    logits, critic = model(x, mask_ratio=torch.tensor([0.5, 0.5]),
+                           return_critic=True)
+    assert critic.shape == (2, 8, 10)
+    # zero-init: neutral scores until trained
+    assert torch.allclose(critic, torch.zeros_like(critic))
+    # plain forward signature unchanged
+    assert model(x).shape == (2, 8, 10, 98)
+
+    # checkpoints from before the critic retrofit still load, and the
+    # missing critic keys do NOT flip the conditioning verdict
+    old_state = {k: v for k, v in model.state_dict().items()
+                 if not k.startswith("critic.")}
+    fresh = ASCIIBert(embed_dim=32, num_layers=2, num_heads=2, ffn_dim=64,
+                      text_dim=16)
+    conditioned = load_compatible_state(fresh, old_state)
+    assert conditioned  # conditioning keys were all present

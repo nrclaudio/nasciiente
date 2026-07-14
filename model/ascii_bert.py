@@ -19,9 +19,21 @@ from model.transformer import TransformerEncoder
 # may carry obsolete ones — both are safe to tolerate when loading.
 _COND_KEY_MARKERS = ("conditioning.", "cross_", "norm_cross")
 
+# Later zero-init retrofits (same pattern as the conditioning splice):
+# tolerated when loading older checkpoints, but NOT counted as evidence
+# about text conditioning. The critic head predicts, per cell, whether
+# the visible glyph is correct (Token-Critic, arXiv 2209.04439) — used
+# at decode to rank commits/revisions by a TRAINED signal instead of
+# generator confidence.
+_RETROFIT_KEY_MARKERS = ("critic.",)
+
 
 def _is_conditioning_key(key):
     return any(m in key for m in _COND_KEY_MARKERS)
+
+
+def _is_retrofit_key(key):
+    return any(m in key for m in _RETROFIT_KEY_MARKERS)
 
 
 # Named model sizes. "base" is the original 34.5M configuration;
@@ -64,7 +76,7 @@ def load_compatible_state(model, state):
     """
     missing, unexpected = model.load_state_dict(state, strict=False)
     bad = [k for k in list(missing) + list(unexpected)
-           if not _is_conditioning_key(k)]
+           if not (_is_conditioning_key(k) or _is_retrofit_key(k))]
     if bad:
         raise ValueError(f"Checkpoint does not match the model "
                          f"(mismatched keys: {bad[:5]}...)")
@@ -92,9 +104,17 @@ class ASCIIBert(nn.Module):
                                               ctx_dim=text_dim)
         self.norm = nn.LayerNorm(embed_dim)
         self.head = nn.Linear(embed_dim, vocab_size)
+        # Token-Critic head: per-cell logit for "the glyph visible at this
+        # cell is correct". Zero-init -> outputs 0 (sigmoid 0.5, neutral)
+        # until trained, so it can be retrofitted onto any checkpoint.
+        # Trained from the self-context corruption's revealed cells, whose
+        # correct/incorrect labels the training loop gets for free.
+        self.critic = nn.Linear(embed_dim, 1)
+        nn.init.zeros_(self.critic.weight)
+        nn.init.zeros_(self.critic.bias)
 
     def forward(self, x, cond_tokens=None, cond_mask=None, cond_drop=None,
-                mask_ratio=None):
+                mask_ratio=None, return_critic=False):
         """
         Args:
             x: [B, H, W] long tensor of token indices
@@ -105,8 +125,10 @@ class ASCIIBert(nn.Module):
             cond_drop: optional [B] bool — rows to force to the null token
                        (CFG dropout / unconditional branch)
             mask_ratio: None | float | [B] float — fraction of grid masked
+            return_critic: also return the per-cell critic logits
         Returns:
             logits: [B, H, W, VOCAB_SIZE]
+            (logits, critic): if return_critic — critic is [B, H, W]
         """
         B, H, W = x.shape
         cond_vec, ctx, ctx_mask = self.conditioning(
@@ -116,6 +138,9 @@ class ASCIIBert(nn.Module):
         out = self.norm(out)              # [B, H*W, D]
         logits = self.head(out)           # [B, H*W, VOCAB_SIZE]
         logits = logits.view(B, H, W, -1) # [B, H, W, VOCAB_SIZE]
+        if return_critic:
+            critic = self.critic(out).view(B, H, W)
+            return logits, critic
         return logits
 
     def compute_loss(self, logits, targets, mask, soft_target_matrix=None,
