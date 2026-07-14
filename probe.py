@@ -111,6 +111,12 @@ def main():
                              "Token-Critic head instead of generator "
                              "confidence (needs a checkpoint trained "
                              "with CRITIC_LOSS_WEIGHT > 0)")
+    parser.add_argument("--remask-eta", type=float, default=0.0,
+                        help="ReMDM-style in-loop remasking intensity "
+                             "(try 0.1-0.5; inference-only, no "
+                             "retraining). Keeps early commitments "
+                             "revisable while layout forms; use with "
+                             "--revision-steps 0")
     parser.add_argument("--cluster-conf", action="store_true",
                         help="rank decode commitment by visual-cluster "
                              "probability mass instead of single-glyph "
@@ -177,6 +183,7 @@ def main():
                            max_commit=args.max_commit,
                            order=args.order,
                            critic_confidence=args.critic_conf,
+                           remask_eta=args.remask_eta,
                            **({} if args.cap_below is None
                               else dict(cap_below=args.cap_below)),
                            device=device, **kwargs)

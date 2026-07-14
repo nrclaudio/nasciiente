@@ -38,7 +38,16 @@ next; nothing in Phase 2 starts until Phase 1's probes are read.*
       stage-3 supplement/replay + eval set. License unstated upstream —
       keep the data out of the public repo; regenerate with:
       `curl -sLO https://raw.githubusercontent.com/KerryLuo/ASCIIBench/main/final_dataset.jsonl && python data/prepare_asciibench.py --jsonl final_dataset.jsonl`
-- [ ] Decide Phase 2 decode defaults from the Halton A/B result.
+- [x] **ReMDM-style in-loop remasking — CODE LANDED, run pending**
+      (roadmap #5; inference-only per the paper, so it belongs in this
+      phase, not Phase 3). `--remask-eta 0.1-0.5` in probe.py: each step
+      re-masks the least-confident committed cells at an annealing
+      fraction, keeping early commitments revisable while layout forms —
+      the principled replacement for `--revision-steps` (use one, not
+      both). Verified mechanically; eta=0 is bit-identical to before.
+      RUN: A/B eta 0 / 0.2 / 0.5 alongside the Halton A/B.
+- [ ] Decide Phase 2 decode defaults from the Halton × remask-eta A/B
+      grid.
 
 ## Phase 2 — the next training run (one run carries five upgrades) *(prep ~3–4 days, then GPU time)*
 
@@ -70,10 +79,11 @@ next; nothing in Phase 2 starts until Phase 1's probes are read.*
 
 ## Phase 3 — decode upgrades on the new checkpoint *(1–2 weeks, ordered by probe results)*
 
-- [ ] **Critic-scored revision / ReMDM-style remasking** (roadmap #5):
-      replace the ad-hoc revision passes with scheduled in-loop remasking
-      (η knob), scores from the Phase 2 critic head. Expose steps as the
-      quality/speed dial in the app.
+- [ ] **Critic-scored remasking** (roadmap #5, second half): the in-loop
+      remasking is implemented (Phase 1) with generator-confidence
+      scores; once the Phase-2 critic exists, re-score the remask
+      selection with it and expose decode steps as the quality/speed
+      dial in the app.
 - [ ] **Critic repair pass** as a serve-time option: re-mask worst-N% by
       critic on finished grids, refill (the Token-Critic paper's post-hoc
       trick).

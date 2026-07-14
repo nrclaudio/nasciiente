@@ -1,7 +1,17 @@
 # STATUS — GLYPH48 / ascii-art-transformer
 
-*Last updated: 2026-07-13. Written so the project can be picked up cold —
+*Last updated: 2026-07-14. Written so the project can be picked up cold —
 by future-you or anyone else — after any amount of time away.*
+
+**Update 2026-07-14:** a literature deep-dive produced
+[`docs/research-roadmap.md`](docs/research-roadmap.md) (ranked findings)
+and [`TODO.md`](TODO.md) (phased execution list); every code-side item is
+implemented, tested (128 passing), and flag-gated — see TODO for what's
+landed vs what awaits a GPU run. New decode flags on existing
+checkpoints: `--order halton`, `--remask-eta`, `--critic-conf` (needs
+retrain), plus training-side critic head / rare-caption upsampling /
+30-epoch shading, engine quality tags + sparse dialect routing, and
+`data/prepare_asciibench.py` (4,860 labeled human pieces).
 
 ## What this is
 
