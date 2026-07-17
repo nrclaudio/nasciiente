@@ -16,13 +16,14 @@ next; nothing in Phase 2 starts until Phase 1's probes are read.*
 
 ## Phase 1 — zero-training experiments *(2–3 days, existing checkpoints)*
 
-- [x] **Halton commit scheduler — CODE LANDED, run pending** (roadmap #3,
-      verified 3-0, training-free). `--order halton` in probe.py; verified
-      mechanically (true permutation, spatial spread, order honored,
-      works with cap/inpaint/revision). RUN: A/B against the hybrid cap
-      decode on the standard probe set (rectangle/diamond/cross/triangle +
-      dragon/lighthouse/bonsai). If it wins BOTH regimes it replaces the
-      cap AND the space-bias — simpler decode, delete knobs.
+- [x] **Halton commit scheduler — TESTED, REJECTED as default** (2026-07
+      grid on shading_last): position-forced early commits seed noise on
+      our blank-dominated grids — "a dragon" became 1,561 ink of speckle,
+      "a rectangle" 14 ink of fragments. The paper's ImageNet gains
+      (dense VQ tokens, strong class conditioning) do not transfer to
+      sparse ASCII marginals. Keeping the flag for future checkpoints;
+      confidence order stays the default. (The published-knob lesson of
+      §14.2, again.)
 - [ ] **ASCII-aware CLIP** (roadmap #4) — *plumbing landed, weights NOT
       yet public*: github.com/KerryLuo/ASCIIBench is "under construction"
       and ships only the dataset — the released-weights claim from the
@@ -38,16 +39,18 @@ next; nothing in Phase 2 starts until Phase 1's probes are read.*
       stage-3 supplement/replay + eval set. License unstated upstream —
       keep the data out of the public repo; regenerate with:
       `curl -sLO https://raw.githubusercontent.com/KerryLuo/ASCIIBench/main/final_dataset.jsonl && python data/prepare_asciibench.py --jsonl final_dataset.jsonl`
-- [x] **ReMDM-style in-loop remasking — CODE LANDED, run pending**
-      (roadmap #5; inference-only per the paper, so it belongs in this
-      phase, not Phase 3). `--remask-eta 0.1-0.5` in probe.py: each step
-      re-masks the least-confident committed cells at an annealing
-      fraction, keeping early commitments revisable while layout forms —
-      the principled replacement for `--revision-steps` (use one, not
-      both). Verified mechanically; eta=0 is bit-identical to before.
-      RUN: A/B eta 0 / 0.2 / 0.5 alongside the Halton A/B.
-- [ ] Decide Phase 2 decode defaults from the Halton × remask-eta A/B
-      grid.
+- [x] **ReMDM-style in-loop remasking — TESTED, REJECTED as default**
+      (same grid): with generator-confidence scoring, remasking strips
+      the fragile early ink seeds on sparse prompts ("a dragon" ink
+      70 -> 8 -> 4 across eta 0/0.2/0.5). Revisit ONLY with critic
+      scores after the Phase-2 run (the critic can tell correct ink
+      from noise; raw confidence cannot).
+- [x] **Decode defaults DECIDED** (grid, 2026-07): confidence order ·
+      rise · gumbel 1 (0 for geometry probes) · max-commit 8 ·
+      cap-below 0.35 · revision 0 · eta 0 — i.e. the existing hybrid
+      decode, now grid-validated: best-ever bonsai, clean outline
+      dragon, single clean rectangle in ONE setting. Sparse tonal
+      (dragon/lighthouse) remains exposure-limited -> Phase 2's job.
 
 ## Phase 2 — the next training run (one run carries five upgrades) *(prep ~3–4 days, then GPU time)*
 
