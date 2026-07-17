@@ -1,0 +1,299 @@
+=== unconditional  (ink: 0, unique chars: 1) ===
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+
+=== "a dragon" @ guidance 1.5  (ink: 4, unique chars: 4) ===
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                 ~                                              
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                 "                                              
+                                                                                
+                                                                                
+                               `                                                
+                               `                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+
+=== "a lighthouse" @ guidance 1.5  (ink: 92, unique chars: 9) ===
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                  a                                             
+                                  ~                                             
+                                                                                
+                                  w                                             
+                                  *                                             
+                                                                                
+                                  ~                                             
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                  ~                                             
+                                                                                
+                                                                                
+                                                                                
+                                  `                                             
+                                                                                
+                                                                                
+                                                                                
+                                ~`                                              
+                            ~~~~+++++++++++----------.                          
+                 `````````````````````````````````````````````````````````      
+                                                                                
+
+=== "a bonsai tree" @ guidance 1.5  (ink: 470, unique chars: 26) ===
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                    ~~~---                                      
+                                ~~+uaaaaaaw+-                                   
+                             ~~uaa##M****MMNaw+-                                
+                          ~~ua#MM**'~~~~~~:'**N&w+--                            
+                        ~ua#MM*~~~++++++++++~~-*MM&au+-                         
+                      ~ua###quaaaaaammmmmaaaaaaaa####N&w+-                      
+                     ~a##################################Ww-                    
+                    ~<MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMf*"`                    
+                    `''''''''''``'''''''''''''```'''''```                       
+                                                                                
+                                                                                
+                                                                                
+                                                *                               
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                       ~-                                       
+                                      ~ae-                                      
+                                     ~4##e-                                     
+                                    ~u####e-.                                   
+                                   ~a######e+.                                  
+                                 ~ua#M######e>-                                 
+                              ~+aa#MNNN#######e+-                               
+                           ~~ua##MNNNN##N######Nau+-                            
+                        ~~uaa###N#N#NN######N#N###Weu-.                         
+                     ~~ua############################We>-.                      
+                    `'"**fMMMMMMMMMMMMMMMMMMMMMMMMMY**"'``                      
+                         ```''''""""""""""""'''''``                             
+
+=== "a dragon, outline style" @ guidance 1.5  (ink: 185, unique chars: 24) ===
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                              ~wwwwwwu-                         
+                                           ~&#f*'  '"^NwL                       
+                                         ~#M\          'Mw-                     
+                                       %&f'              *f&w-                  
+                                     ~aM                    *M&w-               
+                                    u#*                        *MNww- w         
+                                  ~aM`                           `^MMN%         
+                                 u#*                                            
+                              ~w#M`                                             
+                           ~wa#\                                                
+                          ~#%'                                                  
+                        u#f'                                                    
+                      &#f`                                                      
+                     aM                                                         
+                    %#                                                          
+                    M~                                                          
+                    M~                                                          
+                    M~                                                          
+                    M~                                                          
+                    M~                                                          
+                    M~                                                          
+                    M~                                                          
+                    M~                                                          
+                    M~                                                          
+                    M~                                                          
+                    M~                                                          
+                    Mw                                                          
+                    `#L                                                         
+                     JW                                                         
+                     `M&-                                                       
+                       7a-                                                      
+                        7W                                                      
+                        `7NL                   ~w                               
+                          7NL                  ~M                               
+                           `MNa-              ~<M                               
+                              *MNwwwwwwwwwwwww#MF                               
+                                 ``````````````                                 
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+
+=== "a rectangle" @ guidance 1.5  (ink: 72, unique chars: 4) ===
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                                                                                
+                               +- ---------------------------+                  
+                               |                                                
+                               |                                                
+                               |                                                
+                               |                             |                  
+                               |                             |                  
+                               |                             |                  
+                               |                             |                  
+                               +-----------------------------+                  
+                                                                                
