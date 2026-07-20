@@ -8,6 +8,8 @@
   :root {
     --bg: #070707; --fg: #c9c9c9; --dim: #6f6f6f; --faint: #434343;
     --line: #232323; --art: #dadada; --glow: #b6ffb6; --amber: #c9a35a;
+    /* chart series — validated for CVD + contrast on both surfaces */
+    --c-train: #008300; --c-val: #c98500;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { background: var(--bg); }
@@ -49,6 +51,26 @@
   .cap { font-size: 11.5px; color: var(--faint); margin: -10px 0 20px;
          max-width: 72ch; }
 
+  figure { margin: 20px 0 6px; }
+  figure img { display: block; border: 1px solid var(--line);
+               max-width: 100%; }
+  figure.hero img { margin: 0 auto; max-height: 420px; }
+  .figrow { display: flex; gap: 12px; flex-wrap: wrap;
+            align-items: flex-start; }
+  .figrow .cell { flex: 1 1 140px; min-width: 120px; }
+  .figrow .cell img { width: 100%; }
+  .figrow .lb { font-size: 11px; color: var(--dim); margin-top: 5px; }
+
+  .chart { width: 100%; display: block; border: 1px solid var(--line);
+           background: var(--bg); }
+  .cg  { stroke: var(--line); stroke-width: 1; }
+  .ct  { fill: var(--dim); font-family: inherit; font-size: 11px; }
+  .cs-train { fill: none; stroke: var(--c-train); stroke-width: 2; }
+  .cs-val   { fill: none; stroke: var(--c-val);   stroke-width: 2; }
+  .cvm { fill: var(--c-val); stroke: var(--bg); stroke-width: 2; }
+  .csw-train { fill: var(--c-train); }
+  .csw-val   { fill: var(--c-val); }
+
   table { border-collapse: collapse; width: 100%; font-size: 12.5px;
           margin: 16px 0 20px; }
   th { text-align: left; color: var(--dim); font-weight: normal;
@@ -76,7 +98,8 @@
   /* print = actual paper: light, sans-chrome */
   @media print {
     :root { --bg: #ffffff; --fg: #1a1a1a; --dim: #555; --faint: #777;
-            --line: #ccc; --art: #000; --glow: #1a7343; --amber: #7a5a10; }
+            --line: #ccc; --art: #000; --glow: #1a7343; --amber: #7a5a10;
+            --c-train: #008300; --c-val: #eda100; }
     main { margin: 0 auto; max-width: 100%; }
     header nav, footer { display: none; }
     h2 { page-break-after: avoid; }
@@ -122,6 +145,13 @@ survive contact with this domain. Everything runs on one rented consumer
 GPU; inference is CPU-deployable at ~140&nbsp;MB.
 </div>
 
+<figure class="hero"><img src="fig/materialize.gif" width="500" height="500"
+  alt="An ASCII bonsai tree materializing character by character"></figure>
+<p class="cap">Fig. 1 — "a bonsai tree": an unedited generation from the
+current checkpoint, rendered through the model's own glyph atlas. The
+reveal order here is presentational; the live demo replays the model's
+actual commit order.</p>
+
 <h2><span class="n">1</span>THE TASK</h2>
 <p>An ASCII picture is a point in <code>V^(48&times;80)</code> with
 <code>|V| = 98</code>: 96 printable ASCII characters plus
@@ -151,7 +181,7 @@ never 0.6 of each).</p>
                  |  LN -&gt; Linear 512-&gt;1       (critic head)
                  v
      per-cell glyph logits          per-cell "is this right?"</pre>
-<p class="cap">Fig. 1 — 34.5M parameters: 8 pre-norm blocks, width 512.
+<p class="cap">Fig. 2 — 34.5M parameters: 8 pre-norm blocks, width 512.
 Dropout is 0.0, and that number is a measurement, not a default
 (&sect;6, failure 7).</p>
 <p><em>Positions.</em> Factorized 2D rotary embeddings: half of each
@@ -217,12 +247,48 @@ associates with full-fidelity storage, and the masked objective tolerates
 data repetition far beyond autoregressive norms — random masking is
 itself per-epoch augmentation [6].</p>
 
+<figure>
+<svg class="chart" viewBox="0 0 640 300" role="img"
+     aria-label="Geometry-stage training curve: train and validation loss over six epochs">
+<line class="cg" x1="52" y1="243.7" x2="626" y2="243.7"/><text class="ct" x="44" y="247.7" text-anchor="end">0.4</text>
+<line class="cg" x1="52" y1="161.7" x2="626" y2="161.7"/><text class="ct" x="44" y="165.7" text-anchor="end">0.6</text>
+<line class="cg" x1="52" y1="79.7" x2="626" y2="79.7"/><text class="ct" x="44" y="83.7" text-anchor="end">0.8</text>
+<text class="ct" x="147.7" y="278" text-anchor="middle">1</text>
+<text class="ct" x="243.3" y="278" text-anchor="middle">2</text>
+<text class="ct" x="339.0" y="278" text-anchor="middle">3</text>
+<text class="ct" x="434.7" y="278" text-anchor="middle">4</text>
+<text class="ct" x="530.3" y="278" text-anchor="middle">5</text>
+<text class="ct" x="626.0" y="278" text-anchor="middle">6</text>
+<text class="ct" x="339" y="294" text-anchor="middle">epoch</text>
+<polyline class="cs-train" points="61.5,29.8 71.1,108.5 80.6,140.3 90.2,158.6 99.7,170.5 109.2,179.1 118.8,185.4 128.3,190.5 137.8,194.5 147.4,197.9 157.2,228.6 166.7,229.9 176.3,229.7 185.8,230.2 195.4,230.7 204.9,231.2 214.4,231.5 224.0,231.9 233.5,232.1 243.0,232.4 252.9,234.0 262.4,235.0 271.9,235.4 281.5,235.6 291.0,236.0 300.6,236.3 310.1,236.5 319.6,236.6 329.2,236.8 338.7,236.8 348.5,239.8 358.1,239.3 367.6,239.3 377.2,239.8 386.7,240.3 396.2,240.3 405.8,240.3 415.3,240.2 424.8,240.3 434.4,240.5 444.2,241.8 453.7,241.9 463.3,241.3 472.8,241.2 482.4,241.3 491.9,241.7 501.4,242.0 511.0,242.0 520.5,242.0 530.0,242.0 539.9,242.8 549.4,243.6 558.9,243.3 568.5,243.0 578.0,243.1 587.6,242.9 597.1,242.9 606.6,243.0 616.2,242.9 625.7,243.1"/>
+<polyline class="cs-val" points="147.4,218.8 243.3,229.7 339.0,233.0 434.7,229.2 530.3,233.3 626.0,233.9"/>
+<circle class="cvm" cx="147.4" cy="218.8" r="4"/>
+<circle class="cvm" cx="243.3" cy="229.7" r="4"/>
+<circle class="cvm" cx="339.0" cy="233.0" r="4"/>
+<circle class="cvm" cx="434.7" cy="229.2" r="4"/>
+<circle class="cvm" cx="530.3" cy="233.3" r="4"/>
+<circle class="cvm" cx="626.0" cy="233.9" r="4"/>
+<g class="clegend">
+  <rect class="csw-train" x="476" y="16" width="10" height="10"/>
+  <text class="ct" x="492" y="25">train (running mean)</text>
+  <rect class="csw-val" x="476" y="34" width="10" height="10"/>
+  <text class="ct" x="492" y="43">validation</text>
+</g>
+</svg>
+</figure>
+<p class="cap">Fig. 3 — geometry-stage loss, six epochs, from the actual
+training log of the current run (space-weighted cross-entropy plus
+auxiliary terms). The train series is the in-epoch running mean, which
+resets at epoch boundaries; validation is evaluated on the EMA weights,
+which is why it can sit at or below the live-weight train curve.
+Validation improves monotonically except a single epoch-4 blip.</p>
+
 <h2><span class="n">4</span>THE DATA ENGINE</h2>
 <p>Captioned ASCII art does not exist at scale, so the training set is
 manufactured caption-first — every label correct by construction:</p>
 <pre class="fig">caption --&gt; t2i --&gt; trim --&gt; flatten --&gt; convert --&gt; ink  --&gt; CLIP --&gt; (grid,
  bank      image    border   background  to glyphs   band    filter    caption)</pre>
-<p class="cap">Fig. 2 — one generated image yields up to nine training
+<p class="cap">Fig. 4 — one generated image yields up to nine training
 samples: three style dialects (silhouette / outline / tonal, selected at
 inference by caption tags) &times; itself plus count and pair composites
 tiled from already-paid-for singles.</p>
@@ -262,6 +328,49 @@ ambiguous tail sequentially. A/B at fixed seed: "a cross" went from
 155-ink multi-stroke chaos to a perfect 28-ink cross; capping the
 <em>whole</em> decode instead collapsed sparse prompts to blank — the two
 regimes need opposite treatment, which is the finding.</p>
+
+<figure><div class="figrow">
+  <div class="cell"><img src="fig/rect_echo.png"
+    alt="Rectangle with nested duplicated borders"><div class="lb">"a rectangle" — uncapped (300 ink)</div></div>
+  <div class="cell"><img src="fig/rect_clean.png"
+    alt="A single clean rectangle"><div class="lb">with tail cap (97 ink)</div></div>
+  <div class="cell"><img src="fig/cross_echo.png"
+    alt="Cross with thick multi-stroke arms"><div class="lb">"a cross" — uncapped (155 ink)</div></div>
+  <div class="cell"><img src="fig/cross_clean.png"
+    alt="A clean single-stroke cross"><div class="lb">with tail cap (28 ink)</div></div>
+</div></figure>
+<p class="cap">Fig. 5 — the edge echo and its cure, real probe outputs:
+same checkpoint, same seed and guidance; the material change is the
+tail-only commit cap. Every offset stroke in the left panels is a
+separately-committed hypothesis for the same edge.</p>
+
+<figure><div class="figrow">
+  <div class="cell"><img src="fig/inp_truth.png"
+    alt="Ground truth diamond"><div class="lb">ground truth</div></div>
+  <div class="cell"><img src="fig/inp_input.png"
+    alt="Diamond with its right half hidden by mask tokens"><div class="lb">model input (right half hidden)</div></div>
+  <div class="cell"><img src="fig/inp_done.png"
+    alt="The completed diamond, identical to ground truth"><div class="lb">completion</div></div>
+</div></figure>
+<p class="cap">Fig. 6 — the inpainting probe that separated "the model
+doesn't know shapes" from "the decode can't coordinate": shown the left
+half of a diamond, the capped decode completes it at 100% cell accuracy,
+100% ink precision and recall. Knowledge was never the problem.</p>
+
+<figure><div class="figrow">
+  <div class="cell" style="flex:2 1 260px"><img src="fig/bonsai.png"
+    alt="A shaded ASCII bonsai tree"><div class="lb">"a bonsai tree" (tonal)</div></div>
+  <div class="cell" style="flex:2 1 240px"><img src="fig/dragon_outline.png"
+    alt="A closed contour outline dragon"><div class="lb">"a dragon, outline style"</div></div>
+  <div class="cell"><img src="fig/diamond.png"
+    alt="A clean diamond"><div class="lb">"a diamond"</div></div>
+  <div class="cell"><img src="fig/triangle.png"
+    alt="A closed right triangle"><div class="lb">"a triangle"</div></div>
+</div></figure>
+<p class="cap">Fig. 7 — selected probe outputs from the current
+checkpoints under the canonical decode, spanning three dialects and both
+regimes. All are unedited model generations rendered through the glyph
+atlas.</p>
 <p><em>Serve time.</em> k candidates are drawn and re-ranked by CLIP over
 the rendered grids (best-of-k); the intermediate grids double as the
 site's materialize animation — the visualization is the algorithm,
@@ -379,6 +488,15 @@ correct; render every primitive and look at it.</p></div>
 A/B probes on standard prompts; two 3-0-literature-verified techniques
 failed those probes anyway. The probes, not the papers, are the
 authority.</p>
+
+<figure><img src="fig/halton_soup.png" style="max-height:380px"
+  alt="A dense field of speckled random glyphs"></figure>
+<p class="cap">Fig. 8 — what a negative result looks like: "a dragon"
+under the Halton low-discrepancy commit order — 2,635 ink cells using 94
+of the 96 glyphs, pure speckle. Position-forced early commits sample from
+near-uniform marginals on a blank-dominated canvas, then texture grows
+around the noise. The same checkpoint drew Fig. 1's bonsai under
+confidence ordering.</p>
 
 <h2><span class="n">8</span>LIMITATIONS &amp; FUTURE WORK</h2>
 <ul>
