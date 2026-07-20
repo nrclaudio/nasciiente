@@ -135,14 +135,20 @@
     <div class="tuning">
       <label>guidance <input type="range" id="guidance" min="1" max="4"
              step="0.25" value="1.5"><span class="val" id="guidance-v">1.5</span></label>
-      <label>steps <input type="number" id="steps" min="1" max="20"
-             value="10" style="width:44px"></label>
+      <label>mode <select id="mode"
+             title="organic: exploratory decode, best for subjects and
+tonal art. precise: greedy decode with a commit cap, best for exact
+geometry — probe-validated regimes">
+        <option value="organic" selected>organic</option>
+        <option value="precise">precise</option></select></label>
+      <label>steps <input type="number" id="steps" min="1" max="64"
+             value="32" style="width:44px"></label>
       <label>grid <select id="size">
         <option value="48,80">48&times;80</option>
         <option value="24,40">24&times;40</option>
         <option value="64,128">64&times;128</option></select></label>
       <label>runs <select id="vars">
-        <option>1</option><option selected>2</option><option>4</option>
+        <option>1</option><option>2</option><option selected>4</option>
       </select></label>
       <label>ink <input type="range" id="bias" min="0" max="8"
              step="0.5" value="0"><span class="val" id="bias-v">0</span></label>
@@ -252,9 +258,15 @@ async function go() {
   busy = true; $("go").disabled = true;
   const [rows, cols] = $("size").value.split(",").map(Number);
   const prompt = $("prompt").value.trim();
+  // The two probe-validated decode regimes (see the paper, §5 and Fig. 7):
+  // organic = uncapped + exploration (raises the worst-seed floor for
+  // tonal subjects); precise = tail-capped + greedy (clean exact strokes)
+  const precise = $("mode").value === "precise";
   const body = {
     prompt, guidance: +$("guidance").value, steps: +$("steps").value,
     rows, cols, variations: +$("vars").value, space_bias: +$("bias").value,
+    gumbel: precise ? 0 : 1,
+    max_commit: precise ? 8 : null,
   };
   // Unprompted runs collapse to blank without counter-pressure (the
   // unconditional branch's space attractor); default some ink in unless

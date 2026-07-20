@@ -47,8 +47,11 @@ TEXT_COND_TOKENS = 24  # max caption tokens kept for cross-attention
 # CLIP is fine) — this knob only changes rendered-grid scoring.
 RANKER_MODEL = None
 
-# Classifier-free guidance (inference default)
-CFG_SCALE = 3.0
+# Classifier-free guidance (inference default). Probe-calibrated: in
+# this domain guidance is an object-count/literalness dial — ~1.5-2
+# yields one clean subject, 3+ yields several (study guide 14.2). The
+# old default of 3.0 was the multiple-crosses regime.
+CFG_SCALE = 1.5
 # Probability of dropping the caption to null during training (enables CFG)
 COND_DROPOUT = 0.1
 
