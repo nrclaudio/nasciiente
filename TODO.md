@@ -28,6 +28,19 @@ next; nothing in Phase 2 starts until Phase 1's probes are read.*
   is too weak to rank commits (Token-Critic uses a dedicated
   transformer). Possibly still useful for revision-only selection —
   untested; parked. Third entry for the findings table.
+- **DENSE-MASS COLLAPSE identified** (probes/car_clown_s0-3, 4-seed
+  sweep, 2026-07): "a car" ranges 352-2364 ink across seeds; the worst
+  seeds flood the canvas with a solid `#` slab — the mirror image of
+  sparse-blank collapse. Cause is data-side: photos of dense subjects
+  (car, truck, bus) convert to solid slabs, so the model learned
+  "car = dark mass + roof arc". Clowns have the right global schema
+  (hat/face/ruffle/body, 3 of 4 seeds) but face detail exceeds 48x80
+  tonal resolution. Outline style is coherent for both on every seed —
+  serve vehicles as outline. FIX (next data run): symmetric guard to
+  SPARSE_TONAL_INK — route subjects whose tonal conversion inks too
+  DENSE to the outline dialect, and/or max-ink reject slab
+  conversions. Best-of-4 can't rescue these until an ASCII-aware
+  ranker exists (vanilla CLIP ranks at chance).
 
 ## Phase 0 — close out what's in flight *(half a day, no training)*
 
