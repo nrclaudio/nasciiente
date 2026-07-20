@@ -17,8 +17,12 @@ next; nothing in Phase 2 starts until Phase 1's probes are read.*
   recognizable diamond, and a correct cross — all four primitives
   survived the full three-stage curriculum. The per-regime decode
   (gumbel 0 geometry / gumbel 1 tonal) is confirmed as the contract.
-- **"a dragon" tonal still thin** (90 ink): sweep guidance 2 + seeds;
-  best-of-k remains the serve-time answer.
+- **"a dragon" tonal RESOLVED as seed variance** (probes/dragons/, 16-run
+  sweep): 90-979 ink across four seeds at identical canonical settings;
+  seed 2 is a genuine winged dragon. Floors: uncapped 575 vs capped 90 —
+  serve tonal prompts UNCAPPED with best-of-k=4; geometry keeps the cap.
+  final_model matches shading_last at every seed (no human-stage tonal
+  regression).
 - **NEGATIVE RESULT — critic-conf as commit ranker**: lighthouse
   380 -> 44 ink, geometry broken. A 513-param head at loss weight 0.1
   is too weak to rank commits (Token-Critic uses a dedicated
