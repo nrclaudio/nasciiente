@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GLYPH48 — white paper</title>
+<style>
+  :root {
+    --bg: #070707; --fg: #c9c9c9; --dim: #6f6f6f; --faint: #434343;
+    --line: #232323; --art: #dadada; --glow: #b6ffb6; --amber: #c9a35a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--bg); }
+  body { color: var(--fg);
+    font-family: ui-monospace, "SF Mono", "Menlo", "DejaVu Sans Mono",
+                 "Consolas", monospace;
+    font-size: 14px; line-height: 1.65; }
+  main { max-width: 780px; margin: 8vh auto 14vh; padding: 0 28px; }
+  ::selection { background: var(--fg); color: var(--bg); }
+  a { color: var(--dim); }
+  a:hover { color: var(--fg); }
+
+  header .mark { font-size: 10px; line-height: 1.1; color: var(--dim);
+                 white-space: pre; overflow-x: auto; }
+  header .title { margin-top: 26px; font-size: 19px; color: var(--art); }
+  header .meta { margin-top: 10px; font-size: 12px; color: var(--faint); }
+  header nav { margin-top: 22px; font-size: 13px; display: flex; gap: 26px; }
+
+  .abstract { margin: 44px 0 0; padding: 18px 20px;
+    border: 1px solid var(--line); font-size: 13.5px; color: var(--fg); }
+  .abstract .lbl { font-size: 11px; letter-spacing: .3em; color: var(--dim);
+    display: block; margin-bottom: 8px; }
+
+  h2 { margin: 58px 0 14px; font-size: 14px; font-weight: normal;
+       color: var(--art); letter-spacing: .12em; }
+  h2 .n { color: var(--dim); margin-right: 10px; }
+  h3 { margin: 26px 0 8px; font-size: 13px; font-weight: normal;
+       color: var(--fg); }
+  p { margin: 0 0 13px; color: var(--fg); }
+  p, li { max-width: 72ch; }
+  em { color: var(--art); font-style: normal; border-bottom: 1px dotted var(--faint); }
+  ul, ol { margin: 0 0 13px 1.4em; }
+  li { margin: 4px 0; }
+  code { color: var(--art); }
+
+  pre.fig { font-size: 12px; line-height: 1.25; color: var(--art);
+    white-space: pre; overflow-x: auto; border: 1px solid var(--line);
+    padding: 14px 16px; margin: 18px 0; }
+  .cap { font-size: 11.5px; color: var(--faint); margin: -10px 0 20px;
+         max-width: 72ch; }
+
+  table { border-collapse: collapse; width: 100%; font-size: 12.5px;
+          margin: 16px 0 20px; }
+  th { text-align: left; color: var(--dim); font-weight: normal;
+       border-bottom: 1px solid var(--faint); padding: 5px 14px 5px 0;
+       font-size: 11px; letter-spacing: .1em; }
+  td { border-bottom: 1px solid var(--line); padding: 6px 14px 6px 0;
+       vertical-align: top; }
+  .tablewrap { overflow-x: auto; }
+
+  .fail { border: 1px solid var(--line); margin: 14px 0; padding: 12px 16px;
+          font-size: 13px; }
+  .fail .t { color: var(--art); margin-bottom: 6px; }
+  .fail .t .n { color: var(--glow); opacity: .7; margin-right: 8px; }
+  .fail p { margin: 0 0 6px; font-size: 12.5px; }
+  .fail p:last-child { margin: 0; }
+  .fail .k { color: var(--dim); }
+
+  .refs { font-size: 12px; color: var(--dim); }
+  .refs li { margin: 6px 0; }
+
+  footer { margin-top: 70px; font-size: 11px; color: var(--faint);
+           border-top: 1px solid var(--line); padding-top: 12px;
+           display: flex; gap: 18px; flex-wrap: wrap; }
+
+  /* print = actual paper: light, sans-chrome */
+  @media print {
+    :root { --bg: #ffffff; --fg: #1a1a1a; --dim: #555; --faint: #777;
+            --line: #ccc; --art: #000; --glow: #1a7343; --amber: #7a5a10; }
+    main { margin: 0 auto; max-width: 100%; }
+    header nav, footer { display: none; }
+    h2 { page-break-after: avoid; }
+    pre.fig, .fail, .abstract { page-break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+<main>
+<header>
+<pre class="mark">  #####   #       #   #  #####   #   #  #   #   #####
+ #        #        # #   #    #  #   #  #   #  #     #
+ #  ####  #         #    #####   #####  #####   #####
+ #     #  #         #    #       #   #      #  #     #
+  #####   ######    #    #       #   #      #   #####</pre>
+  <div class="title">Text-to-ASCII-Art Generation with a 34.5M-Parameter
+       Masked Transformer</div>
+  <div class="meta">glyph48 · white paper · revised July 2026 ·
+       one author, one rented GPU · print this page for the paper-paper</div>
+  <nav>
+    <a href="/">&larr; live demo</a>
+    <a href="#failures">the failure chronicle</a>
+    <a href="#findings">findings</a>
+  </nav>
+</header>
+
+<div class="abstract"><span class="lbl">ABSTRACT</span>
+We describe GLYPH48, a system that turns a text prompt ("a bonsai tree")
+into a 48&times;80 grid of printable ASCII characters depicting that
+subject. The grid of characters is the object being modeled — there is no
+pixel image and no learned tokenizer; the 95 printable glyphs plus two
+specials are the vocabulary. A 34.5M-parameter bidirectional transformer
+with factorized 2D rotary attention is trained from scratch as a masked
+predictor over a self-manufactured captioned corpus (text-to-image
+generations converted deterministically to ASCII in three style dialects),
+and sampled with MaskGIT-style iterative parallel unmasking under
+classifier-free guidance. We report the design, the training recipe, and —
+because they carry most of the transferable knowledge — nine documented
+failures with their diagnoses and fixes, including two decoding pathologies
+specific to sparse discrete canvases (blank-attractor collapse and
+parallel-commit edge echo) and two published techniques that did not
+survive contact with this domain. Everything runs on one rented consumer
+GPU; inference is CPU-deployable at ~140&nbsp;MB.
+</div>
+
+<h2><span class="n">1</span>THE TASK</h2>
+<p>An ASCII picture is a point in <code>V^(48&times;80)</code> with
+<code>|V| = 98</code>: 96 printable ASCII characters plus
+<code>[PAD]</code> and <code>[MASK]</code>. Conditioned on a caption
+<code>c</code>, the model represents <code>p(x|c)</code> and samples from
+it. Two framing decisions drive everything downstream. First,
+<em>characters are the tokens</em> — generating pixels and converting
+afterward caps quality at the converter and can never exhibit
+character-level intent (choosing <code>()</code> for a curve because a
+human would). Second, the problem is closer to language modeling than to
+image synthesis — discrete symbols at exact positions — which selects
+masked bidirectional modeling over both raster-order autoregression
+(3,840 sequential steps; a fictitious reading order over a 2D artifact)
+and continuous diffusion (a cell is <code>/</code> or <code>\</code>,
+never 0.6 of each).</p>
+
+<h2><span class="n">2</span>ARCHITECTURE</h2>
+<pre class="fig">            input grid  48&times;80 tokens
+                 |  embedding + 2D RoPE positions
+                 v
+   +---------- block &times; 8 -----------------------------+
+   | x &lt;- x + SelfAttention(LN(x))     8 heads          |
+   | x &lt;- x + CrossAttention(LN(x), caption tokens)     |
+   | x &lt;- x + FFN(LN(x))               512-&gt;2048-&gt;512   |
+   +----------------------------------------------------+
+                 |  LN -&gt; Linear 512-&gt;98      (glyph head)
+                 |  LN -&gt; Linear 512-&gt;1       (critic head)
+                 v
+     per-cell glyph logits          per-cell "is this right?"</pre>
+<p class="cap">Fig. 1 — 34.5M parameters: 8 pre-norm blocks, width 512.
+Dropout is 0.0, and that number is a measurement, not a default
+(&sect;6, failure 7).</p>
+<p><em>Positions.</em> Factorized 2D rotary embeddings: half of each
+head's dimensions rotate by row index, half by column, so attention
+depends only on (&Delta;row, &Delta;col). Stroke knowledge is learned
+once, not per location, and the model runs on canvases up to
+96&times;160 it never trained at — which is the entire super-resolution
+feature (anchor the source characters on a 2&times; canvas, mask the
+gaps, inpaint).</p>
+<p><em>Conditioning.</em> Prompts are embedded by a frozen CLIP text
+encoder; up to 24 token vectors feed cross-attention in every block
+(compositional addressability — a hull cell can attend to "sailboat"
+while another region attends to "two"), and their pooled mean joins a
+global additive vector along with a mask-ratio embedding — the model
+always knows how far along the decode is, the analogue of a diffusion
+model being told its noise level. All conditioning projections are
+zero-initialized, so the pathway is an exact no-op at splice time: text
+conditioning was retrofitted onto a checkpoint trained without it, and
+later retrofits (the critic head) reuse the same trick.</p>
+<p><em>Critic.</em> A 513-parameter linear head predicts, per visible
+cell, "is this glyph correct?" — trained for free from labels the
+self-context corruption already computes (&sect;3), consumed at decode
+time to rank commitments and select revisions (Token-Critic
+[2]).</p>
+
+<h2><span class="n">3</span>TRAINING</h2>
+<p>The objective is masked restoration: hide a random fraction of cells,
+predict the originals given the survivors and the caption. Four
+modifications, each purchased with a documented failure:</p>
+<ul>
+<li><em>Space down-weighting, auto-calibrated.</em> With ~80–90% of
+cells being space, plain cross-entropy makes "space" the low-risk answer
+everywhere — the prior behind blank collapse. Space cells are weighted
+<code>w = (1&minus;f)/f</code> for measured space fraction <code>f</code>
+(equal total gradient share for space and ink), recomputed per dataset
+because a constant tuned on one corpus is a measurement of that corpus in
+disguise.</li>
+<li><em>Glyph-aware soft labels + render-space loss.</em> Targets are
+smoothed toward visually similar glyphs (predicting <code>|</code> for
+<code>/</code> costs less than <code>@</code>), and an auxiliary MSE
+compares the differentiably rendered expectation of the prediction with
+the rendered target — the loss sees what the eye sees.</li>
+<li><em>Mask-ratio distribution biased to 1.0.</em> Generation starts
+from a fully masked grid; training ratios are sine-warped toward high
+values with max exactly 1.0, or the first and hardest decode steps run
+out of distribution.</li>
+<li><em>Self-context training (SUNDAE-style).</em> Half of all batches
+rebuild part of their visible context from the model's own sampled
+predictions, and the loss keeps scoring <em>every</em> originally-masked
+cell — including the self-committed ones. The sign of that last clause
+is load-bearing: an ablation that excluded committed cells from the loss
+taught the model that its own wrong commits are legitimate context to
+extend, and measurably worsened the artifact it was meant to fix
+(&sect;6, failure 8).</li>
+</ul>
+<p><em>Curriculum.</em> Three stages — procedural geometry, synthetic
+captioned subjects, human-made pieces — at decreasing learning rates,
+with earlier stages replayed into <em>every</em> later stage at
+non-trivial fractions (~20%): single-hop replay at 3% measurably erased
+geometry by the end of training. Rare captions are upsampled toward the
+~1000-exposure threshold that knowledge-capacity scaling work [7]
+associates with full-fidelity storage, and the masked objective tolerates
+data repetition far beyond autoregressive norms — random masking is
+itself per-epoch augmentation [6].</p>
+
+<h2><span class="n">4</span>THE DATA ENGINE</h2>
+<p>Captioned ASCII art does not exist at scale, so the training set is
+manufactured caption-first — every label correct by construction:</p>
+<pre class="fig">caption --&gt; t2i --&gt; trim --&gt; flatten --&gt; convert --&gt; ink  --&gt; CLIP --&gt; (grid,
+ bank      image    border   background  to glyphs   band    filter    caption)</pre>
+<p class="cap">Fig. 2 — one generated image yields up to nine training
+samples: three style dialects (silhouette / outline / tonal, selected at
+inference by caption tags) &times; itself plus count and pair composites
+tiled from already-paid-for singles.</p>
+<p>The engine is 20% generation and 80% quality control; its five
+documented failures (letterboxing that taught the model to draw frames,
+an ink-quota binarizer that blobified photographs, a 93%-chimera prompt
+bank, contrast enhancement that amplified paper texture into a canvas-wide
+film, dialects that collapsed into one on stroke-drawn subjects) are
+catalogued with the others in &sect;6 and in the project's study guide.
+Tone has a resolution floor — tone variety scales with cell count [9] —
+so subjects whose tonal conversion inks under 8% of the grid route their
+untagged caption to the outline dialect instead: at 48&times;80, line
+structure is the legible strategy for sparse subjects.</p>
+
+<h2><span class="n">5</span>DECODING</h2>
+<p>MaskGIT-style iterative parallel unmasking: sample every masked cell,
+commit the most confident, repeat under a cosine schedule; classifier-free
+guidance ramps from 1 to full scale across scheduled steps. Two
+domain-specific pathologies required surgery, and both diagnoses came from
+probes rather than theory:</p>
+<p><em>The blank attractor.</em> On a sparse canvas the most confident
+early predictions are always spaces; committed blank becomes the context
+for more blank. Countered in training (space weighting, ratio max 1.0)
+and at decode (an annealed anti-space logit bias, exploration noise on
+commit order).</p>
+<p><em>Parallel-commit edge echo.</em> The cosine schedule commits the
+<em>most</em> cells in its final steps, and the cells left last are
+precisely the ambiguous ones — every column an unseen edge could fall on.
+Mass-committed in one parallel step, each samples a different answer:
+several offset copies of the same edge. An inpainting probe isolated the
+mechanism (visible half of a rectangle &rarr; clean pinned region, a band
+of competing edges exactly where the hidden edge could be), and the fix is
+a <em>tail-only commit cap</em>: the head of the decode runs free (layout
+forms under exploration and rising guidance), and once the mask ratio
+falls below 0.35 commits are capped at 8 cells per step, resolving the
+ambiguous tail sequentially. A/B at fixed seed: "a cross" went from
+155-ink multi-stroke chaos to a perfect 28-ink cross; capping the
+<em>whole</em> decode instead collapsed sparse prompts to blank — the two
+regimes need opposite treatment, which is the finding.</p>
+<p><em>Serve time.</em> k candidates are drawn and re-ranked by CLIP over
+the rendered grids (best-of-k); the intermediate grids double as the
+site's materialize animation — the visualization is the algorithm,
+unmodified.</p>
+
+<h2 id="failures"><span class="n">6</span>THE FAILURE CHRONICLE</h2>
+<p>Nine failures shaped the system. Each is stated as symptom &rarr;
+cause &rarr; fix; the lessons are the paper's real payload.</p>
+
+<div class="fail"><div class="t"><span class="n">01</span>Blank-grid collapse</div>
+<p>Reconstruction excellent, free generation empty. <span class="k">Cause:</span>
+class prior (80% space) &times; confidence-first commitment — the majority
+class commits first and becomes everyone's context. <span class="k">Fix:</span>
+three levels at once — loss reweighting, mask-ratio coverage of the
+start state, annealed decode bias. <span class="k">Lesson:</span> imbalance
+plus confidence ordering is a feedback loop, not a bias.</p></div>
+
+<div class="fail"><div class="t"><span class="n">02</span>Guidance is an object-count dial</div>
+<p>"A cross" at scale 3 &rarr; several crosses. <span class="k">Cause:</span>
+the strongest "more prompt-like" direction is more instances of the
+subject's features. <span class="k">Fix:</span> calibration (~1.5–2), surfaced
+as a knob. <span class="k">Lesson:</span> a knob's textbook meaning is a
+hypothesis in a new domain.</p></div>
+
+<div class="fail"><div class="t"><span class="n">03</span>Chimera prompts</div>
+<p>"X and Y" images fused into monsters; the bank was silently 93% pairs.
+<span class="k">Cause:</span> combinatorics (n&sup2; pairs vs n singles) &times;
+few-step t2i models fusing subjects. <span class="k">Fix:</span> explicit
+75/15/10 category mix; later, composites manufactured from singles with
+labels correct by construction. <span class="k">Lesson:</span> every dataset
+property you don't set explicitly is set implicitly.</p></div>
+
+<div class="fail"><div class="t"><span class="n">04</span>The conditionally-used parameter</div>
+<p>Multi-GPU training crashed in the gradient reducer; single-GPU was
+fine. <span class="k">Cause:</span> a learned null token entered the graph
+only when a batch happened to contain uncaptioned samples.
+<span class="k">Fix:</span> unconditional <code>where</code>-selection;
+proven by a 2-process CPU smoke test that later caught the same trap a
+second time when the critic head landed. <span class="k">Lesson:</span> no
+data-dependent control flow over parameters; keep the cheap distributed
+test forever.</p></div>
+
+<div class="fail"><div class="t"><span class="n">05</span>Worker-pool death by file descriptor</div>
+<p>Hours into a run: <code>received 0 items of ancdata</code>.
+<span class="k">Cause:</span> torch tensors cross process boundaries by
+fd-sharing; a steady stream leaked descriptors. <span class="k">Fix:</span>
+workers return numpy; spawn, not fork, under a CUDA parent.
+<span class="k">Lesson:</span> compute types &ne; transport types; long runs
+find leaks tests cannot.</p></div>
+
+<div class="fail"><div class="t"><span class="n">06</span>The engine rejecting 90% of itself</div>
+<p>Rejection logs spiked at exactly 0.900 ink. <span class="k">Cause:</span>
+letterboxed images converting to solid sidebars, plus an ink-quota
+binarizer. <span class="k">Fix:</span> the full intake chain, tuned on cheap
+preview batches; keep rate 10&rarr;78%. <span class="k">Lesson:</span> log
+<em>why</em> rejects happen — the spike was the entire diagnosis.</p></div>
+
+<div class="fail"><div class="t"><span class="n">07</span>Dropout silently vetoed prompt following</div>
+<p>Conditioning wired and verified, output caption-agnostic; a 64-grid
+memorization test stuck at loss ~1.0. <span class="k">Cause:</span> at high
+mask ratios the only route to the answer is the precise caption pathway;
+zeroing 10% of activations makes it unreliable, so training settles for
+robust texture. Same model, dropout 0: loss 0.034 — 30&times; from a
+regularizer. <span class="k">Fix:</span> dropout 0; random masking is the
+regularizer. <span class="k">Lesson:</span> defaults are not free, and tiny
+memorization tests separate optimization pathology from capacity.</p></div>
+
+<div class="fail"><div class="t"><span class="n">08</span>Edge echo, and a fix that backfired</div>
+<p>Shapes drawn with nested duplicated borders, immune to every decode
+knob. <span class="k">Cause:</span> two problems in one costume — exposure
+bias (training never shows the model its own commits) and
+parallel-commit multimodality (&sect;5). The first self-context
+implementation excluded committed cells from the loss and made the echo
+<em>worse</em> while every training metric looked healthy: it taught the
+model to trust its own mistakes. <span class="k">Fix:</span> loss over all
+originally-masked cells (the model learns to contradict its errors) plus
+the tail-only commit cap. <span class="k">Lesson:</span> the loss mask
+carries the sign of the lesson; validate training-side fixes with
+decode-side probes.</p></div>
+
+<div class="fail"><div class="t"><span class="n">09</span>The triangle was never a triangle</div>
+<p>Spotted by eye in a probe's ground-truth panel: the "triangle"
+primitive drew three rays from one vertex — an open fan. 200k samples
+taught it as truth, and the model's fan-completions suddenly made sense.
+<span class="k">Fix:</span> close the hypotenuse. <span class="k">Lesson:</span>
+synthetic labels are only correct by construction if the construction is
+correct; render every primitive and look at it.</p></div>
+
+<h2 id="findings"><span class="n">7</span>FINDINGS, INCLUDING NEGATIVE ONES</h2>
+<div class="tablewrap"><table>
+<tr><th>intervention</th><th>result</th><th>verdict</th></tr>
+<tr><td>dropout 0.1 &rarr; 0.0</td>
+    <td>64-grid memorization loss 1.0 &rarr; 0.034</td><td>adopted</td></tr>
+<tr><td>self-context, loss on committed cells</td>
+    <td>echo eliminated at the root (with cap)</td><td>adopted</td></tr>
+<tr><td>self-context, loss on masked cells only</td>
+    <td>echo worsened; healthy training metrics</td><td>rejected — sign flip</td></tr>
+<tr><td>tail-only commit cap (8/step below ratio 0.35)</td>
+    <td>cross 155&rarr;28 ink, clean; full-decode cap blanked sparse prompts</td>
+    <td>adopted, tail only</td></tr>
+<tr><td>rise guidance keyed to step progress</td>
+    <td>removes capped-decode dead zone at scale ~1</td><td>adopted</td></tr>
+<tr><td>Halton low-discrepancy commit order [4]</td>
+    <td>glyph soup — 94 of 96 glyphs as speckle; position-forced commits
+        seed noise on blank-dominated marginals</td>
+    <td>rejected — does not transfer from dense VQ grids</td></tr>
+<tr><td>ReMDM-style in-loop remasking [3], confidence-scored</td>
+    <td>strips fragile early ink seeds; sparse prompts 70&rarr;4 ink</td>
+    <td>shelved pending critic scoring</td></tr>
+<tr><td>zero-shot coarse-to-fine (generate small, anchored upscale)</td>
+    <td>upscale bridges 1-wide strokes into doubled lines</td>
+    <td>rejected untrained; scale-trained variant future work</td></tr>
+</table></div>
+<p class="cap">Table 1 — every adopted setting was decided by fixed-seed
+A/B probes on standard prompts; two 3-0-literature-verified techniques
+failed those probes anyway. The probes, not the papers, are the
+authority.</p>
+
+<h2><span class="n">8</span>LIMITATIONS &amp; FUTURE WORK</h2>
+<ul>
+<li>Sparse-subject tonal generation remains exposure-limited; the current
+training cycle (30-epoch shading stage, rare-caption upsampling, critic
+head) targets it directly.</li>
+<li>Off-the-shelf CLIP scores ASCII structure at chance level [8], so the
+best-of-k re-ranker is weaker than it looks; an ASCII-aware encoder (or a
+CLIP fine-tuned on the ASCIIBench corpus) is the drop-in remedy.</li>
+<li>Preference tuning on served best-of-k picks (D3PO's closed form
+applies exactly to this corruption family [5]) and a trained multi-scale
+curriculum are the two parked bets with written un-park conditions.</li>
+</ul>
+
+<h2><span class="n">9</span>REFERENCES</h2>
+<ol class="refs">
+<li>[1] Chang et&nbsp;al., MaskGIT: Masked Generative Image Transformer, 2022.</li>
+<li>[2] Lezama et&nbsp;al., Improved Masked Image Generation with Token-Critic, ECCV 2022. arXiv:2209.04439</li>
+<li>[3] ReMDM: Remasking Discrete Diffusion Models, 2025. arXiv:2503.00307</li>
+<li>[4] Besnier et&nbsp;al., Halton Scheduler for Masked Generative Image Transformer, 2025. arXiv:2503.17076</li>
+<li>[5] D3PO: Preference-Based Alignment of Discrete Diffusion Models, 2025. arXiv:2503.08295</li>
+<li>[6] Muennighoff et&nbsp;al., Scaling Data-Constrained Language Models, 2023. arXiv:2305.16264</li>
+<li>[7] Allen-Zhu &amp; Li, Physics of Language Models 3.3: Knowledge Capacity Scaling Laws, 2024. arXiv:2404.05405</li>
+<li>[8] Luo et&nbsp;al., ASCIIBench: Evaluating Language-Model-Based Understanding of Visually-Oriented Text, 2025. arXiv:2512.04125</li>
+<li>[9] Xu, Zhang &amp; Wong, Structure-based ASCII Art, SIGGRAPH Asia 2010.</li>
+</ol>
+
+<footer>
+  <span>glyph48</span>
+  <a href="/">live demo</a>
+  <span>the long-form companion (all equations, full derivations) lives in
+        the repo as docs/study-guide.md</span>
+</footer>
+</main>
+</body>
+</html>

@@ -26,8 +26,11 @@
   a { cursor: pointer; }
   ::selection { background: var(--fg); color: var(--bg); }
 
-  h1 { font-size: 12px; font-weight: normal; letter-spacing: .5em;
-       color: var(--dim); }
+  h1 { position: absolute; left: -9999px; }  /* semantic only; the
+       wordmark pre is the visible title */
+  #wordmark { font-size: 11px; line-height: 1.1; color: var(--dim);
+              white-space: pre; overflow-x: auto; }
+  #tagline { font-size: 12px; color: var(--faint); margin-top: 10px; }
   #sub { font-size: 12px; color: var(--faint); min-height: 1.5em;
          margin-top: 2px; }
   #bootlog { display: none; }   /* machine-readable state for tests */
@@ -112,6 +115,9 @@
 <body>
 <main>
   <h1>GLYPH48</h1>
+  <pre id="wordmark"></pre>
+  <p id="tagline">a 34.5M-parameter masked transformer that draws ASCII art
+     from text — every character on this page is in its vocabulary</p>
   <p id="sub"></p>
   <div id="bootlog"></div>
 
@@ -119,6 +125,7 @@
     <a id="tab-draw" class="on">generate</a>
     <a id="tab-intake">convert an image</a>
     <a id="tab-train">training record</a>
+    <a href="/paper.html">the paper</a>
   </nav>
 
   <section id="draw">
@@ -170,12 +177,33 @@
   <footer>
     <span id="s-model"></span>
     <span id="s-device"></span>
+    <a href="/paper.html" style="color:inherit">white paper</a>
   </footer>
 </main>
 
 <script>
 "use strict";
 const $ = id => document.getElementById(id);
+
+// ---- wordmark: the title materializes like everything else here ---------
+// (a second indulgence, same animation as the art itself)
+const WORDMARK = [
+"  #####   #       #   #  #####   #   #  #   #   #####",
+" #        #        # #   #    #  #   #  #   #  #     #",
+" #  ####  #         #    #####   #####  #####   #####",
+" #     #  #         #    #       #   #      #  #     #",
+"  #####   ######    #    #       #   #      #   #####",
+].join("\n");
+{
+  let html = "", i = 0;
+  for (const ch of WORDMARK) {
+    if (ch === " " || ch === "\n") { html += ch; continue; }
+    const delay = ((i * 2654435761) % 900);        // deterministic scatter
+    html += `<span class="m" style="animation-delay:${delay}ms">${ch}</span>`;
+    i++;
+  }
+  document.getElementById("wordmark").innerHTML = html;
+}
 const PRESETS = ["a goat", "a sailboat", "a castle", "a dragon",
                  "a rocket", "a skull", "two fish", "a windmill"];
 let busy = false, samples = [];
@@ -186,7 +214,9 @@ const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;")
 // ---- boot ---------------------------------------------------------------
 async function boot() {
   try {
-    const info = await (await fetch("/api/info")).json();
+    const resp = await fetch("/api/info");
+    if (!resp.ok) throw new Error(await resp.text());
+    const info = await resp.json();
     $("bootlog").textContent = "ok: " + info.checkpoint;   // test hook
     $("s-model").textContent =
       `${info.checkpoint} · ${info.params_m}M params` +
