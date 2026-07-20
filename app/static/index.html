@@ -127,8 +127,10 @@
   <nav>
     <a id="tab-draw" class="on">generate</a>
     <a id="tab-intake">convert an image</a>
-    <a id="tab-train">training record</a>
-    <a href="/paper.html">the paper</a>
+    <!-- hidden, not removed: the section/JS stay wired and paper.html
+         still serves at its URL — flip display to bring them back -->
+    <a id="tab-train" style="display:none">training record</a>
+    <a href="/paper.html" style="display:none">the paper</a>
   </nav>
 
   <section id="draw">
@@ -189,9 +191,9 @@ geometry — probe-validated regimes">
   <footer>
     <span id="s-model"></span>
     <span id="s-device"></span>
-    <a href="/paper.html" style="color:inherit">white paper</a>
+    <a href="/paper.html" style="color:inherit;display:none">white paper</a>
     <span title="page revision — if this is missing, the browser is
-showing a stale cached copy">ui r4</span>
+showing a stale cached copy">ui r5</span>
   </footer>
 </main>
 
