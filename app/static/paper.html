@@ -361,15 +361,20 @@ half of a diamond, the capped decode completes it at 100% cell accuracy,
 100% ink precision and recall. Knowledge was never the problem.</p>
 
 <figure><div class="figrow">
+  <div class="cell" style="flex:3 1 300px"><img src="fig/dragon.png"
+    alt="A tonal ASCII dragon with horned head, sweeping neck and folded wing membrane"><div class="lb">"a dragon" (tonal, best of 4 seeds)</div></div>
   <div class="cell"><img src="fig/diamond.png"
     alt="A clean diamond"><div class="lb">"a diamond"</div></div>
   <div class="cell"><img src="fig/triangle.png"
     alt="A closed right triangle"><div class="lb">"a triangle"</div></div>
 </div></figure>
-<p class="cap">Fig. 7 — geometry outputs from the final model under the
-canonical geometry decode, unedited — drawn after the full three-stage
-curriculum, i.e. the primitives survived two later training stages
-intact (the replay result of &sect;3).</p>
+<p class="cap">Fig. 7 — final-model outputs, unedited. The dragon is the
+best of four seeds under the canonical decode — which is precisely the
+serve-time selection policy (&sect;5): across those four seeds the same
+settings produced 90 to 979 ink cells, so single-seed judgments of a
+stochastic sampler mislead in both directions. The geometry pair is
+drawn after the full three-stage curriculum — the primitives survived
+two later training stages intact (the replay result of &sect;3).</p>
 <p><em>Serve time.</em> k candidates are drawn and re-ranked by CLIP over
 the rendered grids (best-of-k); the intermediate grids double as the
 site's materialize animation — the visualization is the algorithm,
@@ -507,9 +512,11 @@ confidence ordering.</p>
 <h2><span class="n">8</span>LIMITATIONS &amp; FUTURE WORK</h2>
 <ul>
 <li>Sparse-subject tonal generation was exposure-limited; the 30-epoch
-cycle restored the lighthouse (Fig.&nbsp;1) but "a dragon" in the tonal
-dialect remains thin — its outline and silhouette dialects fare far
-better, and best-of-k re-ranking is the serve-time mitigation.</li>
+cycle restored the lighthouse (Fig.&nbsp;1). Remaining tonal variance is
+seed-dominated (90–979 ink across four seeds for "a dragon" at identical
+settings, Fig.&nbsp;7) — the uncapped decode raises the worst-seed floor
+(575 vs 90) and best-of-k re-ranking selects the winners, so serving
+tonal prompts uncapped with k&nbsp;=&nbsp;4 is the operative policy.</li>
 <li>Off-the-shelf CLIP scores ASCII structure at chance level [8], so the
 best-of-k re-ranker is weaker than it looks; an ASCII-aware encoder (or a
 CLIP fine-tuned on the ASCIIBench corpus) is the drop-in remedy.</li>
