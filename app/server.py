@@ -94,15 +94,21 @@ app = FastAPI(title="GLYPH48")
 class GenRequest(BaseModel):
     prompt: str = ""
     guidance: float = Field(CFG_SCALE, ge=1.0, le=8.0)
-    steps: int = Field(UNMASK_STEPS, ge=1, le=20)
+    # 32 is the probe-validated step count; the old cap of 20 couldn't
+    # even request it
+    steps: int = Field(32, ge=1, le=64)
     temperature: float = Field(TEMPERATURE, ge=0.1, le=2.0)
     rows: int = Field(GRID_H, ge=8, le=MAX_ROWS)
     cols: int = Field(GRID_W, ge=8, le=MAX_COLS)
     seed: int | None = None
     variations: int = Field(1, ge=1, le=4)
     space_bias: float = Field(0.0, ge=0.0, le=8.0)
-    revision_steps: int = Field(2, ge=0, le=5)
+    # 0: the grid-validated decode uses no revision passes (they re-roll
+    # parallel commits rather than repair — findings table)
+    revision_steps: int = Field(0, ge=0, le=5)
     schedule: str = Field(CFG_SCHEDULE, pattern="^(constant|rise|fall)$")
+    # commit-order exploration noise: 1 = organic/tonal, 0 = precise
+    gumbel: float = Field(1.0, ge=0.0, le=2.0)
     # cells committed per decode step; None = uncapped (fast, echo-prone)
     max_commit: int | None = Field(DECODE_MAX_COMMIT, ge=1, le=512)
 
@@ -126,7 +132,8 @@ def api_generate(req: GenRequest):
     kwargs = dict(space_bias=req.space_bias,
                   revision_steps=req.revision_steps,
                   guidance_schedule=req.schedule,
-                  max_commit=req.max_commit)
+                  max_commit=req.max_commit,
+                  gumbel_scale=req.gumbel)
     prompt = req.prompt.strip()
     if prompt and conditioned:
         from data.text_embed import embed_captions
