@@ -54,6 +54,9 @@
 
   .tuning { display: flex; flex-wrap: wrap; gap: 22px; align-items: center;
             font-size: 12px; color: var(--dim); margin-bottom: 28px; }
+  #tune-toggle { color: var(--faint); cursor: pointer; user-select: none; }
+  #tune-toggle:hover { color: var(--dim); }
+  #tune-row { margin-top: -14px; }
   .tuning label { display: flex; align-items: center; gap: 7px; }
   .tuning .val { color: var(--fg); min-width: 2em; }
   input[type=range] { width: 90px; accent-color: #7a7a7a; }
@@ -133,14 +136,18 @@
            placeholder="describe a subject, press enter" autofocus>
     <div class="chips" id="chips"></div>
     <div class="tuning">
-      <label>guidance <input type="range" id="guidance" min="1" max="4"
-             step="0.25" value="1.5"><span class="val" id="guidance-v">1.5</span></label>
       <label>mode <select id="mode"
              title="organic: exploratory decode, best for subjects and
 tonal art. precise: greedy decode with a commit cap, best for exact
 geometry — probe-validated regimes">
         <option value="organic" selected>organic</option>
         <option value="precise">precise</option></select></label>
+      <button id="go">run</button>
+      <a id="tune-toggle">tuning &#9656;</a>
+    </div>
+    <div class="tuning" id="tune-row" style="display:none">
+      <label>guidance <input type="range" id="guidance" min="1" max="4"
+             step="0.25" value="1.5"><span class="val" id="guidance-v">1.5</span></label>
       <label>steps <input type="number" id="steps" min="1" max="64"
              value="32" style="width:44px"></label>
       <label>grid <select id="size">
@@ -152,7 +159,6 @@ geometry — probe-validated regimes">
       </select></label>
       <label>ink <input type="range" id="bias" min="0" max="8"
              step="0.5" value="0"><span class="val" id="bias-v">0</span></label>
-      <button id="go">run</button>
     </div>
     <div id="console"></div>
     <div id="out"></div>
@@ -184,6 +190,8 @@ geometry — probe-validated regimes">
     <span id="s-model"></span>
     <span id="s-device"></span>
     <a href="/paper.html" style="color:inherit">white paper</a>
+    <span title="page revision — if this is missing, the browser is
+showing a stale cached copy">ui r3</span>
   </footer>
 </main>
 
@@ -250,6 +258,11 @@ PRESETS.forEach((p, i) => {
 $("guidance").oninput = () =>
   $("guidance-v").textContent = (+$("guidance").value).toFixed(1);
 $("bias").oninput = () => $("bias-v").textContent = $("bias").value;
+$("tune-toggle").onclick = () => {
+  const row = $("tune-row"), open = row.style.display === "none";
+  row.style.display = open ? "" : "none";
+  $("tune-toggle").innerHTML = open ? "tuning &#9662;" : "tuning &#9656;";
+};
 $("go").onclick = go;
 $("prompt").addEventListener("keydown", e => { if (e.key === "Enter") go(); });
 
@@ -459,7 +472,22 @@ $("i-convert").onclick = async () => {
 
 // ---- training record --------------------------------------------------------
 async function loadGallery() {
-  samples = (await (await fetch("/api/progress")).json()).samples;
+  $("g-view").textContent = "reading the record…";
+  try {
+    const resp = await fetch("/api/progress?t=" + Date.now());
+    if (!resp.ok) {
+      const body = (await resp.text()).slice(0, 120);
+      throw new Error(resp.status
+                      + (body.startsWith("<") ? "" : ": " + body));
+    }
+    samples = (await resp.json()).samples;
+  } catch (e) {
+    // Silent failure here cost a debugging session — say what broke.
+    $("g-view").textContent = "record unavailable — " + e.message
+      + "\nthe API only exists when the page is served by uvicorn "
+      + "app.server:app (not a plain file server)";
+    return;
+  }
   const stages = [...new Set(samples.map(s => s.stage))];
   $("g-stage").innerHTML = stages.map(s => `<option>${s}</option>`).join("");
   $("g-stage").onchange = setStage;
