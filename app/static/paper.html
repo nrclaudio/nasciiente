@@ -127,7 +127,7 @@
 </header>
 
 <div class="abstract"><span class="lbl">ABSTRACT</span>
-We describe GLYPH48, a system that turns a text prompt ("a bonsai tree")
+We describe GLYPH48, a system that turns a text prompt ("a lighthouse")
 into a 48&times;80 grid of printable ASCII characters depicting that
 subject. The grid of characters is the object being modeled — there is no
 pixel image and no learned tokenizer; the 95 printable glyphs plus two
@@ -145,10 +145,13 @@ survive contact with this domain. Everything runs on one rented consumer
 GPU; inference is CPU-deployable at ~140&nbsp;MB.
 </div>
 
-<figure class="hero"><img src="fig/materialize.gif" width="500" height="500"
-  alt="An ASCII bonsai tree materializing character by character"></figure>
-<p class="cap">Fig. 1 — "a bonsai tree": an unedited generation from the
-current checkpoint, rendered through the model's own glyph atlas. The
+<figure class="hero"><img src="fig/lighthouse.gif" width="428" height="560"
+  alt="An ASCII lighthouse materializing character by character: lamp room, gallery, tapering shaft, rocky base"></figure>
+<p class="cap">Fig. 1 — "a lighthouse": an unedited generation from the
+final model, rendered through its own glyph atlas — lamp room, gallery,
+tapering shaft, rocky base. This prompt collapsed to scattered marks two
+training cycles earlier; the restoration is the direct result of the
+long-repetition schedule and rare-caption upsampling of &sect;3. The
 reveal order here is presentational; the live demo replays the model's
 actual commit order.</p>
 
@@ -277,7 +280,7 @@ itself per-epoch augmentation [6].</p>
 </svg>
 </figure>
 <p class="cap">Fig. 3 — geometry-stage loss, six epochs, from the actual
-training log of the current run (space-weighted cross-entropy plus
+training log of the self-context run (space-weighted cross-entropy plus
 auxiliary terms). The train series is the in-epoch running mean, which
 resets at epoch boundaries; validation is evaluated on the EMA weights,
 which is why it can sit at or below the live-weight train curve.
@@ -363,8 +366,10 @@ half of a diamond, the capped decode completes it at 100% cell accuracy,
   <div class="cell"><img src="fig/triangle.png"
     alt="A closed right triangle"><div class="lb">"a triangle"</div></div>
 </div></figure>
-<p class="cap">Fig. 7 — geometry probe outputs from the current
-checkpoint under the canonical decode, unedited.</p>
+<p class="cap">Fig. 7 — geometry outputs from the final model under the
+canonical geometry decode, unedited — drawn after the full three-stage
+curriculum, i.e. the primitives survived two later training stages
+intact (the replay result of &sect;3).</p>
 <p><em>Serve time.</em> k candidates are drawn and re-ranked by CLIP over
 the rendered grids (best-of-k); the intermediate grids double as the
 site's materialize animation — the visualization is the algorithm,
@@ -477,6 +482,13 @@ correct; render every primitive and look at it.</p></div>
 <tr><td>zero-shot coarse-to-fine (generate small, anchored upscale)</td>
     <td>upscale bridges 1-wide strokes into doubled lines</td>
     <td>rejected untrained; scale-trained variant future work</td></tr>
+<tr><td>30-epoch shading stage + rare-caption upsampling</td>
+    <td>sparse-subject restoration — the Fig.&nbsp;1 lighthouse, previously
+        a 44-ink scatter</td><td>adopted</td></tr>
+<tr><td>critic head (513 params, aux weight 0.1) as commit ranker</td>
+    <td>quality collapse (lighthouse 380&rarr;44 ink) — too weak a judge;
+        Token-Critic used a dedicated transformer</td>
+    <td>rejected at this scale; revision-only role untested</td></tr>
 </table></div>
 <p class="cap">Table 1 — every adopted setting was decided by fixed-seed
 A/B probes on standard prompts; two 3-0-literature-verified techniques
@@ -489,14 +501,15 @@ authority.</p>
 under the Halton low-discrepancy commit order — 2,635 ink cells using 94
 of the 96 glyphs, pure speckle. Position-forced early commits sample from
 near-uniform marginals on a blank-dominated canvas, then texture grows
-around the noise. The same checkpoint drew Fig. 1's bonsai under
+around the noise. The same checkpoint drew coherent tonal art under
 confidence ordering.</p>
 
 <h2><span class="n">8</span>LIMITATIONS &amp; FUTURE WORK</h2>
 <ul>
-<li>Sparse-subject tonal generation remains exposure-limited; the current
-training cycle (30-epoch shading stage, rare-caption upsampling, critic
-head) targets it directly.</li>
+<li>Sparse-subject tonal generation was exposure-limited; the 30-epoch
+cycle restored the lighthouse (Fig.&nbsp;1) but "a dragon" in the tonal
+dialect remains thin — its outline and silhouette dialects fare far
+better, and best-of-k re-ranking is the serve-time mitigation.</li>
 <li>Off-the-shelf CLIP scores ASCII structure at chance level [8], so the
 best-of-k re-ranker is weaker than it looks; an ASCII-aware encoder (or a
 CLIP fine-tuned on the ASCIIBench corpus) is the drop-in remedy.</li>
