@@ -191,7 +191,7 @@ geometry — probe-validated regimes">
     <span id="s-device"></span>
     <a href="/paper.html" style="color:inherit">white paper</a>
     <span title="page revision — if this is missing, the browser is
-showing a stale cached copy">ui r3</span>
+showing a stale cached copy">ui r4</span>
   </footer>
 </main>
 
@@ -406,7 +406,10 @@ for (const tabId of Object.keys(TABS)) {
 }
 function switchTab(active) {
   for (const [tabId, secId] of Object.entries(TABS)) {
-    $(secId).style.display = tabId === active ? "" : "none";
+    // explicit "block": clearing the inline style would let the
+    // stylesheet's `#gallery { display: none }` win and the record
+    // tab opened onto nothing
+    $(secId).style.display = tabId === active ? "block" : "none";
     $(tabId).classList.toggle("on", tabId === active);
   }
   if (active === "tab-train" && !samples.length) loadGallery();
@@ -510,7 +513,25 @@ function showEpoch() {
   const s = ss[+$("g-epoch").value - 1];
   if (!s) return;
   $("g-epoch-v").textContent = `${s.epoch}/${ss[ss.length - 1].epoch}`;
-  $("g-view").textContent = s.text;
+  $("g-view").textContent = formatSample(s.text);
+}
+// Each epoch file holds an unconditional section and (on captioned
+// stages) a prompted one. The unconditional sample rides the blank
+// attractor for most of the curriculum, and leading with it filled
+// the first screen with spaces — the record looked empty when it
+// wasn't. Prompted section first; a blank grid becomes a note.
+function formatSample(text) {
+  const bits = text.split(/^=== (.*) ===\n/m);
+  if (bits.length < 3) return text;
+  const secs = [];
+  for (let i = 1; i < bits.length; i += 2)
+    secs.push({title: bits[i], body: bits[i + 1].replace(/\s+$/, "")});
+  secs.sort((a, b) => (a.title.startsWith("prompt") ? 0 : 1)
+                    - (b.title.startsWith("prompt") ? 0 : 1));
+  return secs.map(x => `=== ${x.title} ===\n` + (x.body.trim()
+      ? x.body
+      : "(blank grid — the unconditional blank attractor, expected "
+        + "for most of the curriculum)")).join("\n\n");
 }
 async function playEpochs() {
   const ss = stageSamples();
