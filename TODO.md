@@ -4,6 +4,23 @@
 work) + docs/research-roadmap.md (literature findings). Each phase gates the
 next; nothing in Phase 2 starts until Phase 1's probes are read.*
 
+## v4 RUN RESULTS (2026-07, final_model.pt probes)
+
+- **Sparse-tonal fix CONFIRMED for the lighthouse**: lamp room, gallery,
+  tapering shaft, rocky base — best output of the project (380 ink,
+  coherent architecture). Outline dragon elaborate; silhouette gained
+  extremities. The 30-epoch stage + rare upsampling did their job.
+- **Triangle inpainting 100%/100%/100%** — the fixed data is fully
+  absorbed. Free-gen triangle was blank *at gumbel 1*; recheck at the
+  canonical geometry setting (gumbel 0) before calling it a regression.
+- **"a dragon" tonal still thin** (90 ink): sweep guidance 2 + seeds;
+  best-of-k remains the serve-time answer.
+- **NEGATIVE RESULT — critic-conf as commit ranker**: lighthouse
+  380 -> 44 ink, geometry broken. A 513-param head at loss weight 0.1
+  is too weak to rank commits (Token-Critic uses a dedicated
+  transformer). Possibly still useful for revision-only selection —
+  untested; parked. Third entry for the findings table.
+
 ## Phase 0 — close out what's in flight *(half a day, no training)*
 
 - [ ] **Validate the hybrid tail-cap decode** on `shading_last`:
