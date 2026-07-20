@@ -11,8 +11,12 @@ next; nothing in Phase 2 starts until Phase 1's probes are read.*
   coherent architecture). Outline dragon elaborate; silhouette gained
   extremities. The 30-epoch stage + rare upsampling did their job.
 - **Triangle inpainting 100%/100%/100%** — the fixed data is fully
-  absorbed. Free-gen triangle was blank *at gumbel 1*; recheck at the
-  canonical geometry setting (gumbel 0) before calling it a regression.
+  absorbed. RESOLVED: free-gen triangle was blank only at gumbel 1;
+  at the canonical geometry setting (gumbel 0, probes/v4_geo.txt) the
+  final model draws a clean closed triangle, a clean rectangle, a
+  recognizable diamond, and a correct cross — all four primitives
+  survived the full three-stage curriculum. The per-regime decode
+  (gumbel 0 geometry / gumbel 1 tonal) is confirmed as the contract.
 - **"a dragon" tonal still thin** (90 ink): sweep guidance 2 + seeds;
   best-of-k remains the serve-time answer.
 - **NEGATIVE RESULT — critic-conf as commit ranker**: lighthouse
