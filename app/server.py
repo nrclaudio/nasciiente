@@ -18,6 +18,10 @@ import os
 import sys
 import time
 
+# Must be set before torch loads: lets any op MPS lacks fall back to
+# CPU instead of crashing the request (harmless elsewhere)
+os.environ.setdefault("PYTORCH_ENABLE_MPS_FALLBACK", "1")
+
 import torch
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
@@ -67,6 +71,11 @@ def _pick_device():
                 return torch.device("cuda")
         except Exception:
             pass
+    # Apple GPU: several times faster than CPU for this transformer.
+    # ASCII_DEVICE=cpu overrides if an MPS op misbehaves.
+    mps = getattr(torch.backends, "mps", None)
+    if mps is not None and mps.is_available():
+        return torch.device("mps")
     return torch.device("cpu")
 
 
