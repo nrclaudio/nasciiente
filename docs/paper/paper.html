@@ -110,14 +110,14 @@
 <body>
 <main>
 <header>
-<pre class="mark">  #####   #       #   #  #####   #   #  #   #   #####
- #        #        # #   #    #  #   #  #   #  #     #
- #  ####  #         #    #####   #####  #####   #####
- #     #  #         #    #       #   #      #  #     #
-  #####   ######    #    #       #   #      #   #####</pre>
+<pre class="mark"> #   #   ###   ####   ####  ### ###  #####  #   #  #####  #####
+ ##  #  #   #  #     #       #   #   #      ##  #    #    #
+ # # #  #####   ###  #       #   #   ####   # # #    #    ####
+ #  ##  #   #      # #       #   #   #      #  ##    #    #
+ #   #  #   #  ####   ####  ### ###  #####  #   #    #    #####</pre>
   <div class="title">Text-to-ASCII-Art Generation with a 34.5M-Parameter
        Masked Transformer</div>
-  <div class="meta">glyph48 · white paper · revised July 2026 ·
+  <div class="meta">nASCIIente · white paper · revised July 2026 ·
        one author, one rented GPU · print this page for the paper-paper</div>
   <nav>
     <a href="/">&larr; live demo</a>
@@ -204,6 +204,20 @@ model being told its noise level. All conditioning projections are
 zero-initialized, so the pathway is an exact no-op at splice time: text
 conditioning was retrofitted onto a checkpoint trained without it, and
 later retrofits (the critic head) reuse the same trick.</p>
+<pre class="fig">  prompt "a lighthouse"                     mask ratio 0.62
+          |                                       |
+   frozen CLIP text encoder               sinusoidal embedding
+          |                                       |
+    24 token vectors ----> pooled mean ----> [ + ] ----> global vector
+          |                                        (added to every cell)
+          v
+  cross-attention in every block
+  (per-cell addressing: one cell attends
+   to "lighthouse", another to "a")</pre>
+<p class="cap">Fig. 3 — the conditioning pathway. Token vectors give
+compositional control through cross-attention; the pooled mean and the
+mask ratio steer globally — the model always knows its own noise
+level.</p>
 <p><em>Critic.</em> A 513-parameter linear head predicts, per visible
 cell, "is this glyph correct?" — trained for free from labels the
 self-context corruption already computes (&sect;3), consumed at decode
@@ -240,6 +254,23 @@ taught the model that its own wrong commits are legitimate context to
 extend, and measurably worsened the artifact it was meant to fix
 (&sect;6, failure 8).</li>
 </ul>
+<pre class="fig">  ground truth --mask 15-100%--> [ truth | ############ masked ]
+                                              |
+                            no-grad forward, sample every cell
+                                              |
+                       reveal a slice of the model's OWN samples
+                                              |
+              [ truth | model commits | ##### still masked ]
+                                              |
+                                      trained forward
+                                              |
+                loss on EVERY originally-masked cell --
+                the self-committed ones included</pre>
+<p class="cap">Fig. 4 — self-context training. Inference always
+conditions on the model's own commits; this puts that state into the
+training distribution. Scoring the self-committed cells is the
+load-bearing clause (&sect;6, failure 8): excluding them taught the
+model its own errors were legitimate context.</p>
 <p><em>Curriculum.</em> Three stages — procedural geometry, synthetic
 captioned subjects, human-made pieces — at decreasing learning rates,
 with earlier stages replayed into <em>every</em> later stage at
@@ -279,7 +310,7 @@ itself per-epoch augmentation [6].</p>
 </g>
 </svg>
 </figure>
-<p class="cap">Fig. 3 — geometry-stage loss, six epochs, from the actual
+<p class="cap">Fig. 5 — geometry-stage loss, six epochs, from the actual
 training log of the self-context run (space-weighted cross-entropy plus
 auxiliary terms). The train series is the in-epoch running mean, which
 resets at epoch boundaries; validation is evaluated on the EMA weights,
@@ -291,7 +322,7 @@ Validation improves monotonically except a single epoch-4 blip.</p>
 manufactured caption-first — every label correct by construction:</p>
 <pre class="fig">caption --&gt; t2i --&gt; trim --&gt; flatten --&gt; convert --&gt; ink  --&gt; CLIP --&gt; (grid,
  bank      image    border   background  to glyphs   band    filter    caption)</pre>
-<p class="cap">Fig. 4 — one generated image yields up to nine training
+<p class="cap">Fig. 6 — one generated image yields up to nine training
 samples: three style dialects (silhouette / outline / tonal, selected at
 inference by caption tags) &times; itself plus count and pair composites
 tiled from already-paid-for singles.</p>
@@ -331,6 +362,21 @@ ambiguous tail sequentially. A/B at fixed seed: "a cross" went from
 155-ink multi-stroke chaos to a perfect 28-ink cross; capping the
 <em>whole</em> decode instead collapsed sparse prompts to blank — the two
 regimes need opposite treatment, which is the finding.</p>
+<pre class="fig">  mask ratio  1.0 ------------------- 0.35 ------------------- 0.0
+              |     HEAD: uncapped      |    TAIL: cap 8 / step  |
+              |  exploration noise on   |  greedy + sequential;  |
+              |  commit order; guidance |  each commit becomes   |
+              |  rises 1 -> full scale; |  context for the next  |
+              |  layout forms           |  decision              |
+              +--------------------------------------------------+
+               blank attractor lives      edge echo is born here:
+               here -- anti-space bias    the ambiguous cells are
+               and noise keep early       committed last, and the
+               ink alive                  cap serializes them</pre>
+<p class="cap">Fig. 7 — the two-regime decode. Head and tail fail in
+opposite directions and need opposite treatment: freeing the head fixed
+blank collapse ("a dragon" 8 &rarr; 865 ink), capping the tail fixed the
+echo ("a cross" 155 &rarr; 28 ink), on the same checkpoint.</p>
 
 <figure><div class="figrow">
   <div class="cell"><img src="fig/rect_echo.png"
@@ -342,7 +388,7 @@ regimes need opposite treatment, which is the finding.</p>
   <div class="cell"><img src="fig/cross_clean.png"
     alt="A clean single-stroke cross"><div class="lb">with tail cap (28 ink)</div></div>
 </div></figure>
-<p class="cap">Fig. 5 — the edge echo and its cure, real probe outputs:
+<p class="cap">Fig. 8 — the edge echo and its cure, real probe outputs:
 same checkpoint, same seed and guidance; the material change is the
 tail-only commit cap. Every offset stroke in the left panels is a
 separately-committed hypothesis for the same edge.</p>
@@ -355,7 +401,7 @@ separately-committed hypothesis for the same edge.</p>
   <div class="cell"><img src="fig/inp_done.png"
     alt="The completed diamond, identical to ground truth"><div class="lb">completion</div></div>
 </div></figure>
-<p class="cap">Fig. 6 — the inpainting probe that separated "the model
+<p class="cap">Fig. 9 — the inpainting probe that separated "the model
 doesn't know shapes" from "the decode can't coordinate": shown the left
 half of a diamond, the capped decode completes it at 100% cell accuracy,
 100% ink precision and recall. Knowledge was never the problem.</p>
@@ -368,7 +414,7 @@ half of a diamond, the capped decode completes it at 100% cell accuracy,
   <div class="cell"><img src="fig/triangle.png"
     alt="A closed right triangle"><div class="lb">"a triangle"</div></div>
 </div></figure>
-<p class="cap">Fig. 7 — final-model outputs, unedited. The dragon is the
+<p class="cap">Fig. 10 — final-model outputs, unedited. The dragon is the
 best of four seeds under the canonical decode — which is precisely the
 serve-time selection policy (&sect;5): across those four seeds the same
 settings produced 90 to 979 ink cells, so single-seed judgments of a
@@ -502,7 +548,7 @@ authority.</p>
 
 <figure><img src="fig/halton_soup.png" style="max-height:380px"
   alt="A dense field of speckled random glyphs"></figure>
-<p class="cap">Fig. 8 — what a negative result looks like: "a dragon"
+<p class="cap">Fig. 11 — what a negative result looks like: "a dragon"
 under the Halton low-discrepancy commit order — 2,635 ink cells using 94
 of the 96 glyphs, pure speckle. Position-forced early commits sample from
 near-uniform marginals on a blank-dominated canvas, then texture grows
@@ -514,7 +560,7 @@ confidence ordering.</p>
 <li>Sparse-subject tonal generation was exposure-limited; the 30-epoch
 cycle restored the lighthouse (Fig.&nbsp;1). Remaining tonal variance is
 seed-dominated (90–979 ink across four seeds for "a dragon" at identical
-settings, Fig.&nbsp;7) — the uncapped decode raises the worst-seed floor
+settings, Fig.&nbsp;10) — the uncapped decode raises the worst-seed floor
 (575 vs 90) and best-of-k re-ranking selects the winners, so serving
 tonal prompts uncapped with k&nbsp;=&nbsp;4 is the operative policy.</li>
 <li>Off-the-shelf CLIP scores ASCII structure at chance level [8], so the
@@ -539,7 +585,7 @@ curriculum are the two parked bets with written un-park conditions.</li>
 </ol>
 
 <footer>
-  <span>glyph48</span>
+  <span>nASCIIente</span>
   <a href="/">live demo</a>
   <span>the long-form companion (all equations, full derivations) lives in
         the repo as docs/study-guide.md</span>
