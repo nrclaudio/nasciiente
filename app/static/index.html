@@ -194,7 +194,7 @@ geometry — probe-validated regimes">
     <span id="s-device"></span>
     <a href="/paper.html" style="color:inherit;display:none">white paper</a>
     <span title="page revision — if this is missing, the browser is
-showing a stale cached copy">ui r6</span>
+showing a stale cached copy">ui r7</span>
   </footer>
 </main>
 
@@ -308,7 +308,7 @@ async function go() {
       ? `${data.results.length} runs` + (data.ranked
           ? ", best visual match first" : "")
       : "";
-    data.results.forEach((r, i) => addPane(r, i));
+    data.results.forEach((r, i) => addPane(r, i, body));
   } catch (e) {
     clearInterval(ticker);
     con.textContent = "fault: " + e.message.slice(0, 160);
@@ -317,7 +317,7 @@ async function go() {
   busy = false; $("go").disabled = false;
 }
 
-function addPane(r, i) {
+function addPane(r, i, body) {
   const pane = document.createElement("div");
   pane.className = "pane";
   const head = document.createElement("div");
@@ -339,6 +339,33 @@ function addPane(r, i) {
     const b = document.createElement("button");
     b.textContent = name; b.onclick = fn; meta.appendChild(b);
   }
+  // Probability-cloud view: re-runs this exact decode (same seed) with
+  // distribution capture; each frame renders undecided cells as their
+  // probability-weighted expectation over glyphs
+  const cb = document.createElement("button");
+  cb.textContent = "cloud";
+  cb.title = "watch this run's per-cell glyph distributions collapse "
+    + "into the final art (re-runs the decode at the same seed)";
+  let cloudImg = null;
+  cb.onclick = async () => {
+    if (cloudImg) { cloudImg.remove(); cloudImg = null; return; }
+    cb.disabled = true; cb.textContent = "cloud…";
+    try {
+      const resp = await fetch("/api/cloud", {
+        method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({...body, seed: r.seed, variations: 1})});
+      if (!resp.ok) throw new Error(await resp.text());
+      cloudImg = document.createElement("img");
+      cloudImg.src = URL.createObjectURL(await resp.blob());
+      cloudImg.style.cssText =
+        "max-width:100%;margin-top:8px;border:1px solid var(--line)";
+      pane.appendChild(cloudImg);
+    } catch (e) {
+      $("console").textContent = "cloud fault: " + e.message.slice(0, 140);
+    }
+    cb.disabled = false; cb.textContent = "cloud";
+  };
+  meta.appendChild(cb);
   pane.append(head, pre, meta);
   $("out").appendChild(pane);
   materialize(pre, r.steps, r.final);

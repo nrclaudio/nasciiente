@@ -189,7 +189,8 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
                     guidance_schedule="constant",
                     cluster_confidence=False, max_commit=None,
                     cap_below=1.0, order="confidence",
-                    critic_confidence=False, remask_eta=0.0):
+                    critic_confidence=False, remask_eta=0.0,
+                    probs_out=None):
     """Fill every currently-[MASK] cell of `grid` in place (MaskGIT-style).
 
     Cells that are not [MASK] on entry are never touched, so fixed/anchor
@@ -257,6 +258,12 @@ def _iterative_fill(model, grid, num_steps, temperature, schedule,
         if space_bias > 0:
             logits[..., SPACE_TOKEN] -= space_bias * mask_ratio
         probs = F.softmax(logits, dim=-1)
+
+        # Probability-cloud capture: pre-commit grid + full per-cell
+        # distribution, for rendering the decode's uncertainty
+        # (fp16 keeps a long capped tail affordable)
+        if probs_out is not None:
+            probs_out.append((grid.clone().cpu(), probs.half().cpu()))
 
         sampled = _sample_all(probs)                     # [H, W]
 
@@ -327,7 +334,7 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
              guidance_schedule="constant", cluster_confidence=False,
              max_commit=None, cap_below=DECODE_CAP_BELOW,
              order="confidence", critic_confidence=False,
-             remask_eta=0.0):
+             remask_eta=0.0, probs_out=None):
     """
     Generate ASCII art via iterative unmasking (MaskGIT-style).
 
@@ -403,6 +410,10 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
                     layout forms (arXiv 2503.00307 — inference-only, no
                     retraining). The principled replacement for
                     revision_steps; prefer one or the other, not both.
+        probs_out:  optional list; each decode step appends a tuple of
+                    (pre-commit grid, [H, W, V] fp16 softmax probs) —
+                    the raw material for visualizing the decode's
+                    uncertainty (see /api/cloud in the app).
 
     Returns:
         steps: list of [H, W] long tensors (grid at each step)
@@ -438,7 +449,8 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
     _iterative_fill(model, grid, num_steps, temperature, schedule,
                     gumbel_scale, steps, cond, guidance_scale, space_bias,
                     guidance_schedule, cluster_confidence, max_commit,
-                    cap_below, order, critic_confidence, remask_eta)
+                    cap_below, order, critic_confidence, remask_eta,
+                    probs_out=probs_out)
 
     # --- Revision passes (poor-man's Token-Critic self-correction) ---
     free = ~fixed
@@ -472,7 +484,7 @@ def generate(model, grid_h, grid_w, num_steps=10, temperature=1.0,
                         gumbel_scale, steps, cond, guidance_scale,
                         space_bias, guidance_schedule, cluster_confidence,
                         max_commit, cap_below, order, critic_confidence,
-                        remask_eta)
+                        remask_eta, probs_out=probs_out)
 
     return steps, grid.cpu()
 

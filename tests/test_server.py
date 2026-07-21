@@ -40,6 +40,21 @@ def test_generate_unconditional(client):
     assert data["prompt_used"] is False
 
 
+def test_cloud_gif(client):
+    resp = client.post("/api/cloud", json={
+        "rows": 12, "cols": 20, "steps": 3, "variations": 1,
+        "revision_steps": 0, "seed": 7})
+    assert resp.status_code == 200
+    assert resp.headers["content-type"] == "image/gif"
+    assert resp.headers["x-seed"] == "7"
+    assert resp.content[:6] in (b"GIF87a", b"GIF89a")
+    # deterministic: same seed re-renders the identical cloud
+    again = client.post("/api/cloud", json={
+        "rows": 12, "cols": 20, "steps": 3, "variations": 1,
+        "revision_steps": 0, "seed": 7})
+    assert again.content == resp.content
+
+
 def test_generate_validates(client):
     resp = client.post("/api/generate", json={"rows": 9999})
     assert resp.status_code == 422       # pydantic bounds
