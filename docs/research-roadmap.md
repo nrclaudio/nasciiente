@@ -1,4 +1,4 @@
-# Research Roadmap — what would help GLYPH48 most
+# Research Roadmap — what would help nASCIIente most
 
 *Compiled 2026-07-13 from a 20-source literature sweep (92 extracted claims;
 8 adversarially verified 3-0, the rest quote-grounded but unverified — the

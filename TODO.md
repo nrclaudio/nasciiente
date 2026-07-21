@@ -1,4 +1,4 @@
-# TODO — GLYPH48 execution list
+# TODO — nASCIIente execution list
 
 *Ordered by dependency and payoff-per-effort. Derived from STATUS.md (in-flight
 work) + docs/research-roadmap.md (literature findings). Each phase gates the

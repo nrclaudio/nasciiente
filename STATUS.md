@@ -1,4 +1,4 @@
-# STATUS — GLYPH48 / ascii-art-transformer
+# STATUS — nASCIIente / ascii-art-transformer
 
 *Last updated: 2026-07-14. Written so the project can be picked up cold —
 by future-you or anyone else — after any amount of time away.*
