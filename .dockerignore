@@ -1,0 +1,11 @@
+.git
+checkpoints
+probes
+probe_*.txt
+*.pt
+*.log
+docs
+tests
+__pycache__
+**/__pycache__
+.venv
