@@ -1,0 +1,10 @@
+# Serving-only dependencies (the site + API, no training stack).
+# torch is installed separately from the CPU wheel index in the
+# Dockerfile to keep the image a fraction of the CUDA build's size.
+fastapi
+uvicorn
+python-multipart
+numpy
+Pillow
+transformers
+huggingface_hub

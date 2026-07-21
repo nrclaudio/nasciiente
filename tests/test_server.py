@@ -55,6 +55,31 @@ def test_cloud_gif(client):
     assert again.content == resp.content
 
 
+def test_checkpoint_hf_fallback(monkeypatch, tmp_path):
+    import sys
+    import types
+    from app import server
+    fake = tmp_path / "final_model.pt"
+    fake.write_bytes(b"x")
+    seen = {}
+
+    def fake_download(repo_id, filename):
+        seen.update(repo=repo_id, file=filename)
+        return str(fake)
+
+    monkeypatch.delenv("ASCII_CHECKPOINT", raising=False)
+    monkeypatch.setenv("ASCII_CHECKPOINT_HF", "user/nasciiente-model")
+    monkeypatch.setitem(sys.modules, "huggingface_hub",
+                        types.SimpleNamespace(hf_hub_download=fake_download))
+    assert server._find_checkpoint() == str(fake)
+    assert seen == {"repo": "user/nasciiente-model",
+                    "file": "final_model.pt"}
+    # "repo:file" form picks a specific filename
+    monkeypatch.setenv("ASCII_CHECKPOINT_HF", "user/repo:shading_last.pt")
+    server._find_checkpoint()
+    assert seen["file"] == "shading_last.pt"
+
+
 def test_generate_validates(client):
     resp = client.post("/api/generate", json={"rows": 9999})
     assert resp.status_code == 422       # pydantic bounds

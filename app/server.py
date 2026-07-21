@@ -50,6 +50,15 @@ def _find_checkpoint():
     env = os.environ.get("ASCII_CHECKPOINT")
     if env:
         return env
+    # Hosted deploys carry no checkpoint in the image: point
+    # ASCII_CHECKPOINT_HF at a HF model repo ("user/repo" or
+    # "user/repo:file.pt") and it downloads once into the HF cache
+    # (private repos need the standard HF_TOKEN env)
+    hf = os.environ.get("ASCII_CHECKPOINT_HF")
+    if hf:
+        from huggingface_hub import hf_hub_download
+        repo_id, _, fname = hf.partition(":")
+        return hf_hub_download(repo_id, fname or "final_model.pt")
     ckpt_dir = os.path.join(os.path.dirname(__file__), "..", "checkpoints")
     final = os.path.join(ckpt_dir, "final_model.pt")
     if os.path.exists(final):
