@@ -10,7 +10,14 @@ few seconds on a modern core (precise mode several times more). One
 shared-CPU instance is fine for a personal showcase; it is not built for
 concurrent traffic.
 
-## Step 1 — publish the checkpoint (once)
+> **Why not Hugging Face Spaces?** As of mid-2026 the Docker Space SDK
+> and the free CPU Basic tier are paywalled behind PRO ($9/mo) for new
+> Spaces. HF **model repos remain free**, so the checkpoint hosting
+> below still uses HF — only the app hosting moved elsewhere. If you
+> ever have PRO anyway, the Dockerfile works on a Docker Space
+> unchanged (front matter `sdk: docker`, `app_port: 7860`).
+
+## Step 1 — publish the checkpoint (once, free)
 
 ```bash
 pip install -U huggingface_hub
@@ -21,58 +28,74 @@ hf upload <youruser>/nasciiente-model checkpoints/final_model.pt final_model.pt
 
 This doubles as the off-site backup for the model.
 
-## Step 2 — host on Hugging Face Spaces (free)
+## Step 2 — pick a host
 
-1. Create a Space at hf.co/new-space — name `nasciiente`, SDK **Docker**,
-   hardware **CPU basic** (free).
-2. Push this repo to the Space (add it as a git remote), or upload the
-   files. The Space needs a `README.md` whose front matter declares the
-   Docker SDK — add this at the very top of the Space's README:
+### Option A — small VPS (recommended: ~€4/mo, real domain, always on)
 
-   ```yaml
-   ---
-   title: nASCIIente
-   emoji: 🌅
-   sdk: docker
-   app_port: 7860
-   license: mit
-   ---
-   ```
+Hetzner CX22 / CPX11 (or any 2 GB VPS). Once, on the fresh server:
 
-   `sdk: docker` is the right choice (not gradio/streamlit/static):
-   the Space just builds the repo's Dockerfile and runs it, so the
-   custom FastAPI + frontend ships unchanged. `app_port` must match
-   the port the container listens on (Spaces set `$PORT` to 7860).
+```bash
+apt-get update && apt-get install -y docker.io caddy git
+git clone https://github.com/<you>/ascii-art-transformer && cd ascii-art-transformer
+docker build -t nasciiente .
+docker run -d --restart unless-stopped -p 127.0.0.1:7860:7860 \
+  -e ASCII_CHECKPOINT_HF=<youruser>/nasciiente-model \
+  -e HF_TOKEN=hf_... nasciiente
+```
 
-3. In Space settings → Variables and secrets, set:
-   - `ASCII_CHECKPOINT_HF` = `<youruser>/nasciiente-model`
-   - `HF_TOKEN` = a READ token (secret; needed because the model repo is
-     private — skip if you made it public)
-4. First boot downloads the checkpoint plus the frozen CLIP text encoder
-   (~600 MB total, cached afterwards). The Space then serves the full
-   site at `https://<youruser>-nasciiente.hf.space`.
+Then point Caddy at it — `/etc/caddy/Caddyfile`:
 
-Free Spaces sleep after ~48h without visitors and wake on the next
-request (cold start ≈ a minute).
+```
+nasciiente.art {
+    reverse_proxy localhost:7860
+}
+```
+
+`systemctl reload caddy` and Caddy provisions TLS automatically once the
+domain's DNS A record points at the server. That's the whole stack.
+
+### Option B — Google Cloud Run (free at showcase traffic, scales to zero)
+
+Cloud Run's free tier comfortably covers a personal demo; you pay
+nothing while nobody visits. Needs a GCP account (card on file).
+
+```bash
+gcloud run deploy nasciiente --source . --region europe-west1 \
+  --memory 2Gi --cpu 2 --allow-unauthenticated \
+  --set-env-vars ASCII_CHECKPOINT_HF=<youruser>/nasciiente-model \
+  --set-secrets HF_TOKEN=hf-token:latest
+```
+
+Trade-off: after idle periods the first request cold-starts the
+container and re-downloads the checkpoint + CLIP encoder (~a minute).
+Mitigate by baking the checkpoint into the image (`COPY` it and drop
+the env var) so cold start is image-pull only. Custom domain: Cloud
+Run domain mapping, or front it with Cloudflare.
+
+### Option C — your own Mac + Cloudflare Tunnel ($0, instant)
+
+Zero hosting cost, real domain, TLS — the server is just your Mac, so
+the site is up only while the Mac is awake:
+
+```bash
+brew install cloudflared
+cloudflared tunnel login
+cloudflared tunnel create nasciiente
+cloudflared tunnel route dns nasciiente nasciiente.art
+cloudflared tunnel run --url http://localhost:8081 nasciiente
+```
+
+with the server running locally (`uvicorn app.server:app --port 8081`
+— on Apple Silicon it uses MPS and is faster than any cheap VPS).
+Good for showing people this week while deciding on A/B.
 
 ## Step 3 — the domain
 
 Register `nasciiente.com` / `.art` / `.dev` (~$10–15/yr) at a registrar
-that sells at cost (Cloudflare Registrar, Porkbun). Two ways to use it:
-
-- **Redirect (free, works with Spaces):** put the domain on Cloudflare
-  DNS and add a Redirect Rule sending `nasciiente.art/*` to the Space
-  URL. Spaces do not support custom domains directly, so the URL in the
-  browser becomes the Space's — fine for a showcase link.
-- **Real custom domain (needs your own host, ~$5/mo):** deploy the same
-  Dockerfile to Fly.io (`fly launch` detects it; give the VM 2 GB RAM;
-  set the two env vars with `fly secrets set`), then `fly certs add
-  nasciiente.art` and point the DNS records it prints. The domain then
-  serves the site directly, TLS included. Any small VPS behind Caddy
-  works identically.
-
-Start with the Space + redirect; move to Fly/VPS only if the sleep-wake
-or the redirect bothers you.
+that sells at cost (Cloudflare Registrar, Porkbun). DNS then depends on
+the host: an A record to the VPS (Caddy handles TLS), Cloud Run's
+domain-mapping records, or the Tunnel's CNAME (created automatically by
+`tunnel route dns`).
 
 ## Local / self-hosted
 
