@@ -68,7 +68,7 @@ def test_progress_and_static(client):
     assert "samples" in client.get("/api/progress").json()
     page = client.get("/")
     assert page.status_code == 200
-    assert "GLYPH48" in page.text
+    assert "nASCIIente" in page.text
 
 
 def _png_bytes():

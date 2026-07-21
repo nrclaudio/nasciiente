@@ -1,4 +1,4 @@
-"""Convert the ASCIIBench dataset into a GLYPH48 training payload.
+"""Convert the ASCIIBench dataset into a nASCIIente training payload.
 
 ASCIIBench ("ASCIIBench: Evaluating Language-Model-Based Understanding of
 Visually-Oriented Text", arXiv 2512.04125; github.com/KerryLuo/ASCIIBench)

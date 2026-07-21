@@ -106,7 +106,7 @@ def get_model():
     return _STATE
 
 
-app = FastAPI(title="GLYPH48")
+app = FastAPI(title="nASCIIente")
 
 
 class GenRequest(BaseModel):

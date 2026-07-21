@@ -1,4 +1,4 @@
-# GLYPH48 — Study Guide
+# nASCIIente — Study Guide
 
 **Generating ASCII art from text: the complete story of a 34.5M-parameter model, from first principles.**
 
@@ -647,4 +647,4 @@ Stage 1 (geometry) was cut from 15 epochs to 6 with a full cosine anneal after i
 
 ---
 
-*GLYPH48 · ascii-art-transformer · study document, first-principles edition · all equations as implemented in the code · revised 2026-07-10*
+*nASCIIente · ascii-art-transformer · study document, first-principles edition · all equations as implemented in the code · revised 2026-07-10*
