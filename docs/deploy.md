@@ -35,8 +35,14 @@ This doubles as the off-site backup for the model.
    emoji: 🌅
    sdk: docker
    app_port: 7860
+   license: mit
    ---
    ```
+
+   `sdk: docker` is the right choice (not gradio/streamlit/static):
+   the Space just builds the repo's Dockerfile and runs it, so the
+   custom FastAPI + frontend ships unchanged. `app_port` must match
+   the port the container listens on (Spaces set `$PORT` to 7860).
 
 3. In Space settings → Variables and secrets, set:
    - `ASCII_CHECKPOINT_HF` = `<youruser>/nasciiente-model`
