@@ -194,7 +194,7 @@ geometry — probe-validated regimes">
     <span id="s-device"></span>
     <a href="/paper.html" style="color:inherit;display:none">white paper</a>
     <span title="page revision — if this is missing, the browser is
-showing a stale cached copy">ui r5</span>
+showing a stale cached copy">ui r6</span>
   </footer>
 </main>
 
@@ -304,8 +304,9 @@ async function go() {
     if (!resp.ok) throw new Error(await resp.text());
     const data = await resp.json();
     clearInterval(ticker);
-    con.textContent = data.prompt_used && data.results.length > 1
-      ? `${data.results.length} runs, best visual match first`
+    con.textContent = data.results.length > 1
+      ? `${data.results.length} runs` + (data.ranked
+          ? ", best visual match first" : "")
       : "";
     data.results.forEach((r, i) => addPane(r, i));
   } catch (e) {

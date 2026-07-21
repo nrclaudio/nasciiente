@@ -27,7 +27,8 @@ import torch
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from config import (GRID_H, GRID_W, UNMASK_STEPS, TEMPERATURE, CFG_SCALE,
-                    MAX_ROWS, MAX_COLS, CFG_SCHEDULE, DECODE_MAX_COMMIT)
+                    MAX_ROWS, MAX_COLS, CFG_SCHEDULE, DECODE_MAX_COMMIT,
+                    RANKER_MODEL)
 from data.charset import grid_to_string
 from model.ascii_bert import (ASCIIBert, load_compatible_state,
                               model_matching_state)
@@ -92,6 +93,14 @@ def get_model():
         model = model_matching_state(state).to(device)
         conditioned = load_compatible_state(model, state)
         model.eval()
+        # Opt-in int8 dynamic quantization for CPU serving (~1.5-2x on
+        # the Linear-dominated forward). Off by default: the decode
+        # ranks commits by confidence, and quantized logits haven't
+        # been probe-validated against the fp32 outputs.
+        if (device.type == "cpu"
+                and os.environ.get("ASCII_QUANTIZE") == "1"):
+            model = torch.ao.quantization.quantize_dynamic(
+                model, {torch.nn.Linear}, dtype=torch.qint8)
         _STATE.update(model=model, device=device, conditioned=conditioned,
                       checkpoint=os.path.basename(path))
     return _STATE
@@ -168,19 +177,26 @@ def api_generate(req: GenRequest):
                         "score": None,
                         "_grid": final})
 
-    if prompt and conditioned and len(results) > 1:
+    # Re-rank best-of-k only when an ASCII-aware ranker is configured:
+    # vanilla CLIP scores rendered ASCII at chance level (ASCIIBench),
+    # so without one the sort is noise that costs a full CLIP vision
+    # forward per run — pure latency on CPU serving.
+    ranked = False
+    if prompt and conditioned and len(results) > 1 and RANKER_MODEL:
         try:
             from data.clip_rank import clip_scores
             scores = clip_scores([r["_grid"] for r in results], prompt)
             for r, sc in zip(results, scores):
                 r["score"] = round(float(sc), 4)
             results.sort(key=lambda r: r["score"], reverse=True)
+            ranked = True
         except Exception:
             pass
     for r in results:
         r.pop("_grid")
     return {"results": results,
             "conditioned": conditioned,
+            "ranked": ranked,
             "prompt_used": bool(prompt and conditioned)}
 
 
