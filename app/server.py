@@ -200,6 +200,77 @@ def api_generate(req: GenRequest):
             "prompt_used": bool(prompt and conditioned)}
 
 
+MAX_CLOUD_FRAMES = 48
+
+
+@app.post("/api/cloud")
+def api_cloud(req: GenRequest):
+    """Probability-cloud replay: re-run one decode (same seed = same
+    trajectory as a previous /api/generate result) capturing the full
+    per-cell glyph distribution at every step, and render each step as
+    the EXPECTATION over glyphs — committed cells sharp, undecided
+    cells as their probability-weighted ghost. The returned GIF is the
+    superposition collapsing into the final art."""
+    import io as _io
+
+    from PIL import Image
+
+    from data.charset import MASK_TOKEN
+    from model.render import render_grid, render_probs
+
+    s = get_model()
+    model, device, conditioned = s["model"], s["device"], s["conditioned"]
+
+    kwargs = dict(space_bias=req.space_bias,
+                  revision_steps=req.revision_steps,
+                  guidance_schedule=req.schedule,
+                  max_commit=req.max_commit,
+                  gumbel_scale=req.gumbel)
+    prompt = req.prompt.strip()
+    if prompt and conditioned:
+        from data.text_embed import embed_captions
+        toks, msk = embed_captions([prompt])
+        kwargs.update(cond_tokens=toks[0], cond_mask=msk[0],
+                      guidance_scale=req.guidance)
+    if not prompt and req.space_bias == 0:
+        kwargs["space_bias"] = 3.0  # match the frontend's unprompted default
+
+    seed = (req.seed if req.seed is not None
+            else int(time.time_ns() % 2**31))
+    torch.manual_seed(seed)
+    captured = []
+    _, final = generate(model, req.rows, req.cols, num_steps=req.steps,
+                        temperature=req.temperature, device=device,
+                        probs_out=captured, **kwargs)
+
+    # A capped tail can run hundreds of steps — subsample evenly
+    if len(captured) > MAX_CLOUD_FRAMES:
+        idx = [round(i * (len(captured) - 1) / (MAX_CLOUD_FRAMES - 1))
+               for i in range(MAX_CLOUD_FRAMES)]
+        captured = [captured[i] for i in idx]
+
+    frames = []
+    for pre_grid, probs in captured:
+        onehot = torch.nn.functional.one_hot(
+            pre_grid, num_classes=probs.shape[-1]).float()
+        composite = torch.where((pre_grid == MASK_TOKEN).unsqueeze(-1),
+                                probs.float(), onehot)
+        img = render_probs(composite).clamp(0, 1)
+        # gamma-lift the faint expectation ink so the early cloud reads
+        img = img ** 0.5
+        arr = ((1.0 - img) * 255).byte().numpy()
+        frames.append(Image.fromarray(arr).convert("P"))
+    # hold the sharp final render
+    arr = ((1.0 - render_grid(final).clamp(0, 1)) * 255).byte().numpy()
+    frames.extend([Image.fromarray(arr).convert("P")] * 8)
+
+    buf = _io.BytesIO()
+    frames[0].save(buf, format="GIF", save_all=True,
+                   append_images=frames[1:], duration=150, loop=0)
+    return Response(buf.getvalue(), media_type="image/gif",
+                    headers={"X-Seed": str(seed)})
+
+
 def _converter_tables():
     if "tables" not in _STATE:
         import contextlib

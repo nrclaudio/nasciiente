@@ -17,6 +17,22 @@ def test_generate_from_scratch(tiny_model):
     assert len(steps) >= 2
 
 
+def test_probs_capture(tiny_model):
+    torch.manual_seed(0)
+    captured = []
+    steps, final = generate(tiny_model, H, W, num_steps=4,
+                            revision_steps=0, device="cpu",
+                            probs_out=captured)
+    assert len(captured) == len(steps) - 1   # one capture per fill step
+    pre_grid, probs = captured[0]
+    assert pre_grid.shape == (H, W)
+    assert (pre_grid == MASK_TOKEN).all()    # first capture: empty canvas
+    assert probs.shape[:2] == (H, W)
+    assert probs.dtype == torch.float16
+    total = probs.float().sum(-1)
+    assert torch.allclose(total, torch.ones_like(total), atol=1e-2)
+
+
 def test_main_fill_is_monotonic(tiny_model):
     # Without revision, the main fill only ever unmasks — never re-masks
     torch.manual_seed(0)
