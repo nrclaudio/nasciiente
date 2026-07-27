@@ -5,37 +5,61 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>nASCIIente · white paper</title>
 <style>
+  /* Tokens mirror nrclaud.io so the paper reads as part of the site. */
   :root {
-    --bg: #070707; --fg: #c9c9c9; --dim: #6f6f6f; --faint: #434343;
-    --line: #232323; --art: #dadada; --glow: #b6ffb6; --amber: #c9a35a;
-    /* chart series — validated for CVD + contrast on both surfaces */
-    --c-train: #008300; --c-val: #c98500;
+    --bg:         #070707;  /* near-black terminal ground         */
+    --panel:      #0c0c0c;  /* raised panels / cards              */
+    --sunk:       #050505;  /* recessed strips                    */
+    --fg:         #d7d7d7;  /* primary text                       */
+    --art:        #ededed;  /* brightest text                     */
+    --dim:        #9c9c9c;  /* secondary text                     */
+    --faint:      #6f6f6f;  /* tertiary / captions                */
+    --line:       #232323;  /* hairline borders                   */
+    --line-soft:  #191919;  /* fainter hairline                   */
+    /* Gulf livery accents: powder-blue field, marigold stripe    */
+    --glow:       #9bd7f7;
+    --blue:       #7ec8f0;
+    --blue-dim:   #4f87a8;
+    --orange:     #f0913f;
+    --orange-dim: #b5652e;
+
+    --mono: ui-monospace, 'SF Mono', 'Menlo', 'DejaVu Sans Mono',
+            'Consolas', monospace;
+    /* chart series = the livery pair, which is also CVD-safe */
+    --c-train: #7ec8f0; --c-val: #f0913f;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body { background: var(--bg); }
-  body { color: var(--fg);
-    font-family: ui-monospace, "SF Mono", "Menlo", "DejaVu Sans Mono",
-                 "Consolas", monospace;
-    font-size: 14px; line-height: 1.65; }
+  body { color: var(--fg); font-family: var(--mono);
+    font-size: 14px; line-height: 1.6;
+    -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
   main { max-width: 780px; margin: 8vh auto 14vh; padding: 0 28px; }
   ::selection { background: var(--fg); color: var(--bg); }
-  a { color: var(--dim); }
-  a:hover { color: var(--fg); }
+  a { color: var(--blue-dim); text-decoration: none;
+      transition: color .16s ease; }
+  a:hover { color: var(--glow); text-shadow: 0 0 8px rgba(126, 200, 245, .4); }
 
   header .mark { font-size: 10px; line-height: 1.1; color: var(--dim);
                  white-space: pre; overflow-x: auto; }
-  header .title { margin-top: 26px; font-size: 19px; color: var(--art); }
+  header .title { margin-top: 26px; font-size: 19px; color: var(--art);
+                  line-height: 1.2; }
   header .meta { margin-top: 10px; font-size: 12px; color: var(--faint); }
-  header nav { margin-top: 22px; font-size: 13px; display: flex; gap: 26px; }
+  header nav { margin-top: 22px; font-size: 13px; display: flex; gap: 26px;
+               flex-wrap: wrap; }
+  header nav a::before { content: "> "; color: var(--faint); }
+  header nav a.home::before { content: "$ "; color: var(--blue-dim); }
 
   .abstract { margin: 44px 0 0; padding: 18px 20px;
-    border: 1px solid var(--line); font-size: 13.5px; color: var(--fg); }
-  .abstract .lbl { font-size: 11px; letter-spacing: .3em; color: var(--dim);
-    display: block; margin-bottom: 8px; }
+    background: var(--panel); border: 1px solid var(--line);
+    border-top: 2px solid var(--orange-dim);
+    font-size: 13.5px; color: var(--fg); }
+  .abstract .lbl { font-size: 11px; letter-spacing: .3em;
+    color: var(--blue-dim); display: block; margin-bottom: 8px; }
 
   h2 { margin: 58px 0 14px; font-size: 14px; font-weight: normal;
-       color: var(--art); letter-spacing: .12em; }
-  h2 .n { color: var(--dim); margin-right: 10px; }
+       color: var(--art); letter-spacing: .12em;
+       border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+  h2 .n { color: var(--blue-dim); margin-right: 10px; }
   h3 { margin: 26px 0 8px; font-size: 13px; font-weight: normal;
        color: var(--fg); }
   p { margin: 0 0 13px; color: var(--fg); }
@@ -46,7 +70,8 @@
   code { color: var(--art); }
 
   pre.fig { font-size: 12px; line-height: 1.25; color: var(--art);
-    white-space: pre; overflow-x: auto; border: 1px solid var(--line);
+    white-space: pre; overflow-x: auto; background: var(--sunk);
+    border: 1px solid var(--line-soft);
     padding: 14px 16px; margin: 18px 0; }
   .cap { font-size: 11.5px; color: var(--faint); margin: -10px 0 20px;
          max-width: 72ch; }
@@ -80,13 +105,17 @@
        vertical-align: top; }
   .tablewrap { overflow-x: auto; }
 
-  .fail { border: 1px solid var(--line); margin: 14px 0; padding: 12px 16px;
-          font-size: 13px; }
+  .fail { background: var(--panel); border: 1px solid var(--line);
+          border-top: 2px solid var(--orange-dim);
+          margin: 14px 0; padding: 12px 16px; font-size: 13px;
+          transition: border-color .16s ease; }
+  .fail:hover { border-color: var(--blue-dim);
+                border-top-color: var(--orange); }
   .fail .t { color: var(--art); margin-bottom: 6px; }
-  .fail .t .n { color: var(--glow); opacity: .7; margin-right: 8px; }
+  .fail .t .n { color: var(--blue-dim); margin-right: 8px; }
   .fail p { margin: 0 0 6px; font-size: 12.5px; }
   .fail p:last-child { margin: 0; }
-  .fail .k { color: var(--dim); }
+  .fail .k { color: var(--orange-dim); }
 
   .refs { font-size: 12px; color: var(--dim); }
   .refs li { margin: 6px 0; }
@@ -95,13 +124,21 @@
            border-top: 1px solid var(--line); padding-top: 12px;
            display: flex; gap: 18px; flex-wrap: wrap; }
 
-  /* print = actual paper: light, sans-chrome */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition: none !important; }
+  }
+
+  /* print = actual paper: light, sans-chrome. The livery survives as ink. */
   @media print {
-    :root { --bg: #ffffff; --fg: #1a1a1a; --dim: #555; --faint: #777;
-            --line: #ccc; --art: #000; --glow: #1a7343; --amber: #7a5a10;
-            --c-train: #008300; --c-val: #eda100; }
+    :root { --bg: #ffffff; --panel: #ffffff; --sunk: #fafafa;
+            --fg: #1a1a1a; --art: #000; --dim: #555; --faint: #777;
+            --line: #ccc; --line-soft: #e0e0e0;
+            --glow: #14567a; --blue: #14567a; --blue-dim: #14567a;
+            --orange: #8a4a12; --orange-dim: #8a4a12;
+            --c-train: #14567a; --c-val: #8a4a12; }
     main { margin: 0 auto; max-width: 100%; }
     header nav, footer { display: none; }
+    a, a:hover { text-shadow: none; }
     h2 { page-break-after: avoid; }
     pre.fig, .fail, .abstract { page-break-inside: avoid; }
   }
@@ -120,6 +157,7 @@
   <div class="meta">nASCIIente · white paper · revised July 2026 ·
        one author, one rented GPU · print this page for the paper-paper</div>
   <nav>
+    <a class="home" href="https://nrclaud.io/">nrclaud.io</a>
     <a href="https://github.com/nrclaudio/nasciiente">code:
        run the live demo locally</a>
     <a href="#failures">the failure chronicle</a>
@@ -587,7 +625,8 @@ curriculum are the two parked bets with written un-park conditions.</li>
 
 <footer>
   <span>nASCIIente</span>
-  <a href="/">live demo</a>
+  <a href="https://github.com/nrclaudio/nasciiente#run-the-live-demo-locally">run
+     the demo locally</a>
   <span>the long-form companion (all equations, full derivations) lives in
         the repo as docs/study-guide.md</span>
 </footer>
