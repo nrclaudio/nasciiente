@@ -1,0 +1,38 @@
+# Publishes the white paper as the project's public site (GitHub
+# Pages). The paper is self-contained static HTML + figures in
+# docs/paper/; the deploy just promotes paper.html to index.html.
+name: paper-to-pages
+
+on:
+  push:
+    branches: [main]
+    paths: ["docs/paper/**", ".github/workflows/pages.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble site from the paper
+        run: |
+          mkdir -p _site
+          cp -r docs/paper/. _site/
+          mv _site/paper.html _site/index.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - uses: actions/deploy-pages@v4
+        id: deployment
