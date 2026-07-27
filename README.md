@@ -1,49 +1,50 @@
 # nASCIIente
 
-*naciente* — Spanish for what is being born — with ASCII in the middle,
-because that is the medium it is born into. A 34.5M-parameter masked
-transformer that draws ASCII art from a text prompt: every picture
-starts as a fully masked 48×80 canvas and each character condenses out
-of a probability cloud, one commitment at a time.
+A 34.5M-parameter masked transformer that draws ASCII art from a text
+prompt. The canvas is 48×80 characters and starts out fully masked. Every
+pass predicts all the empty cells at once, keeps the predictions it is most
+confident about, and re-masks the rest for the next pass, so a picture
+resolves in place instead of being written out in reading order.
+
+Hence the name: *naciente*, Spanish for what is being born, with ASCII in
+the middle.
 
 <p align="center">
   <img src="docs/paper/fig/lighthouse.gif" width="428"
-       alt='"a lighthouse" — an unedited generation from the final model,
+       alt='"a lighthouse", an unedited generation from the final model,
             materializing character by character'>
 </p>
-<p align="center"><em>"a lighthouse" — unedited output of the final
+<p align="center"><em>"a lighthouse", unedited output of the final
 model, rendered through its own glyph atlas.</em></p>
 
-**[Read the white paper](https://nrclaudio.github.io/nasciiente/)** —
-architecture, training recipe, and nine documented failures with their
-diagnoses, including two decoding pathologies specific to sparse
-discrete canvases and the published techniques that did not survive
-contact with this domain. The failure chronicle carries most of the
-transferable knowledge.
+**[Read the white paper](https://nrclaudio.github.io/nasciiente/)** for the
+architecture, the training recipe, and nine documented failures with their
+diagnoses. Two of those are decoding pathologies specific to sparse
+discrete canvases, and several are published techniques that did not
+survive contact with this domain. Most of what transfers elsewhere is in
+that chronicle.
 
-**[Model weights on Hugging Face](https://huggingface.co/nrclaudio/nasciiente-model)** —
-inference is CPU-deployable at ~140 MB (and fast on Apple Silicon via
-MPS).
+**[Model weights on Hugging Face](https://huggingface.co/nrclaudio/nasciiente-model)**.
+Inference is CPU-deployable at ~140 MB, and fast on Apple Silicon via MPS.
 
 ## What it is
 
-- The **grid of characters is the object being modeled** — no pixel
-  image, no learned tokenizer. 96 printable glyphs + `[PAD]` + `[MASK]`
-  are the whole vocabulary.
-- A bidirectional transformer (8 pre-norm blocks, width 512, factorized
-  **2D rotary attention**) trained from scratch as a masked predictor,
-  conditioned on captions through frozen-CLIP cross-attention.
-- Sampled MaskGIT-style — iterative parallel unmasking under
-  classifier-free guidance, with a **two-regime decode** (uncapped
-  exploratory head / commit-capped sequential tail) that the paper
-  motivates with fixed-seed ablations.
-- Trained on a **self-manufactured captioned corpus**: text-to-image
-  generations converted deterministically to ASCII in three style
-  dialects, every label correct by construction.
+- The grid of characters is the object being modeled. No pixel image, no
+  learned tokenizer: 96 printable glyphs plus `[PAD]` and `[MASK]` are the
+  whole vocabulary.
+- A bidirectional transformer (8 pre-norm blocks, width 512, factorized 2D
+  rotary attention) trained from scratch as a masked predictor, conditioned
+  on captions through frozen-CLIP cross-attention.
+- Sampled MaskGIT-style: iterative parallel unmasking under classifier-free
+  guidance, with a two-regime decode (uncapped exploratory head, then a
+  commit-capped sequential tail) that the paper motivates with fixed-seed
+  ablations.
+- Trained on a self-manufactured captioned corpus: text-to-image
+  generations converted deterministically to ASCII in three style dialects,
+  every label correct by construction.
 - Because the model is bidirectional, the same network does free
-  generation, **inpainting** (fill around fixed characters), and
-  2× **super-resolution** (anchor characters on a larger canvas, mask
-  the gaps).
+  generation, inpainting (fill around fixed characters), and 2×
+  super-resolution (anchor characters on a larger canvas, mask the gaps).
 
 ## Run the live demo locally
 
@@ -58,17 +59,17 @@ hf download nrclaudio/nasciiente-model final_model.pt --local-dir checkpoints
 python -m uvicorn app.server:app --port 8081
 ```
 
-Open http://localhost:8081 — type a prompt, watch it materialize in the
+Open http://localhost:8081, type a prompt, and watch it materialize in the
 model's actual commit order. The page also converts uploaded images and
-GIFs to ASCII through the training data engine's converter. A
-`Dockerfile` and hosting notes live in [`docs/deploy.md`](docs/deploy.md).
+GIFs to ASCII through the training data engine's converter. A `Dockerfile`
+and hosting notes live in [`docs/deploy.md`](docs/deploy.md).
 
 ## Training your own
 
 The full pipeline (procedural geometry → captioned synthetic subjects →
-human ASCII fine-tune, with cross-stage replay) is driven by `main.py`
-and documented in the paper's §3–4. One consumer GPU suffices; the v4
-run that produced the released checkpoint was a single rented A100 day.
+human ASCII fine-tune, with cross-stage replay) is driven by `main.py` and
+documented in §3 and §4 of the paper. One consumer GPU suffices; the v4 run
+that produced the released checkpoint was a single rented A100 day.
 
 ```bash
 python main.py                      # everything: data → three stages

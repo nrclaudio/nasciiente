@@ -1,48 +1,48 @@
-# TODO — nASCIIente execution list
+# TODO: nASCIIente execution list
 
-*Ordered by dependency and payoff-per-effort. Derived from STATUS.md (in-flight
-work) + docs/research-roadmap.md (literature findings). Each phase gates the
-next; nothing in Phase 2 starts until Phase 1's probes are read.*
+*Ordered by dependency and payoff-per-effort. Derived from STATUS.md
+(in-flight work) plus docs/research-roadmap.md (literature findings). Each
+phase gates the next; nothing in Phase 2 starts until Phase 1's probes are
+read.*
 
 ## v4 RUN RESULTS (2026-07, final_model.pt probes)
 
 - **Sparse-tonal fix CONFIRMED for the lighthouse**: lamp room, gallery,
-  tapering shaft, rocky base — best output of the project (380 ink,
+  tapering shaft, rocky base, the best output of the project (380 ink,
   coherent architecture). Outline dragon elaborate; silhouette gained
-  extremities. The 30-epoch stage + rare upsampling did their job.
-- **Triangle inpainting 100%/100%/100%** — the fixed data is fully
-  absorbed. RESOLVED: free-gen triangle was blank only at gumbel 1;
-  at the canonical geometry setting (gumbel 0, probes/v4_geo.txt) the
-  final model draws a clean closed triangle, a clean rectangle, a
-  recognizable diamond, and a correct cross — all four primitives
-  survived the full three-stage curriculum. The per-regime decode
-  (gumbel 0 geometry / gumbel 1 tonal) is confirmed as the contract.
+  extremities. The 30-epoch stage and rare upsampling did their job.
+- **Triangle inpainting 100%/100%/100%**: the fixed data is fully
+  absorbed. RESOLVED: free-gen triangle was blank only at gumbel 1; at the
+  canonical geometry setting (gumbel 0, probes/v4_geo.txt) the final model
+  draws a clean closed triangle, a clean rectangle, a recognizable diamond,
+  and a correct cross. All four primitives survived the full three-stage
+  curriculum. The per-regime decode (gumbel 0 geometry, gumbel 1 tonal) is
+  confirmed as the contract.
 - **"a dragon" tonal RESOLVED as seed variance** (probes/dragons/, 16-run
-  sweep): 90-979 ink across four seeds at identical canonical settings;
-  seed 2 is a genuine winged dragon. Floors: uncapped 575 vs capped 90 —
+  sweep): 90-979 ink across four seeds at identical canonical settings, and
+  seed 2 is a genuine winged dragon. Floors: uncapped 575 vs capped 90, so
   serve tonal prompts UNCAPPED with best-of-k=4; geometry keeps the cap.
   final_model matches shading_last at every seed (no human-stage tonal
   regression).
-- **NEGATIVE RESULT — critic-conf as commit ranker**: lighthouse
-  380 -> 44 ink, geometry broken. A 513-param head at loss weight 0.1
-  is too weak to rank commits (Token-Critic uses a dedicated
-  transformer). Possibly still useful for revision-only selection —
-  untested; parked. Third entry for the findings table.
-- **DENSE-MASS COLLAPSE identified** (probes/car_clown_s0-3, 4-seed
-  sweep, 2026-07): "a car" ranges 352-2364 ink across seeds; the worst
-  seeds flood the canvas with a solid `#` slab — the mirror image of
-  sparse-blank collapse. Cause is data-side: photos of dense subjects
-  (car, truck, bus) convert to solid slabs, so the model learned
-  "car = dark mass + roof arc". Clowns have the right global schema
-  (hat/face/ruffle/body, 3 of 4 seeds) but face detail exceeds 48x80
-  tonal resolution. Outline style is coherent for both on every seed —
-  serve vehicles as outline. FIX (next data run): symmetric guard to
-  SPARSE_TONAL_INK — route subjects whose tonal conversion inks too
-  DENSE to the outline dialect, and/or max-ink reject slab
-  conversions. Best-of-4 can't rescue these until an ASCII-aware
-  ranker exists (vanilla CLIP ranks at chance).
+- **NEGATIVE RESULT, critic-conf as commit ranker**: lighthouse 380 -> 44
+  ink, geometry broken. A 513-param head at loss weight 0.1 is too weak to
+  rank commits (Token-Critic uses a dedicated transformer). Possibly still
+  useful for revision-only selection, untested; parked. Third entry for the
+  findings table.
+- **DENSE-MASS COLLAPSE identified** (probes/car_clown_s0-3, 4-seed sweep,
+  2026-07): "a car" ranges 352-2364 ink across seeds; the worst seeds flood
+  the canvas with a solid `#` slab, the mirror image of sparse-blank
+  collapse. Cause is data-side: photos of dense subjects (car, truck, bus)
+  convert to solid slabs, so the model learned "car = dark mass + roof
+  arc". Clowns have the right global schema (hat/face/ruffle/body, 3 of 4
+  seeds) but face detail exceeds 48x80 tonal resolution. Outline style is
+  coherent for both on every seed, so serve vehicles as outline. FIX (next
+  data run): symmetric guard to SPARSE_TONAL_INK, routing subjects whose
+  tonal conversion inks too DENSE to the outline dialect, and/or a max-ink
+  reject on slab conversions. Best-of-4 can't rescue these until an
+  ASCII-aware ranker exists (vanilla CLIP ranks at chance).
 
-## Phase 0 — close out what's in flight *(half a day, no training)*
+## Phase 0: close out what's in flight *(half a day, no training)*
 
 - [ ] **Validate the hybrid tail-cap decode** on `shading_last`:
       `python probe.py --checkpoint checkpoints/shading_last.pt --prompt "a dragon" --prompt "a lighthouse" --prompt "a bonsai tree" --prompt "a dragon, outline style" --prompt "a rectangle" --guidance 1.5 --schedule rise --gumbel 1 --steps 32 --max-commit 8 --revision-steps 0 --out probe_hybrid.txt`
@@ -52,89 +52,88 @@ next; nothing in Phase 2 starts until Phase 1's probes are read.*
 - [ ] **Backup sweep**: rsync to laptop + `hf upload` checkpoints; verify
       timestamps.
 
-## Phase 1 — zero-training experiments *(2–3 days, existing checkpoints)*
+## Phase 1: zero-training experiments *(2-3 days, existing checkpoints)*
 
-- [x] **Halton commit scheduler — TESTED, REJECTED as default** (2026-07
+- [x] **Halton commit scheduler, TESTED and REJECTED as default** (2026-07
       grid on shading_last): position-forced early commits seed noise on
-      our blank-dominated grids — "a dragon" became 1,561 ink of speckle,
-      "a rectangle" 14 ink of fragments. The paper's ImageNet gains
-      (dense VQ tokens, strong class conditioning) do not transfer to
-      sparse ASCII marginals. Keeping the flag for future checkpoints;
-      confidence order stays the default. (The published-knob lesson of
-      §14.2, again.)
-- [ ] **ASCII-aware CLIP** (roadmap #4) — *plumbing landed, weights NOT
-      yet public*: github.com/KerryLuo/ASCIIBench is "under construction"
-      and ships only the dataset — the released-weights claim from the
-      research sweep was one of the unverified ones and didn't hold (yet).
-      Options: (a) email the authors (contact in their README) asking for
-      the fine-tuned CLIP; (b) fine-tune our own on rendered ASCIIBench
-      pieces (752 classes = contrastive labels; a small LoRA job); (c)
-      wait. `RANKER_MODEL` in config.py takes the HF id whenever one
-      exists.
-- [x] **ASCIIBench dataset — INGESTED**: `data/prepare_asciibench.py`
+      our blank-dominated grids, turning "a dragon" into 1,561 ink of
+      speckle and "a rectangle" into 14 ink of fragments. The paper's
+      ImageNet gains (dense VQ tokens, strong class conditioning) do not
+      transfer to sparse ASCII marginals. Keeping the flag for future
+      checkpoints; confidence order stays the default. (The published-knob
+      lesson of §14.2, again.)
+- [ ] **ASCII-aware CLIP** (roadmap #4), *plumbing landed, weights NOT yet
+      public*: github.com/KerryLuo/ASCIIBench is "under construction" and
+      ships only the dataset. The released-weights claim from the research
+      sweep was one of the unverified ones and didn't hold (yet). Options:
+      (a) email the authors (contact in their README) asking for the
+      fine-tuned CLIP; (b) fine-tune our own on rendered ASCIIBench pieces
+      (752 classes = contrastive labels; a small LoRA job); (c) wait.
+      `RANKER_MODEL` in config.py takes the HF id whenever one exists.
+- [x] **ASCIIBench dataset, INGESTED**: `data/prepare_asciibench.py`
       converts final_dataset.jsonl -> training payload (verified on the
       real download: 4,860 pieces kept, 736 classes, 18.7 MB). Use as
-      stage-3 supplement/replay + eval set. License unstated upstream —
+      stage-3 supplement/replay and eval set. License unstated upstream, so
       keep the data out of the public repo; regenerate with:
       `curl -sLO https://raw.githubusercontent.com/KerryLuo/ASCIIBench/main/final_dataset.jsonl && python data/prepare_asciibench.py --jsonl final_dataset.jsonl`
-- [x] **ReMDM-style in-loop remasking — TESTED, REJECTED as default**
-      (same grid): with generator-confidence scoring, remasking strips
-      the fragile early ink seeds on sparse prompts ("a dragon" ink
-      70 -> 8 -> 4 across eta 0/0.2/0.5). Revisit ONLY with critic
-      scores after the Phase-2 run (the critic can tell correct ink
-      from noise; raw confidence cannot).
-- [x] **Decode defaults DECIDED** (grid, 2026-07): confidence order ·
-      rise · gumbel 1 (0 for geometry probes) · max-commit 8 ·
-      cap-below 0.35 · revision 0 · eta 0 — i.e. the existing hybrid
-      decode, now grid-validated: best-ever bonsai, clean outline
-      dragon, single clean rectangle in ONE setting. Sparse tonal
-      (dragon/lighthouse) remains exposure-limited -> Phase 2's job.
+- [x] **ReMDM-style in-loop remasking, TESTED and REJECTED as default**
+      (same grid): with generator-confidence scoring, remasking strips the
+      fragile early ink seeds on sparse prompts ("a dragon" ink 70 -> 8 ->
+      4 across eta 0/0.2/0.5). Revisit ONLY with critic scores after the
+      Phase-2 run, since the critic can tell correct ink from noise and raw
+      confidence cannot.
+- [x] **Decode defaults DECIDED** (grid, 2026-07): confidence order · rise ·
+      gumbel 1 (0 for geometry probes) · max-commit 8 · cap-below 0.35 ·
+      revision 0 · eta 0, i.e. the existing hybrid decode, now
+      grid-validated: best-ever bonsai, clean outline dragon, single clean
+      rectangle in ONE setting. Sparse tonal (dragon/lighthouse) remains
+      exposure-limited, which is Phase 2's job.
 
-## Phase 2 — the next training run (one run carries five upgrades) *(prep ~3–4 days, then GPU time)*
+## Phase 2: the next training run (one run carries five upgrades) *(prep ~3-4 days, then GPU time)*
 
-- [ ] **Regenerate geometry data** (`python data/generate_geometry.py`) —
-      picks up the fixed closed triangle. Required before any retrain.
-- [x] **Longer shading stage — CODE LANDED** (roadmap #1): `SHADING_EPOCHS`
+- [ ] **Regenerate geometry data** (`python data/generate_geometry.py`),
+      which picks up the fixed closed triangle. Required before any
+      retrain.
+- [x] **Longer shading stage, CODE LANDED** (roadmap #1): `SHADING_EPOCHS`
       = 30 in config. RUN: watch val loss per epoch for the (unlikely)
       overfit signal; budget GPU rental ~5× the old stage cost.
-- [x] **Rare-subject upsampling — CODE LANDED**: `upsample_rare()` in
+- [x] **Rare-subject upsampling, CODE LANDED**: `upsample_rare()` in
       train.py duplicates below-median-count captions up to
       `RARE_UPSAMPLE_MAX_FACTOR` (5x), DDP-safe, unit-tested.
-- [x] **Token-Critic head — CODE LANDED** (roadmap #2, verified 3-0):
+- [x] **Token-Critic head, CODE LANDED** (roadmap #2, verified 3-0):
       zero-init `critic` Linear in ASCIIBert (tolerant checkpoint loading
       tested); BCE trained every batch from visible-cell correctness
       (negatives supplied free by self-context reveals);
-      `CRITIC_LOSS_WEIGHT = 0.1`. Decode: `--critic-conf` in probe.py
-      ranks commits AND revision re-masks by the trained head. RUN: only
+      `CRITIC_LOSS_WEIGHT = 0.1`. Decode: `--critic-conf` in probe.py ranks
+      commits AND revision re-masks by the trained head. RUN: only
       meaningful on a checkpoint trained with the critic on.
-- [x] **Quality-tier caption tags — CODE LANDED** (roadmap #9): engine
+- [x] **Quality-tier caption tags, CODE LANDED** (roadmap #9): engine
       appends ", clean render" to samples whose CLIP-to-own-caption score
-      ≥ `QUALITY_TIER_CLIP` (0.28); tested with a fake pipe. Serve with
-      the tag at inference for the top tier.
-- [x] **Sparse-subject dialect routing — CODE LANDED** (roadmap #8): in
+      ≥ `QUALITY_TIER_CLIP` (0.28); tested with a fake pipe. Serve with the
+      tag at inference for the top tier.
+- [x] **Sparse-subject dialect routing, CODE LANDED** (roadmap #8): in
       `--mix all`, subjects whose tonal conversion inks < `SPARSE_TONAL_INK`
       (0.08) hand the untagged caption to their outline variant; tonal
       becomes ", shaded" for them. Tested with a fake pipe.
 - [ ] Launch the run; probe geometry_last and shading_last with BOTH decode
       variants (hybrid cap vs Halton) as each stage lands.
 
-## Phase 3 — decode upgrades on the new checkpoint *(1–2 weeks, ordered by probe results)*
+## Phase 3: decode upgrades on the new checkpoint *(1-2 weeks, ordered by probe results)*
 
 - [ ] **Critic-scored remasking** (roadmap #5, second half): the in-loop
-      remasking is implemented (Phase 1) with generator-confidence
-      scores; once the Phase-2 critic exists, re-score the remask
-      selection with it and expose decode steps as the quality/speed
-      dial in the app.
+      remasking is implemented (Phase 1) with generator-confidence scores;
+      once the Phase-2 critic exists, re-score the remask selection with it
+      and expose decode steps as the quality/speed dial in the app.
 - [ ] **Critic repair pass** as a serve-time option: re-mask worst-N% by
       critic on finished grids, refill (the Token-Critic paper's post-hoc
       trick).
 - [ ] Only if global coherence still lags: **self-guidance PEFT fine-tune**
-      (roadmap #6 — use `glyph_sim` clusters as the smoothing kernel) or
-      **logit self-conditioning** (roadmap #7 — zero-init `Linear(V→D)` in
+      (roadmap #6, using `glyph_sim` clusters as the smoothing kernel) or
+      **logit self-conditioning** (roadmap #7, a zero-init `Linear(V→D)` in
       `CombinedEmbedding`, trained during self-context batches). Pick ONE,
       A/B, keep the winner.
 
-## Phase 4 — ship
+## Phase 4: ship
 
 - [ ] Lock decode defaults from Phase 3 probes; update `config.py`, server,
       Streamlit defaults.
@@ -144,14 +143,14 @@ next; nothing in Phase 2 starts until Phase 1's probes are read.*
       flip roadmap items to done).
 - [ ] Backup sweep; revoke instance tokens if pausing.
 
-## Parked (revisit only if Phases 1–3 don't close the gap)
+## Parked (revisit only if Phases 1-3 don't close the gap)
 
-- Trained coarse-to-fine / next-scale (VAR/HMAR family) — needs a
+- Trained coarse-to-fine / next-scale (VAR/HMAR family): needs a
   charset-native coarse scale (anchor lattice?); substantial retooling.
-- D3PO preference tuning on best-of-k picks — theory fits our corruption
+- D3PO preference tuning on best-of-k picks: theory fits our corruption
   family exactly, published validation still toy-scale.
-- Bigger model / architecture swaps — capacity is measurably not the
-  bottleneck; the literature endorses the current vanilla+RoPE design.
+- Bigger model / architecture swaps: capacity is measurably not the
+  bottleneck, and the literature endorses the current vanilla+RoPE design.
 
 ---
 

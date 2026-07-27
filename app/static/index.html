@@ -122,8 +122,8 @@
   <h1>nASCIIente</h1>
   <pre id="wordmark"></pre>
   <p id="tagline">a 34.5M-parameter masked transformer that draws ASCII art
-     from text — every character on this page is in its vocabulary</p>
-  <p id="ethos">naciente is Spanish for what is being born — and that is
+     from text. every character on this page is in its vocabulary</p>
+  <p id="ethos">naciente is Spanish for what is being born, and that is
      the whole method here: every picture starts as a fully masked canvas
      of pure probability, and each character condenses out of the cloud
      one commitment at a time. the ASCII in the middle of the name is the
@@ -149,7 +149,7 @@
       <label>mode <select id="mode"
              title="organic: exploratory decode, best for subjects and
 tonal art. precise: greedy decode with a commit cap, best for exact
-geometry — probe-validated regimes">
+geometry. both regimes are probe-validated">
         <option value="organic" selected>organic</option>
         <option value="precise">precise</option></select></label>
       <button id="go">run</button>
@@ -200,7 +200,7 @@ geometry — probe-validated regimes">
     <span id="s-model"></span>
     <span id="s-device"></span>
     <a href="/paper.html" style="color:inherit;display:none">white paper</a>
-    <span title="page revision — if this is missing, the browser is
+    <span title="page revision. if this is missing, the browser is
 showing a stale cached copy">ui r8</span>
   </footer>
 </main>
@@ -247,15 +247,15 @@ async function boot() {
       (info.conditioned ? " · text-conditioned" : " · unconditioned");
     $("s-device").textContent = info.device;
     if (!info.conditioned)
-      $("prompt").placeholder = "checkpoint not text-conditioned — free synthesis only";
+      $("prompt").placeholder = "checkpoint not text-conditioned: free synthesis only";
   } catch (e) {
-    $("sub").textContent = "model offline — image conversion still works";
+    $("sub").textContent = "model offline; image conversion still works";
     $("sub").classList.add("amber");
   }
 }
 
 // ---- preset chips ---------------------------------------------------------
-$("chips").append("try — ");
+$("chips").append("try: ");
 PRESETS.forEach((p, i) => {
   const b = document.createElement("a");
   b.textContent = p;
@@ -298,7 +298,7 @@ async function go() {
   $("out").innerHTML = "";
   const con = $("console");
   con.classList.remove("amber");
-  con.textContent = prompt ? `synthesizing “${prompt}”` : "synthesizing";
+  con.textContent = prompt ? `synthesizing "${prompt}"` : "synthesizing";
   let dots = 0;
   const ticker = setInterval(() => {
     con.textContent = con.textContent.replace(/\.*$/, "")
@@ -474,7 +474,7 @@ $("i-convert").onclick = async () => {
     if (!resp.ok) throw new Error(await resp.text());
     const data = await resp.json();
     $("i-console").textContent = data.animated
-      ? `converted — ${data.frames.length} frames @ ${data.fps}fps`
+      ? `converted: ${data.frames.length} frames @ ${data.fps}fps`
       : "converted";
     const pane = document.createElement("div");
     pane.className = "pane";
@@ -524,7 +524,7 @@ async function loadGallery() {
     samples = (await resp.json()).samples;
   } catch (e) {
     // Silent failure here cost a debugging session — say what broke.
-    $("g-view").textContent = "record unavailable — " + e.message
+    $("g-view").textContent = "record unavailable: " + e.message
       + "\nthe API only exists when the page is served by uvicorn "
       + "app.server:app (not a plain file server)";
     return;
@@ -536,7 +536,7 @@ async function loadGallery() {
   $("g-play").onclick = playEpochs;
   if (stages.length) setStage();
   else $("g-view").textContent =
-    "no records yet — training writes one sample per epoch";
+    "no records yet; training writes one sample per epoch";
 }
 const stageSamples = () =>
   samples.filter(s => s.stage === $("g-stage").value)
@@ -568,7 +568,7 @@ function formatSample(text) {
                     - (b.title.startsWith("prompt") ? 0 : 1));
   return secs.map(x => `=== ${x.title} ===\n` + (x.body.trim()
       ? x.body
-      : "(blank grid — the unconditional blank attractor, expected "
+      : "(blank grid: the unconditional blank attractor, expected "
         + "for most of the curriculum)")).join("\n\n");
 }
 async function playEpochs() {

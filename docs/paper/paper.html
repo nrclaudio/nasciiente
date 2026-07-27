@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>nASCIIente — white paper</title>
+<title>nASCIIente · white paper</title>
 <style>
   :root {
     --bg: #070707; --fg: #c9c9c9; --dim: #6f6f6f; --faint: #434343;
@@ -120,7 +120,7 @@
   <div class="meta">nASCIIente · white paper · revised July 2026 ·
        one author, one rented GPU · print this page for the paper-paper</div>
   <nav>
-    <a href="https://github.com/nrclaudio/nasciiente">code —
+    <a href="https://github.com/nrclaudio/nasciiente">code:
        run the live demo locally</a>
     <a href="#failures">the failure chronicle</a>
     <a href="#findings">findings</a>
@@ -130,16 +130,16 @@
 <div class="abstract"><span class="lbl">ABSTRACT</span>
 We describe nASCIIente, a system that turns a text prompt ("a lighthouse")
 into a 48&times;80 grid of printable ASCII characters depicting that
-subject. The grid of characters is the object being modeled — there is no
-pixel image and no learned tokenizer; the 95 printable glyphs plus two
+subject. The grid of characters is the object being modeled: there is no
+pixel image and no learned tokenizer, and the 95 printable glyphs plus two
 specials are the vocabulary. A 34.5M-parameter bidirectional transformer
 with factorized 2D rotary attention is trained from scratch as a masked
 predictor over a self-manufactured captioned corpus (text-to-image
 generations converted deterministically to ASCII in three style dialects),
 and sampled with MaskGIT-style iterative parallel unmasking under
-classifier-free guidance. We report the design, the training recipe, and —
-because they carry most of the transferable knowledge — nine documented
-failures with their diagnoses and fixes, including two decoding pathologies
+classifier-free guidance. We report the design, the training recipe, and
+nine documented failures with their diagnoses and fixes, since those carry
+most of the transferable knowledge. Among them are two decoding pathologies
 specific to sparse discrete canvases (blank-attractor collapse and
 parallel-commit edge echo) and two published techniques that did not
 survive contact with this domain. Everything runs on one rented consumer
@@ -148,9 +148,9 @@ GPU; inference is CPU-deployable at ~140&nbsp;MB.
 
 <figure class="hero"><img src="fig/lighthouse.gif" width="428" height="560"
   alt="An ASCII lighthouse materializing character by character: lamp room, gallery, tapering shaft, rocky base"></figure>
-<p class="cap">Fig. 1 — "a lighthouse": an unedited generation from the
-final model, rendered through its own glyph atlas — lamp room, gallery,
-tapering shaft, rocky base. This prompt collapsed to scattered marks two
+<p class="cap">Fig. 1. "a lighthouse": an unedited generation from the
+final model, rendered through its own glyph atlas, showing lamp room,
+gallery, tapering shaft, rocky base. This prompt collapsed to scattered marks two
 training cycles earlier; the restoration is the direct result of the
 long-repetition schedule and rare-caption upsampling of &sect;3. The
 reveal order here is presentational; the live demo replays the model's
@@ -162,11 +162,11 @@ actual commit order.</p>
 <code>[PAD]</code> and <code>[MASK]</code>. Conditioned on a caption
 <code>c</code>, the model represents <code>p(x|c)</code> and samples from
 it. Two framing decisions drive everything downstream. First,
-<em>characters are the tokens</em> — generating pixels and converting
+<em>characters are the tokens</em>: generating pixels and converting
 afterward caps quality at the converter and can never exhibit
 character-level intent (choosing <code>()</code> for a curve because a
 human would). Second, the problem is closer to language modeling than to
-image synthesis — discrete symbols at exact positions — which selects
+image synthesis, being discrete symbols at exact positions, which selects
 masked bidirectional modeling over both raster-order autoregression
 (3,840 sequential steps; a fictitious reading order over a 2D artifact)
 and continuous diffusion (a cell is <code>/</code> or <code>\</code>,
@@ -185,21 +185,21 @@ never 0.6 of each).</p>
                  |  LN -&gt; Linear 512-&gt;1       (critic head)
                  v
      per-cell glyph logits          per-cell "is this right?"</pre>
-<p class="cap">Fig. 2 — 34.5M parameters: 8 pre-norm blocks, width 512.
+<p class="cap">Fig. 2. 34.5M parameters: 8 pre-norm blocks, width 512.
 Dropout is 0.0, and that number is a measurement, not a default
 (&sect;6, failure 7).</p>
 <p><em>Positions.</em> Factorized 2D rotary embeddings: half of each
 head's dimensions rotate by row index, half by column, so attention
 depends only on (&Delta;row, &Delta;col). Stroke knowledge is learned
 once, not per location, and the model runs on canvases up to
-96&times;160 it never trained at — which is the entire super-resolution
+96&times;160 it never trained at, which is the entire super-resolution
 feature (anchor the source characters on a 2&times; canvas, mask the
 gaps, inpaint).</p>
 <p><em>Conditioning.</em> Prompts are embedded by a frozen CLIP text
 encoder; up to 24 token vectors feed cross-attention in every block
-(compositional addressability — a hull cell can attend to "sailboat"
+(compositional addressability, so a hull cell can attend to "sailboat"
 while another region attends to "two"), and their pooled mean joins a
-global additive vector along with a mask-ratio embedding — the model
+global additive vector along with a mask-ratio embedding. The model
 always knows how far along the decode is, the analogue of a diffusion
 model being told its noise level. All conditioning projections are
 zero-initialized, so the pathway is an exact no-op at splice time: text
@@ -215,12 +215,12 @@ later retrofits (the critic head) reuse the same trick.</p>
   cross-attention in every block
   (per-cell addressing: one cell attends
    to "lighthouse", another to "a")</pre>
-<p class="cap">Fig. 3 — the conditioning pathway. Token vectors give
+<p class="cap">Fig. 3. The conditioning pathway. Token vectors give
 compositional control through cross-attention; the pooled mean and the
-mask ratio steer globally — the model always knows its own noise
+mask ratio steer globally, so the model always knows its own noise
 level.</p>
 <p><em>Critic.</em> A 513-parameter linear head predicts, per visible
-cell, "is this glyph correct?" — trained for free from labels the
+cell, "is this glyph correct?". It is trained for free from labels the
 self-context corruption already computes (&sect;3), consumed at decode
 time to rank commitments and select revisions (Token-Critic
 [2]).</p>
@@ -230,9 +230,9 @@ time to rank commitments and select revisions (Token-Critic
 predict the originals given the survivors and the caption. Four
 modifications, each purchased with a documented failure:</p>
 <ul>
-<li><em>Space down-weighting, auto-calibrated.</em> With ~80–90% of
+<li><em>Space down-weighting, auto-calibrated.</em> With 80 to 90% of
 cells being space, plain cross-entropy makes "space" the low-risk answer
-everywhere — the prior behind blank collapse. Space cells are weighted
+everywhere, which is the prior behind blank collapse. Space cells are weighted
 <code>w = (1&minus;f)/f</code> for measured space fraction <code>f</code>
 (equal total gradient share for space and ink), recomputed per dataset
 because a constant tuned on one corpus is a measurement of that corpus in
@@ -241,7 +241,7 @@ disguise.</li>
 smoothed toward visually similar glyphs (predicting <code>|</code> for
 <code>/</code> costs less than <code>@</code>), and an auxiliary MSE
 compares the differentiably rendered expectation of the prediction with
-the rendered target — the loss sees what the eye sees.</li>
+the rendered target, so the loss sees what the eye sees.</li>
 <li><em>Mask-ratio distribution biased to 1.0.</em> Generation starts
 from a fully masked grid; training ratios are sine-warped toward high
 values with max exactly 1.0, or the first and hardest decode steps run
@@ -249,7 +249,7 @@ out of distribution.</li>
 <li><em>Self-context training (SUNDAE-style).</em> Half of all batches
 rebuild part of their visible context from the model's own sampled
 predictions, and the loss keeps scoring <em>every</em> originally-masked
-cell — including the self-committed ones. The sign of that last clause
+cell, including the self-committed ones. The sign of that last clause
 is load-bearing: an ablation that excluded committed cells from the loss
 taught the model that its own wrong commits are legitimate context to
 extend, and measurably worsened the artifact it was meant to fix
@@ -265,21 +265,21 @@ extend, and measurably worsened the artifact it was meant to fix
                                               |
                                       trained forward
                                               |
-                loss on EVERY originally-masked cell --
+                loss on EVERY originally-masked cell,
                 the self-committed ones included</pre>
-<p class="cap">Fig. 4 — self-context training. Inference always
+<p class="cap">Fig. 4. Self-context training. Inference always
 conditions on the model's own commits; this puts that state into the
 training distribution. Scoring the self-committed cells is the
 load-bearing clause (&sect;6, failure 8): excluding them taught the
 model its own errors were legitimate context.</p>
-<p><em>Curriculum.</em> Three stages — procedural geometry, synthetic
-captioned subjects, human-made pieces — at decreasing learning rates,
+<p><em>Curriculum.</em> Three stages (procedural geometry, synthetic
+captioned subjects, human-made pieces) at decreasing learning rates,
 with earlier stages replayed into <em>every</em> later stage at
 non-trivial fractions (~20%): single-hop replay at 3% measurably erased
 geometry by the end of training. Rare captions are upsampled toward the
 ~1000-exposure threshold that knowledge-capacity scaling work [7]
 associates with full-fidelity storage, and the masked objective tolerates
-data repetition far beyond autoregressive norms — random masking is
+data repetition far beyond autoregressive norms, because random masking is
 itself per-epoch augmentation [6].</p>
 
 <figure>
@@ -311,7 +311,7 @@ itself per-epoch augmentation [6].</p>
 </g>
 </svg>
 </figure>
-<p class="cap">Fig. 5 — geometry-stage loss, six epochs, from the actual
+<p class="cap">Fig. 5. Geometry-stage loss, six epochs, from the actual
 training log of the self-context run (space-weighted cross-entropy plus
 auxiliary terms). The train series is the in-epoch running mean, which
 resets at epoch boundaries; validation is evaluated on the EMA weights,
@@ -320,10 +320,10 @@ Validation improves monotonically except a single epoch-4 blip.</p>
 
 <h2><span class="n">4</span>THE DATA ENGINE</h2>
 <p>Captioned ASCII art does not exist at scale, so the training set is
-manufactured caption-first — every label correct by construction:</p>
+manufactured caption-first, so every label is correct by construction:</p>
 <pre class="fig">caption --&gt; t2i --&gt; trim --&gt; flatten --&gt; convert --&gt; ink  --&gt; CLIP --&gt; (grid,
  bank      image    border   background  to glyphs   band    filter    caption)</pre>
-<p class="cap">Fig. 6 — one generated image yields up to nine training
+<p class="cap">Fig. 6. One generated image yields up to nine training
 samples: three style dialects (silhouette / outline / tonal, selected at
 inference by caption tags) &times; itself plus count and pair composites
 tiled from already-paid-for singles.</p>
@@ -333,7 +333,7 @@ an ink-quota binarizer that blobified photographs, a 93%-chimera prompt
 bank, contrast enhancement that amplified paper texture into a canvas-wide
 film, dialects that collapsed into one on stroke-drawn subjects) are
 catalogued with the others in &sect;6 and in the project's study guide.
-Tone has a resolution floor — tone variety scales with cell count [9] —
+Tone has a resolution floor, since tone variety scales with cell count [9],
 so subjects whose tonal conversion inks under 8% of the grid route their
 untagged caption to the outline dialect instead: at 48&times;80, line
 structure is the legible strategy for sparse subjects.</p>
@@ -351,17 +351,17 @@ and at decode (an annealed anti-space logit bias, exploration noise on
 commit order).</p>
 <p><em>Parallel-commit edge echo.</em> The cosine schedule commits the
 <em>most</em> cells in its final steps, and the cells left last are
-precisely the ambiguous ones — every column an unseen edge could fall on.
-Mass-committed in one parallel step, each samples a different answer:
-several offset copies of the same edge. An inpainting probe isolated the
-mechanism (visible half of a rectangle &rarr; clean pinned region, a band
+precisely the ambiguous ones: every column an unseen edge could fall on.
+Mass-committed in one parallel step, each samples a different answer,
+giving several offset copies of the same edge. An inpainting probe isolated
+the mechanism (visible half of a rectangle &rarr; clean pinned region, a band
 of competing edges exactly where the hidden edge could be), and the fix is
 a <em>tail-only commit cap</em>: the head of the decode runs free (layout
 forms under exploration and rising guidance), and once the mask ratio
 falls below 0.35 commits are capped at 8 cells per step, resolving the
 ambiguous tail sequentially. A/B at fixed seed: "a cross" went from
 155-ink multi-stroke chaos to a perfect 28-ink cross; capping the
-<em>whole</em> decode instead collapsed sparse prompts to blank — the two
+<em>whole</em> decode instead collapsed sparse prompts to blank. The two
 regimes need opposite treatment, which is the finding.</p>
 <pre class="fig">  mask ratio  1.0 ------------------- 0.35 ------------------- 0.0
               |     HEAD: uncapped      |    TAIL: cap 8 / step  |
@@ -371,25 +371,25 @@ regimes need opposite treatment, which is the finding.</p>
               |  layout forms           |  decision              |
               +--------------------------------------------------+
                blank attractor lives      edge echo is born here:
-               here -- anti-space bias    the ambiguous cells are
+               here: anti-space bias      the ambiguous cells are
                and noise keep early       committed last, and the
                ink alive                  cap serializes them</pre>
-<p class="cap">Fig. 7 — the two-regime decode. Head and tail fail in
+<p class="cap">Fig. 7. The two-regime decode. Head and tail fail in
 opposite directions and need opposite treatment: freeing the head fixed
 blank collapse ("a dragon" 8 &rarr; 865 ink), capping the tail fixed the
 echo ("a cross" 155 &rarr; 28 ink), on the same checkpoint.</p>
 
 <figure><div class="figrow">
   <div class="cell"><img src="fig/rect_echo.png"
-    alt="Rectangle with nested duplicated borders"><div class="lb">"a rectangle" — uncapped (300 ink)</div></div>
+    alt="Rectangle with nested duplicated borders"><div class="lb">"a rectangle", uncapped (300 ink)</div></div>
   <div class="cell"><img src="fig/rect_clean.png"
     alt="A single clean rectangle"><div class="lb">with tail cap (97 ink)</div></div>
   <div class="cell"><img src="fig/cross_echo.png"
-    alt="Cross with thick multi-stroke arms"><div class="lb">"a cross" — uncapped (155 ink)</div></div>
+    alt="Cross with thick multi-stroke arms"><div class="lb">"a cross", uncapped (155 ink)</div></div>
   <div class="cell"><img src="fig/cross_clean.png"
     alt="A clean single-stroke cross"><div class="lb">with tail cap (28 ink)</div></div>
 </div></figure>
-<p class="cap">Fig. 8 — the edge echo and its cure, real probe outputs:
+<p class="cap">Fig. 8. The edge echo and its cure, real probe outputs:
 same checkpoint, same seed and guidance; the material change is the
 tail-only commit cap. Every offset stroke in the left panels is a
 separately-committed hypothesis for the same edge.</p>
@@ -402,7 +402,7 @@ separately-committed hypothesis for the same edge.</p>
   <div class="cell"><img src="fig/inp_done.png"
     alt="The completed diamond, identical to ground truth"><div class="lb">completion</div></div>
 </div></figure>
-<p class="cap">Fig. 9 — the inpainting probe that separated "the model
+<p class="cap">Fig. 9. The inpainting probe that separated "the model
 doesn't know shapes" from "the decode can't coordinate": shown the left
 half of a diamond, the capped decode completes it at 100% cell accuracy,
 100% ink precision and recall. Knowledge was never the problem.</p>
@@ -415,17 +415,17 @@ half of a diamond, the capped decode completes it at 100% cell accuracy,
   <div class="cell"><img src="fig/triangle.png"
     alt="A closed right triangle"><div class="lb">"a triangle"</div></div>
 </div></figure>
-<p class="cap">Fig. 10 — final-model outputs, unedited. The dragon is the
-best of four seeds under the canonical decode — which is precisely the
+<p class="cap">Fig. 10. Final-model outputs, unedited. The dragon is the
+best of four seeds under the canonical decode, which is precisely the
 serve-time selection policy (&sect;5): across those four seeds the same
 settings produced 90 to 979 ink cells, so single-seed judgments of a
 stochastic sampler mislead in both directions. The geometry pair is
-drawn after the full three-stage curriculum — the primitives survived
+drawn after the full three-stage curriculum, so the primitives survived
 two later training stages intact (the replay result of &sect;3).</p>
 <p><em>Serve time.</em> k candidates are drawn and re-ranked by CLIP over
 the rendered grids (best-of-k); the intermediate grids double as the
-site's materialize animation — the visualization is the algorithm,
-unmodified.</p>
+site's materialize animation, so the visualization shows the algorithm
+itself running, unmodified.</p>
 
 <h2 id="failures"><span class="n">6</span>THE FAILURE CHRONICLE</h2>
 <p>Nine failures shaped the system. Each is stated as symptom &rarr;
@@ -433,16 +433,16 @@ cause &rarr; fix; the lessons are the paper's real payload.</p>
 
 <div class="fail"><div class="t"><span class="n">01</span>Blank-grid collapse</div>
 <p>Reconstruction excellent, free generation empty. <span class="k">Cause:</span>
-class prior (80% space) &times; confidence-first commitment — the majority
+class prior (80% space) &times; confidence-first commitment, so the majority
 class commits first and becomes everyone's context. <span class="k">Fix:</span>
-three levels at once — loss reweighting, mask-ratio coverage of the
+three levels at once: loss reweighting, mask-ratio coverage of the
 start state, annealed decode bias. <span class="k">Lesson:</span> imbalance
 plus confidence ordering is a feedback loop, not a bias.</p></div>
 
 <div class="fail"><div class="t"><span class="n">02</span>Guidance is an object-count dial</div>
 <p>"A cross" at scale 3 &rarr; several crosses. <span class="k">Cause:</span>
 the strongest "more prompt-like" direction is more instances of the
-subject's features. <span class="k">Fix:</span> calibration (~1.5–2), surfaced
+subject's features. <span class="k">Fix:</span> calibration (~1.5 to 2), surfaced
 as a knob. <span class="k">Lesson:</span> a knob's textbook meaning is a
 hypothesis in a new domain.</p></div>
 
@@ -458,10 +458,10 @@ property you don't set explicitly is set implicitly.</p></div>
 <p>Multi-GPU training crashed in the gradient reducer; single-GPU was
 fine. <span class="k">Cause:</span> a learned null token entered the graph
 only when a batch happened to contain uncaptioned samples.
-<span class="k">Fix:</span> unconditional <code>where</code>-selection;
+<span class="k">Fix:</span> unconditional <code>where</code>-selection,
 proven by a 2-process CPU smoke test that later caught the same trap a
 second time when the critic head landed. <span class="k">Lesson:</span> no
-data-dependent control flow over parameters; keep the cheap distributed
+data-dependent control flow over parameters, and keep the cheap distributed
 test forever.</p></div>
 
 <div class="fail"><div class="t"><span class="n">05</span>Worker-pool death by file descriptor</div>
@@ -469,46 +469,46 @@ test forever.</p></div>
 <span class="k">Cause:</span> torch tensors cross process boundaries by
 fd-sharing; a steady stream leaked descriptors. <span class="k">Fix:</span>
 workers return numpy; spawn, not fork, under a CUDA parent.
-<span class="k">Lesson:</span> compute types &ne; transport types; long runs
-find leaks tests cannot.</p></div>
+<span class="k">Lesson:</span> compute types &ne; transport types, and long
+runs find leaks tests cannot.</p></div>
 
 <div class="fail"><div class="t"><span class="n">06</span>The engine rejecting 90% of itself</div>
 <p>Rejection logs spiked at exactly 0.900 ink. <span class="k">Cause:</span>
 letterboxed images converting to solid sidebars, plus an ink-quota
 binarizer. <span class="k">Fix:</span> the full intake chain, tuned on cheap
 preview batches; keep rate 10&rarr;78%. <span class="k">Lesson:</span> log
-<em>why</em> rejects happen — the spike was the entire diagnosis.</p></div>
+<em>why</em> rejects happen. The spike was the entire diagnosis.</p></div>
 
 <div class="fail"><div class="t"><span class="n">07</span>Dropout silently vetoed prompt following</div>
 <p>Conditioning wired and verified, output caption-agnostic; a 64-grid
 memorization test stuck at loss ~1.0. <span class="k">Cause:</span> at high
 mask ratios the only route to the answer is the precise caption pathway;
 zeroing 10% of activations makes it unreliable, so training settles for
-robust texture. Same model, dropout 0: loss 0.034 — 30&times; from a
+robust texture. Same model, dropout 0: loss 0.034, a 30&times; gap from a
 regularizer. <span class="k">Fix:</span> dropout 0; random masking is the
 regularizer. <span class="k">Lesson:</span> defaults are not free, and tiny
 memorization tests separate optimization pathology from capacity.</p></div>
 
 <div class="fail"><div class="t"><span class="n">08</span>Edge echo, and a fix that backfired</div>
 <p>Shapes drawn with nested duplicated borders, immune to every decode
-knob. <span class="k">Cause:</span> two problems in one costume — exposure
-bias (training never shows the model its own commits) and
+knob. <span class="k">Cause:</span> two separate problems behind one
+symptom, namely exposure bias (training never shows the model its own commits) and
 parallel-commit multimodality (&sect;5). The first self-context
 implementation excluded committed cells from the loss and made the echo
 <em>worse</em> while every training metric looked healthy: it taught the
 model to trust its own mistakes. <span class="k">Fix:</span> loss over all
 originally-masked cells (the model learns to contradict its errors) plus
 the tail-only commit cap. <span class="k">Lesson:</span> the loss mask
-carries the sign of the lesson; validate training-side fixes with
+carries the sign of the lesson, so validate training-side fixes with
 decode-side probes.</p></div>
 
 <div class="fail"><div class="t"><span class="n">09</span>The triangle was never a triangle</div>
 <p>Spotted by eye in a probe's ground-truth panel: the "triangle"
-primitive drew three rays from one vertex — an open fan. 200k samples
+primitive drew three rays from one vertex, an open fan. 200k samples
 taught it as truth, and the model's fan-completions suddenly made sense.
 <span class="k">Fix:</span> close the hypotenuse. <span class="k">Lesson:</span>
 synthetic labels are only correct by construction if the construction is
-correct; render every primitive and look at it.</p></div>
+correct. Render every primitive and look at it.</p></div>
 
 <h2 id="findings"><span class="n">7</span>FINDINGS, INCLUDING NEGATIVE ONES</h2>
 <div class="tablewrap"><table>
@@ -518,16 +518,16 @@ correct; render every primitive and look at it.</p></div>
 <tr><td>self-context, loss on committed cells</td>
     <td>echo eliminated at the root (with cap)</td><td>adopted</td></tr>
 <tr><td>self-context, loss on masked cells only</td>
-    <td>echo worsened; healthy training metrics</td><td>rejected — sign flip</td></tr>
+    <td>echo worsened; healthy training metrics</td><td>rejected (sign flip)</td></tr>
 <tr><td>tail-only commit cap (8/step below ratio 0.35)</td>
     <td>cross 155&rarr;28 ink, clean; full-decode cap blanked sparse prompts</td>
     <td>adopted, tail only</td></tr>
 <tr><td>rise guidance keyed to step progress</td>
     <td>removes capped-decode dead zone at scale ~1</td><td>adopted</td></tr>
 <tr><td>Halton low-discrepancy commit order [4]</td>
-    <td>glyph soup — 94 of 96 glyphs as speckle; position-forced commits
+    <td>glyph soup: 94 of 96 glyphs as speckle; position-forced commits
         seed noise on blank-dominated marginals</td>
-    <td>rejected — does not transfer from dense VQ grids</td></tr>
+    <td>rejected, does not transfer from dense VQ grids</td></tr>
 <tr><td>ReMDM-style in-loop remasking [3], confidence-scored</td>
     <td>strips fragile early ink seeds; sparse prompts 70&rarr;4 ink</td>
     <td>shelved pending critic scoring</td></tr>
@@ -535,22 +535,22 @@ correct; render every primitive and look at it.</p></div>
     <td>upscale bridges 1-wide strokes into doubled lines</td>
     <td>rejected untrained; scale-trained variant future work</td></tr>
 <tr><td>30-epoch shading stage + rare-caption upsampling</td>
-    <td>sparse-subject restoration — the Fig.&nbsp;1 lighthouse, previously
+    <td>sparse-subject restoration: the Fig.&nbsp;1 lighthouse, previously
         a 44-ink scatter</td><td>adopted</td></tr>
 <tr><td>critic head (513 params, aux weight 0.1) as commit ranker</td>
-    <td>quality collapse (lighthouse 380&rarr;44 ink) — too weak a judge;
-        Token-Critic used a dedicated transformer</td>
+    <td>quality collapse (lighthouse 380&rarr;44 ink); too weak a judge,
+        since Token-Critic used a dedicated transformer</td>
     <td>rejected at this scale; revision-only role untested</td></tr>
 </table></div>
-<p class="cap">Table 1 — every adopted setting was decided by fixed-seed
+<p class="cap">Table 1. Every adopted setting was decided by fixed-seed
 A/B probes on standard prompts; two 3-0-literature-verified techniques
 failed those probes anyway. The probes, not the papers, are the
 authority.</p>
 
 <figure><img src="fig/halton_soup.png" style="max-height:380px"
   alt="A dense field of speckled random glyphs"></figure>
-<p class="cap">Fig. 11 — what a negative result looks like: "a dragon"
-under the Halton low-discrepancy commit order — 2,635 ink cells using 94
+<p class="cap">Fig. 11. What a negative result looks like: "a dragon"
+under the Halton low-discrepancy commit order, at 2,635 ink cells using 94
 of the 96 glyphs, pure speckle. Position-forced early commits sample from
 near-uniform marginals on a blank-dominated canvas, then texture grows
 around the noise. The same checkpoint drew coherent tonal art under
@@ -560,8 +560,8 @@ confidence ordering.</p>
 <ul>
 <li>Sparse-subject tonal generation was exposure-limited; the 30-epoch
 cycle restored the lighthouse (Fig.&nbsp;1). Remaining tonal variance is
-seed-dominated (90–979 ink across four seeds for "a dragon" at identical
-settings, Fig.&nbsp;10) — the uncapped decode raises the worst-seed floor
+seed-dominated (90 to 979 ink across four seeds for "a dragon" at identical
+settings, Fig.&nbsp;10). The uncapped decode raises the worst-seed floor
 (575 vs 90) and best-of-k re-ranking selects the winners, so serving
 tonal prompts uncapped with k&nbsp;=&nbsp;4 is the operative policy.</li>
 <li>Off-the-shelf CLIP scores ASCII structure at chance level [8], so the
