@@ -647,4 +647,4 @@ Stage 1 (geometry) was cut from 15 epochs to 6 with a full cosine anneal after i
 
 ---
 
-*nASCIIente · ascii-art-transformer · study document, first-principles edition · all equations as implemented in the code · revised 2026-07-10*
+*nASCIIente · study document, first-principles edition · all equations as implemented in the code · revised 2026-07-10*
