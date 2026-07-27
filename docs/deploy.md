@@ -44,7 +44,7 @@ Hetzner CX22 / CPX11 (or any 2 GB VPS). Once, on the fresh server:
 
 ```bash
 apt-get update && apt-get install -y docker.io caddy git
-git clone https://github.com/<you>/ascii-art-transformer && cd ascii-art-transformer
+git clone https://github.com/<you>/nasciiente && cd nasciiente
 docker build -t nasciiente .
 docker run -d --restart unless-stopped -p 127.0.0.1:7860:7860 \
   -e ASCII_CHECKPOINT_HF=<youruser>/nasciiente-model \

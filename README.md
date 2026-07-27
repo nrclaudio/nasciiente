@@ -14,7 +14,7 @@ of a probability cloud, one commitment at a time.
 <p align="center"><em>"a lighthouse" — unedited output of the final
 model, rendered through its own glyph atlas.</em></p>
 
-**[Read the white paper](https://nrclaudio.github.io/ascii-art-transformer/)** —
+**[Read the white paper](https://nrclaudio.github.io/nasciiente/)** —
 architecture, training recipe, and nine documented failures with their
 diagnoses, including two decoding pathologies specific to sparse
 discrete canvases and the published techniques that did not survive
@@ -48,8 +48,8 @@ MPS).
 ## Run the live demo locally
 
 ```bash
-git clone https://github.com/nrclaudio/ascii-art-transformer.git
-cd ascii-art-transformer
+git clone https://github.com/nrclaudio/nasciiente.git
+cd nasciiente
 pip install -r requirements.txt
 
 # fetch the checkpoint (or place your own at checkpoints/final_model.pt)

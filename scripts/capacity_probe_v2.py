@@ -1,5 +1,5 @@
 import sys, torch
-sys.path.insert(0, '.')
+sys.path.insert(0, __import__('os').path.join(__import__('os').path.dirname(__file__), '..'))
 import training.train as T
 T.COND_DROPOUT = 0.0   # patch the module global: every row keeps its caption
 
