@@ -1,5 +1,13 @@
 # Deploying nASCIIente
 
+> **Current choice: no always-on server.** The public face of the
+> project is the white paper on GitHub Pages
+> (`.github/workflows/pages.yml` publishes `docs/paper/` on every push
+> to main; the custom domain points there), the weights are public on
+> the HF model repo, and the live demo runs locally when needed. The
+> options below remain the upgrade path if live public generation ever
+> becomes worth hosting.
+
 The site is one FastAPI process (model + static frontend) and ships as a
 Docker image (`Dockerfile` at the repo root). The checkpoint is **not**
 baked into the image — the server downloads it from a Hugging Face model
@@ -36,7 +44,7 @@ Hetzner CX22 / CPX11 (or any 2 GB VPS). Once, on the fresh server:
 
 ```bash
 apt-get update && apt-get install -y docker.io caddy git
-git clone https://github.com/<you>/ascii-art-transformer && cd ascii-art-transformer
+git clone https://github.com/<you>/nasciiente && cd nasciiente
 docker build -t nasciiente .
 docker run -d --restart unless-stopped -p 127.0.0.1:7860:7860 \
   -e ASCII_CHECKPOINT_HF=<youruser>/nasciiente-model \

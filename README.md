@@ -1,311 +1,98 @@
-# ascii-art-transformer
+# nASCIIente
 
-A BERT-style masked-token transformer that generates ASCII art on a 48×80
-character grid, MaskGIT-style: start from a fully (or partially) masked grid
-and iteratively unmask the most confident positions until the picture is
-complete. Because the model is bidirectional, the same network does both
-free generation and inpainting (fill in the blanks around user-provided
-characters).
+*naciente* — Spanish for what is being born — with ASCII in the middle,
+because that is the medium it is born into. A 34.5M-parameter masked
+transformer that draws ASCII art from a text prompt: every picture
+starts as a fully masked 48×80 canvas and each character condenses out
+of a probability cloud, one commitment at a time.
 
-```
-fully masked grid ──▶ ASCIIBert ──▶ logits per cell ──▶ unmask top-k most
-        ▲                                                confident cells
-        └────────────────── repeat ~10 steps ──────────────────┘
-```
+<p align="center">
+  <img src="docs/paper/fig/lighthouse.gif" width="428"
+       alt='"a lighthouse" — an unedited generation from the final model,
+            materializing character by character'>
+</p>
+<p align="center"><em>"a lighthouse" — unedited output of the final
+model, rendered through its own glyph atlas.</em></p>
 
-## Architecture
+**[Read the white paper](https://nrclaudio.github.io/nasciiente/)** —
+architecture, training recipe, and nine documented failures with their
+diagnoses, including two decoding pathologies specific to sparse
+discrete canvases and the published techniques that did not survive
+contact with this domain. The failure chronicle carries most of the
+transferable knowledge.
 
-- **ASCIIBert** (`model/ascii_bert.py`) — ~35M parameters with the default
-  config: 8 pre-norm transformer encoder layers, 512 dim, 8 heads, GELU FFN
-  (2048), gradient checkpointing.
-- **2D RoPE** (`model/embeddings.py`) — each attention head splits in half;
-  the first half rotates by row position, the second by column position.
-  No learned positional embeddings, so the model runs on any grid size up
-  to 64×128 (`MAX_ROWS`/`MAX_COLS`).
-- **Vocabulary** (`data/charset.py`) — 95 printable ASCII chars (indices
-  2–96) plus `[PAD]`(0) and `[MASK]`(1).
-- **Training objective** (`training/masking.py`) — mask a uniform-random
-  15–85% of cells, cross-entropy on masked positions only. The wide mask
-  ratio range is what makes MaskGIT-style inference work: early inference
-  steps look like 85% masking, late steps like 15%.
-- **Inference** (`model/inference.py`) — iterative unmasking with a linear
-  schedule; per-step confidence = max softmax probability; sampling with
-  temperature. Positions given in `initial_grid` are never overwritten
-  (inpainting).
+**[Model weights on Hugging Face](https://huggingface.co/nrclaudio/nasciiente-model)** —
+inference is CPU-deployable at ~140 MB (and fast on Apple Silicon via
+MPS).
 
-## Training curriculum
+## What it is
 
-1. **Geometry** (`data/generate_geometry.py`) — 200k synthetic grids of
-   lines, rectangles, triangles, crosses, diamonds and short text labels.
-   Teaches structural primitives cheaply.
-2. **Shading** (`data/generate_shading.py`) — 100k grids derived from
-   images. Default source is **ImageNet-Sketch** (~50k line drawings,
-   streamed from HuggingFace, no auth) — sketches convert to much cleaner
-   ASCII than photos and match the geometry stage's distribution; photo
-   sources (ImageNet / Imagenette / Caltech-101/256 / STL-10) remain
-   available via `--source`. Each image is converted with 6D sub-cell
-   shape matching: every cell is sampled by 6 circular regions and matched
-   to the closest glyph in that 6D space, after adaptive gamma → CLAHE →
-   Sobel edge blending. The converter letterboxes to preserve aspect
-   ratio, auto-flips polarity so backgrounds render sparse, and floors
-   low-ink pixels to true whitespace. For busy photos, `--segment`
-   additionally removes backgrounds with rembg (optional dependency:
-   `pip install rembg onnxruntime`). See `data/DATASET_OPTIONS.md` for the
-   dataset comparison.
-2b. **Synthetic prompts** (`data/generate_synthetic.py`, optional but
-   recommended) — the data engine: renders a combinatorial caption bank
-   ("a sleeping fox", "two sailboats", "a dragon and a castle") with a
-   small local text-to-image model (SD-Turbo by default) in a
-   line-drawing style, converts through the same 6D pipeline, and saves
-   the standard payload. This is what teaches open-prompt following —
-   ImageNet-Sketch alone caps captions at 1,000 single nouns. Needs a
-   GPU and `pip install diffusers accelerate`:
-   `python data/generate_synthetic.py --num-samples 200000 --merge
-   data/shading_data.pt`, then train with
-   `--shading-data data/synthetic_data.pt`.
-3. **Human ASCII art** (`data/prepare_human_ascii.py`, optional) —
-   fine-tune on ~5k human-made pieces (HuggingFace `apehex/ascii-art`,
-   scraped from asciiart.eu), normalized to 48×80 and filtered to the
-   95-char vocabulary. Runs automatically as stage 3 if
-   `data/human_data.pt` exists; skipped otherwise.
+- The **grid of characters is the object being modeled** — no pixel
+  image, no learned tokenizer. 96 printable glyphs + `[PAD]` + `[MASK]`
+  are the whole vocabulary.
+- A bidirectional transformer (8 pre-norm blocks, width 512, factorized
+  **2D rotary attention**) trained from scratch as a masked predictor,
+  conditioned on captions through frozen-CLIP cross-attention.
+- Sampled MaskGIT-style — iterative parallel unmasking under
+  classifier-free guidance, with a **two-regime decode** (uncapped
+  exploratory head / commit-capped sequential tail) that the paper
+  motivates with fixed-seed ablations.
+- Trained on a **self-manufactured captioned corpus**: text-to-image
+  generations converted deterministically to ASCII in three style
+  dialects, every label correct by construction.
+- Because the model is bidirectional, the same network does free
+  generation, **inpainting** (fill around fixed characters), and
+  2× **super-resolution** (anchor characters on a larger canvas, mask
+  the gaps).
 
-## Quickstart
+## Run the live demo locally
 
 ```bash
+git clone https://github.com/nrclaudio/nasciiente.git
+cd nasciiente
 pip install -r requirements.txt
 
-# Run the test suite (CPU, a few seconds)
-pytest tests/
+# fetch the checkpoint (or place your own at checkpoints/final_model.pt)
+hf download nrclaudio/nasciiente-model final_model.pt --local-dir checkpoints
 
-# Full pipeline on a GPU box (generates data, then trains all stages)
-python main.py                       # designed for Vast.ai instances
-python main.py --stage geometry      # or run stages individually
-python main.py --stage shading --source imagenette
-python main.py --stage human         # optional stage-3 human ASCII art
-python main.py --stage train
-
-# SLURM clusters (multi-GPU: raise --gres=gpu:N in the script)
-sbatch train_slurm.sh
-
-# Multi-GPU on any box (main.py does this automatically when it sees >1 GPU)
-torchrun --standalone --nproc_per_node=4 training/train.py
-
-# Evaluate a checkpoint / inpainting demo
-python training/evaluate.py --checkpoint checkpoints/final_model.pt \
-                            --data data/geometry_data.pt
-
-# Web UI — terminal-styled studio: prompted generation with preset chips,
-# seeds/variations, a step-by-step materialize animation, inpainting with
-# iterative riffing, a guidance-sweep lab, per-epoch training progress,
-# txt/PNG export. Uses the GPU when >3GB VRAM is free, else CPU.
-streamlit run app/streamlit_app.py
+python -m uvicorn app.server:app --port 8081
 ```
 
-### Resource requirements (single full run)
+Open http://localhost:8081 — type a prompt, watch it materialize in the
+model's actual commit order. The page also converts uploaded images and
+GIFs to ASCII through the training data engine's converter. A
+`Dockerfile` and hosting notes live in [`docs/deploy.md`](docs/deploy.md).
 
-| Resource | Minimum | Comfortable | Notes |
-|----------|---------|-------------|-------|
-| GPU VRAM | 16 GB | 24 GB (4090) / 40+ GB (A100) | gradient checkpointing is on; if OOM, halve `BATCH_SIZE` and set `GRAD_ACCUM_STEPS = 2` |
-| System RAM | 32 GB | 64 GB | peak ~20 GB during shading generation (images held in RAM as grayscale uint8) |
-| Disk | 40 GB | 60 GB | docker image + datasets (~1.2 GB) + rolling checkpoints (~2 GB) |
-| CPU | 8 cores | 16 cores | data generation is CPU-bound |
-| Network | 100 Mbps | — | streams ~50k images from HuggingFace |
+## Training your own
 
-Notes:
-- The default shading source `imagenet_sketch` streams via HuggingFace
-  with no auth. `--source imagenet` needs a HF token with ImageNet
-  access; `imagenette`/`caltech101`/`caltech256` need no auth.
-- Loaders store images as grayscale uint8 downscaled to the conversion
-  canvas, and dataset files store grids as uint8 (the 98-char vocab fits
-  in a byte) — full-size RGB float storage would need hundreds of GB.
-- Checkpoints are rolling: `{stage}_last.pt` (every epoch) and
-  `{stage}_best.pt` (on val improvement), not one file per epoch. One
-  generated sample per epoch is archived to `checkpoints/samples/`; the
-  Streamlit app's "Training progress" mode scrubs through them.
-- Training defaults (`config.py`) target a single A100: batch 64,
-  15 epochs per stage, cosine schedule with warmup. Checkpoints are
-  written to `checkpoints/` every epoch, plus `final_model.pt`.
-- Sample shading conversions are in `samples/focused/` (image / .txt pairs).
+The full pipeline (procedural geometry → captioned synthetic subjects →
+human ASCII fine-tune, with cross-stage replay) is driven by `main.py`
+and documented in the paper's §3–4. One consumer GPU suffices; the v4
+run that produced the released checkpoint was a single rented A100 day.
 
-## Repository layout
-
-```
-config.py                 all hyperparameters
-main.py                   single entry point (generate + train)
-data/
-  charset.py              vocab and grid<->string helpers
-  generate_geometry.py    stage-1 synthetic data
-  generate_shading.py     stage-2 image-derived data (6D shape matching)
-  prepare_human_ascii.py  stage-3 human ASCII art (optional)
-  glyph_sim.py            glyph-similarity soft-target matrix
-  text_embed.py           frozen CLIP text encoder for prompt conditioning
-model/
-  ascii_bert.py           the model
-  embeddings.py           token embedding + 2D RoPE
-  transformer.py          pre-norm encoder stack (SDPA/Flash attention)
-  inference.py            MaskGIT-style iterative unmasking
-training/
-  masking.py, dataset.py  random masking + Dataset wrapper
-  train.py                two-stage training loop
-  evaluate.py             val metrics, sample generation, inpainting demo
-app/
-  streamlit_app.py        web UI (generate / inpaint / guidance lab /
-                          training progress, terminal aesthetic)
-tests/                    CPU-fast pytest suite
+```bash
+python main.py                      # everything: data → three stages
+python main.py --stage geometry     # or stage by stage
+torchrun --standalone --nproc_per_node=4 training/train.py   # multi-GPU
+pytest tests/                       # 130 tests, CPU, ~90 s
 ```
 
-## Generation quality & controllability
+## Repository map
 
-Two packages of improvements sit on top of the base model.
+| Path | What |
+|------|------|
+| `model/` | ASCIIBert, 2D RoPE, decode loop (tail cap, guidance schedules, critic) |
+| `training/` | masking curriculum, self-context training, replay, EMA |
+| `data/` | the data engine: t2i → ASCII converter, dialects, quality filters |
+| `app/` | FastAPI server + the site (`app/static/index.html`) |
+| `docs/paper/` | the white paper (also served via GitHub Pages) |
+| `docs/study-guide.md` | first-principles study document of every mechanism |
+| `probes/` | the probe outputs behind every claim in the paper |
+| `TODO.md` / `STATUS.md` | live project state and queued experiments |
 
-**Inference-time (works on any checkpoint, no retraining):**
-- **Cosine unmask schedule** (MaskGIT): commit few cells early, many late,
-  instead of an even split — early context is poor, so be conservative.
-- **Gumbel-annealed confidence**: rank which cells to commit by
-  `log P(sampled) + Gumbel noise`, with the noise annealed to zero across
-  steps. Explores early, commits greedily late; avoids the deterministic
-  error-cascade of raw max-probability ranking.
-- **Revision passes**: after the main fill, re-mask the least-confident
-  cells and refill them (a cheap Token-Critic-style self-correction). The
-  one-pass loop can never fix an early mistake; this can.
-- **Vectorized sampling**: one batched `multinomial` over the grid.
+## License
 
-**Trained-in (require run #2 with the new data/model):**
-- **Text-prompt conditioning + classifier-free guidance (CFG)**: every
-  dataset now carries captions — geometry samples describe their
-  primitives ("a rectangle and a cross"), ImageNet-Sketch contributes its
-  class names, and human ASCII art keeps its titles. Captions are embedded
-  once with a frozen CLIP text encoder (`data/text_embed.py`); every
-  transformer block **cross-attends to the caption's token sequence**
-  (compositional control — grid cells can bind to individual words), and
-  the tokens' masked mean feeds a global additive vector. 10% caption
-  dropout to a learned null token during training enables CFG, with a
-  guidance knob trading diversity for adherence. `generate(...,
-  prompt="a small sailboat", guidance_scale=3.0)` (or pass precomputed
-  `cond_tokens`/`cond_mask`).
-- **Full mask-ratio coverage, biased high**: training mask ratios reach
-  1.0 and are sampled with density concentrated toward high ratios
-  (Muse-style), so the near-empty canvases generation actually visits get
-  most of the practice.
-- **Space-weighted loss** (`SPACE_LOSS_WEIGHT`): ~80% of cells are space,
-  and plain CE makes "space" the low-risk answer everywhere — the prior
-  behind blank-collapse in free generation. Space cells are down-weighted
-  so ink placement carries the gradient.
-- **Stage-3 replay** (`HUMAN_REPLAY_SAMPLES`): the human fine-tune mixes
-  in replayed captioned shading samples so prompt conditioning doesn't
-  erode in the final stage.
-- **Partial runs**: `python training/train.py --init-from
-  checkpoints/geometry_best.pt --stages shading,human` retrains the later
-  stages without repaying for geometry.
-- **Mask-ratio conditioning**: the model is told what fraction of the grid
-  is hidden — the denoising "noise level" a plain masked LM never gets.
-- **Glyph-aware soft labels** (`data/glyph_sim.py`): confusing `/` with `|`
-  costs less than confusing `/` with `@`, because targets are smoothed
-  toward *visually similar* glyphs (from rendered-bitmap similarity). The
-  model learns the visual structure of the character set.
-- **Mixed masking** (`training/masking.py`): random-cell, rectangular-block
-  (inpainting) and strided-anchor (upscaling) masks are mixed during
-  training, so all three inference modes are in-distribution.
-- **EMA weights + bf16 autocast**: a moving average of weights for
-  eval/samples/final checkpoint (free quality), and bf16 mixed precision
-  (~2x faster on the 4090s).
-
-The conditioning params are **zero-initialized**, so they are a no-op until
-trained: a checkpoint from a run without conditioning (e.g. run #1) loads
-with `strict=False` and behaves identically, and the inference-time
-improvements above apply to it unchanged. The frozen text encoder is only
-needed where new text appears (data prep, the start of a conditioned
-training stage, interactive generation) — never inside the training loop,
-which reads precomputed embeddings of each dataset's unique captions.
-
-## Multi-GPU training (DDP)
-
-Training uses **DistributedDataParallel** when launched with `torchrun`
-(or via `python main.py`, which relaunches itself under torchrun when it
-detects more than one GPU). How it works:
-
-- **One process per GPU.** torchrun starts N copies of `train.py` and
-  gives each a `RANK` (0..N-1). Each process holds a full model replica.
-- **Data sharding.** A `DistributedSampler` splits every epoch's samples
-  into N disjoint shards, reshuffled per epoch, so no GPU wastes compute
-  on a sample another GPU already saw.
-- **Gradient all-reduce.** After each backward pass, DDP averages the
-  gradients across all replicas (overlapped with the backward computation
-  itself), so every optimizer step is identical everywhere and the
-  replicas never drift. The effective batch size becomes
-  `BATCH_SIZE × num_gpus`, meaning fewer, larger optimizer steps per
-  epoch — stage learning rates are automatically multiplied by the GPU
-  count to compensate (linear-scaling rule; disable with
-  `SCALE_LR_WITH_GPUS = False` in `config.py`).
-- **Rank 0 does the talking.** Logging, per-epoch samples, and
-  checkpoints come from rank 0 only; checkpoints are saved unwrapped, so
-  they load identically with or without DDP.
-
-The DDP path is exercised by a 2-process CPU (gloo backend) smoke test:
-sharding, gradient sync (replicas stay bit-identical), loss decrease,
-and checkpoint compatibility. On GPUs it uses NCCL automatically. This
-model is small (~35M params), so gradient traffic is light and scaling
-efficiency should be high; data generation is unaffected (CPU-bound).
-
-## Upscaling (generate beyond 48×80)
-
-Two mechanisms, both free consequences of the architecture:
-
-1. **RoPE extrapolation.** The model has no learned positional
-   embeddings — 2D RoPE encodes *relative* row/column offsets inside
-   attention. A model trained at 48×80 therefore runs at any grid size up
-   to `MAX_ROWS × MAX_COLS` (96×160); quality degrades gracefully at
-   relative distances longer than any seen in training. The Streamlit app
-   exposes a 64×128 option.
-2. **MaskGIT super-resolution** (`upscale_grid` in `model/inference.py`,
-   and the "Upscale ×2" button in the app). Take a finished piece, anchor
-   each character at position `(2r, 2c)` of a 2× canvas, mask everything
-   between, and run the normal iterative unmasking to fill the gaps. The
-   anchors are never overwritten, so the result is guaranteed faithful to
-   the source — the model only interpolates detail. This is the
-   inpainting capability reused as an upscaler; no extra training needed
-   (though anchor patterns are out-of-distribution, so expect it to
-   improve if you fine-tune with strided-anchor masking).
-
-The RoPE tables are registered as non-persistent buffers, so raising
-`MAX_ROWS`/`MAX_COLS` later never invalidates existing checkpoints.
-
-## Project status
-
-- ✅ Full pipeline implemented and covered by tests (data generation,
-  masking, model forward/backward, iterative inference, inpainting, app
-  utils, shading conversion).
-- ⬜ **Not yet done: the actual GPU training run.** No trained checkpoint
-  is committed; the Streamlit app needs one. `main.py` (Vast.ai) or
-  `train_slurm.sh` (SLURM) are ready to go — expect a few hours on one
-  A100 for both stages.
-
-## Roadmap
-
-Next steps, roughly in order:
-
-1. **Train the model** on a GPU (see Quickstart) and eyeball per-epoch
-   samples; tune `SHADING_LR`/epochs if stage 2 forgets stage-1 structure,
-   and `HUMAN_LR`/epochs if stage 3 overfits its small dataset.
-2. **Publish a checkpoint** (GitHub release or HF Hub) so the Streamlit
-   app works out of the box.
-3. ~~Better unmasking schedule~~ — **done** (cosine + Gumbel + revision).
-4. ~~Vectorize inference sampling~~ — **done**.
-5. ~~Conditioning~~ — **done** (text-prompt conditioning + CFG via a frozen
-   CLIP text encoder; run #2 trains it. All three stages carry captions —
-   geometry primitive descriptions, ImageNet-Sketch class names, human-art
-   titles).
-6. ~~Cross-attention over caption tokens~~ — **done** (every block
-   cross-attends to the caption token sequence; zero-init so old
-   checkpoints still load and run).
-7. **Larger grids** — RoPE supports up to 96×160; the strided-anchor
-   training now makes 2× upscaling in-distribution. Train with variable
-   grid sizes to push further.
-8. **Image-conditioned rendering** — condition on a source-image encoding
-   and train on the converter's own (image, grid) pairs, so the network
-   becomes a neural image→ASCII renderer that can beat the deterministic
-   converter.
-9. **Stronger conditioning** — AdaLN-Zero modulation (DiT-style) instead of
-   additive conditioning, if prompt control needs to be sharper.
-10. **More human data** — `mrzjy/ascii_art_generation_140k` (139k pieces)
-    and `Csplk/THE.ASCII.ART.EMPORIUM` (3.1M rows) as stage-3 expansions.
+MIT (code). The released weights live in their own
+[model repo](https://huggingface.co/nrclaudio/nasciiente-model);
+third-party datasets referenced by the data tooling keep their upstream
+terms and are not redistributed here.

@@ -1,6 +1,6 @@
 """Quick profiling — gradient checkpointing enabled."""
 import os, sys, time, gc
-sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 import torch
 from config import GRID_H, GRID_W, VOCAB_SIZE
